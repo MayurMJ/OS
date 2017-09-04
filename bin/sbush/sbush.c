@@ -4,12 +4,12 @@
 #define BUFFERSIZE 10000
 #define MAXNUMTOKENS 100
 #define TOKENSIZE 100
-int initArr(char [][TOKENSIZE], int, int);
+
 int loopTerminal();
 int readLine(char*);
 int parseLine(char*, char [][TOKENSIZE]);
 int executeScript(char *);
-int executeCommand(char [][TOKENSIZE]);
+int executeCommand(char [][TOKENSIZE], int);
 
 int main(int argc, char *argv[], char *envp[]) {
   if(argc > 1) {
@@ -21,26 +21,17 @@ int main(int argc, char *argv[], char *envp[]) {
   return 0;
 }
 
-int initArr(char args[][TOKENSIZE], int x, int y) {
-  int i = 0, j = 0;
-  for(i = 0; i < x; i++) {
-    for(j = 0; j < y; j++) {
-      args[i][j] = '\0';
-    }
-  }
-  return 0;
-}
-
 int loopTerminal() {
-  int buffSize = BUFFERSIZE, i = 0, tokensParsed = 0;
+  int buffSize = BUFFERSIZE, i = 0, tokensParsed = 0, status = 0;
   int numTokens = MAXNUMTOKENS;
   char line[buffSize];
   char args[numTokens][TOKENSIZE];
-  initArr(args, numTokens, TOKENSIZE);
-  puts("sbush> ");
-  readLine(line);
-  tokensParsed = parseLine(line, args);
-  executeCommand(args);
+  while(status == 0) {
+    puts("sbush> ");
+    readLine(line);
+    tokensParsed = parseLine(line, args);
+    status = executeCommand(args, tokensParsed);
+  }
   for(i = 0; i < tokensParsed; i++) {
     printf("%s\n", args[i]);
   }
@@ -138,9 +129,14 @@ int executeScript(char *fileName) {
   }
   return 0;
 }
-int executeCommand(char args[][TOKENSIZE]) {
+int executeCommand(char args[][TOKENSIZE], int tokenCount) {
   pid_t pid;
-  char *argv[] = {args[0],(char*)0};
+  int i;
+  char *argv[tokenCount];// = {args[0],(char*)0};
+  for(i = 0; i < tokenCount; i++) {
+    argv[i] = args[i];
+  }
+  argv[i] = (char*)0; 
   //char *argv[] =  {"ls", (char*)0};
   pid = fork();
   if(pid < 0) {
@@ -149,6 +145,7 @@ int executeCommand(char args[][TOKENSIZE]) {
   else if (pid == 0) {
     if (execvp(argv[0], argv) == -1) {
       perror("sbush");
+      return -1;
     }
   }
   else {
