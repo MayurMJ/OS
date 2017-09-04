@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 #define BUFFERSIZE 10000
 #define MAXNUMTOKENS 100
 #define TOKENSIZE 100
@@ -15,6 +16,8 @@ int cd(char[][TOKENSIZE]);
 int export(char[][TOKENSIZE]);
 int sbushExit(char[][TOKENSIZE]);
 int stringCmp(char *, char *);
+int initArr(int *, int size);
+int initCharArr(char [][TOKENSIZE], int size);
 
 char *builtInCommands[] = {
   "cd",
@@ -27,9 +30,6 @@ int (*builtInFunc[]) (char [][TOKENSIZE]) = {
   &export,
   &sbushExit
 };
-
-
-
 
 int main(int argc, char *argv[], char *envp[]) {
   if(argc > 1) {
@@ -46,10 +46,12 @@ int loopTerminal() {
   int numTokens = MAXNUMTOKENS;
   char line[buffSize];
   char args[numTokens][TOKENSIZE];
+  initCharArr(args,numTokens);
   while(status == 0) {
     puts("sbush> ");
     readLine(line);
     tokensParsed = parseLine(line, args, &pipeCount);
+    if(args[0][0] == '\0') continue;
     status = executeCommand(args, tokensParsed, pipeCount);
   }
   for(i = 0; i < tokensParsed; i++) {
@@ -159,18 +161,27 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount) {
   }
   pid_t pid;
   typedef char *commands[tokenCount];
-  commands c[pipeCount+1];
+  int backgroundEnable[pipeCount + 1];
+  initArr(backgroundEnable, pipeCount+1);
+  commands c[pipeCount + 1];
   for(i = 0; i < tokenCount; i++) {
     j = 0;
     while(args[i][0] != '|' && i < tokenCount) {
       c[k][j] = args[i];
       j++;i++; 
     }
+    if(j-1 > 0) {
+      if (c[k][j-1][0] == '&') {
+        backgroundEnable[k] = 1;
+        c[k][j-1] = (char*)0;
+      }
+    }
     c[k][j] = (char*)0; 
     k++;
   }
   //char *argv[] =  {"ls", (char*)0};
   for(i = 0; i < pipeCount + 1; i++) {
+    if(c[i][0][0] == '\0') return 0;
     pid = fork();
     if(pid < 0) {
       return 1;
@@ -181,8 +192,8 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount) {
         return -1;
       }
     }
-    else {
-      //wait(NULL);
+    else if(backgroundEnable[i] == 0) {
+      waitpid(pid, NULL, 0);
     }
   }
   return 0;
@@ -226,4 +237,18 @@ int stringCmp(char *s1, char *s2) {
     s2++;
   }
   return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+int initArr(int *arr, int size) {
+  int i = 0;
+  for(i = 0; i < size; i++) {
+    arr[i] = 0;
+  }
+  return 0;
+}
+int initCharArr(char arr[][TOKENSIZE], int size) {
+  int i = 0;
+  for(i = 0; i < size; i++) {
+    arr[i][0] = '\0';
+  }
+  return 0;
 }
