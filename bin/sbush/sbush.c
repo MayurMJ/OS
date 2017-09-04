@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #define BUFFERSIZE 10000
 #define MAXNUMTOKENS 100
 #define TOKENSIZE 100
@@ -10,6 +11,25 @@ int readLine(char*);
 int parseLine(char*, char [][TOKENSIZE], int*);
 int executeScript(char *);
 int executeCommand(char [][TOKENSIZE], int, int);
+int cd(char[][TOKENSIZE]);
+int export(char[][TOKENSIZE]);
+int sbushExit(char[][TOKENSIZE]);
+int stringCmp(char *, char *);
+
+char *builtInCommands[] = {
+  "cd",
+  "export",
+  "exit"
+};
+
+int (*builtInFunc[]) (char [][TOKENSIZE]) = {
+  &cd,
+  &export,
+  &sbushExit
+};
+
+
+
 
 int main(int argc, char *argv[], char *envp[]) {
   if(argc > 1) {
@@ -131,8 +151,13 @@ int executeScript(char *fileName) {
   return 0;
 }
 int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount) {
-  pid_t pid;
   int i = 0, j = 0, k = 0;
+  for (i = 0; i < 3; i++) {
+    if (stringCmp(args[0], builtInCommands[i]) == 0) {
+      return (*builtInFunc[i])(args);
+    }
+  }
+  pid_t pid;
   typedef char *commands[tokenCount];
   commands c[pipeCount+1];
   for(i = 0; i < tokenCount; i++) {
@@ -161,4 +186,44 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount) {
     }
   }
   return 0;
+}
+int cd(char args[][TOKENSIZE])
+{
+  if (args[1] != NULL) {
+    if (chdir(args[1]) != 0) {
+      perror("sbush");
+    }
+  }
+  return 0;
+}
+int export(char args[][TOKENSIZE]) {
+  char nameValue[2][100];
+  int i =0, j = 0;
+  if(args[1] != NULL) {
+    while(args[1][i] != '=') {
+      nameValue[0][i] = args[1][i];
+      i++;
+    }
+    nameValue[0][i] = '\0';
+    i++;
+    while(args[1][i] != '\0') {
+      nameValue[1][j] = args[1][i];
+      i++; j++;
+    }
+    nameValue[1][j] = '\0';
+    if (setenv(nameValue[0], nameValue[1], 1) != 0) {
+      perror("sbush");
+    }
+  }
+  return 0;
+}
+int sbushExit(char args[][TOKENSIZE]) {
+  return -1;
+}
+int stringCmp(char *s1, char *s2) {
+  while(*s1 && (*s1 == *s2)) {
+    s1++;
+    s2++;
+  }
+  return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
