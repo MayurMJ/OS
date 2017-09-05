@@ -3,6 +3,6 @@
 int putchar(int c)
 {
   // write character to stdout
-  return write(1, &c, 1);
-  //return c;
+  write(1, &c, 1);
+  return c;
 }
