@@ -20,10 +20,4 @@ int getchar();
 FILE *fopen(const char *, const char *);
 int getc(FILE *);
 char *gets(char *s);
-
-
-
-
-
-
 #endif
