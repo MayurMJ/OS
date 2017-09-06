@@ -2,7 +2,8 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[], char *envp[]) {
-  putchar(argc);
+  //putchar(argc);
+  puts(argv[1]);
   puts("sbush> ");
   FILE *fp = fopen("file.txt", "r");
   char ch;
