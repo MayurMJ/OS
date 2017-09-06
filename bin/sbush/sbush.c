@@ -108,7 +108,6 @@ int executeScript(char *fileName, char *envp[]) {
   char line[buffSize];
   char args[numTokens][TOKENSIZE];
   char *checkStart = "#!/rootfs/bin/sbush", ch;
-  puts("sbush>");
   FILE *fp = fopen(fileName,"r");
   if(!fp) return 0;
   /* Check if script starts with #!sbush*/
@@ -135,24 +134,30 @@ int executeScript(char *fileName, char *envp[]) {
         }
       }
     }
-    else {
+    else if(pos != 0) {
+      pipeCount = 0;
+      //puts("sbush>");
+      initCharArr(args,numTokens);
       line[pos] = '\0';
       tokensParsed = parseLine(line, args, &parseCount);
       pos = 0;
       commentFlag = 0;
       status = executeCommand(args, tokensParsed, pipeCount, envp);
-      status = status+1;
-      puts("sbush>");
-      for(i = 0; i < tokensParsed; i++) {
+      if(status == -1) break;
+      //for(i = 0; i < tokensParsed; i++) {
         //printf("%s ", args[i]);
-      }
+      //}
     }
   }
+  pipeCount = 0;
+  //puts("sbush>");
+  initCharArr(args,numTokens);
   line[pos] = '\0';
   tokensParsed = parseLine(line, args, &parseCount);
-  for(i = 0; i < tokensParsed; i++) {
-    //printf("%s ", args[i]);
-  }
+  pos = 0;
+  commentFlag = 0;
+  status = executeCommand(args, tokensParsed, pipeCount, envp);
+
   return 0;
 }
 int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *envp[]) {
