@@ -10,4 +10,11 @@ __asm volatile ("syscall" : "=a" (ret) : "a" (syscall), "b" (arg1), "c" (arg2),
 return ret;
 }
 
+
+static inline long syscall1(long syscall, long arg1) {
+long ret;
+__asm volatile ("syscall" : "=a" (ret) : "a" (syscall), "b" (arg1) : "memory");
+return ret;
+}
+
 #endif
