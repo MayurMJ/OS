@@ -9,5 +9,9 @@ int main(int argc, char *argv[], char *envp[]) {
   char ch;
   while((ch = getc(fp)) != EOF)
   putchar(ch);
+  chdir("..");
+  char wd[100];
+  getcwd(wd, 100);
+  puts(wd);
   return 0;
 }
