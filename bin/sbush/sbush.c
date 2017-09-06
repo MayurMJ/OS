@@ -167,7 +167,7 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
       return (*builtInFunc[i])(args);
     }
   }
-  pid_t pid;
+  pid_t pid = 0;
   typedef char *commands[tokenCount];
   int backgroundEnable[pipeCount + 1];
   initArr(backgroundEnable, pipeCount+1);
@@ -187,9 +187,36 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
     c[k][j] = (char*)0; 
     k++;
   }
+  int mystdin = dup(0);
+  int mystdout = dup(1);
+  int fdin;
+  fdin = dup(mystdin);
+  int fdout;
+  //printf("fdin = %d  fdout = %d\n",fdin,fdout);
   //char *argv[] =  {"ls", (char*)0};
   for(i = 0; i < pipeCount + 1; i++) {
-    if(c[i][0][0] == '\0') return 0;
+    dup2(fdin,0);
+    close(fdin);
+    if(i==pipeCount) {//last command
+      fdout = dup(mystdout);
+      //close(mystdout);
+    }
+    else {
+       int fd[2];
+       if(pipe(fd)!=0){ puts("ERROR PIPE"); }
+       fdin = fd[0];
+       fdout = fd[1];
+    }
+    
+    dup2(fdout,1);
+    close(fdout);
+   /* if(c[i][0][0] == '\0') {
+  dup2(mystdin,0);
+  dup2(mystdout,1);
+  close(mystdin);
+  close(mystdout);
+   return 0;
+    }*/
     pid = fork();
     if(pid < 0) {
       return 1;
@@ -200,10 +227,18 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
         return -1;
       }
     }
-    else if(backgroundEnable[i] == 0) {
-      waitpid(pid, NULL);
-    }
+//    else if(backgroundEnable[i] == 0) {
+//      waitpid(pid, NULL);
+//    }
   }
+  dup2(mystdin,0);
+  dup2(mystdout,1);
+  close(mystdin);
+  close(mystdout);
+  if(backgroundEnable[i-1] == 0) {
+      waitpid(pid, NULL);
+  }
+
   return 0;
 }
 int cd(char args[][TOKENSIZE])
