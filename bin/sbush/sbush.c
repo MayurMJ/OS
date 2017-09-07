@@ -229,7 +229,7 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
     }
     else if (pid == 0) {
       if (execvpe(c[i][0], c[i], envp) == -1) {
-        puts("error sbush");
+        puts("No such command  \n");
         return -1;
       }
     }
