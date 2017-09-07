@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #define BUFFERSIZE 10000
 #define MAXNUMTOKENS 100
 #define TOKENSIZE 100
+
+
+char sbush[100] = "sbush>";
 
 int loopTerminal(char *envp[]);
 int readLine(char*);
@@ -16,7 +20,6 @@ int sbushExit(char[][TOKENSIZE], char *envp[]);
 int stringCmp(char *, char *);
 int initArr(int *, int size);
 int initCharArr(char [][TOKENSIZE], int size);
-
 
 char *builtInCommands[] = {
   "cd",
@@ -47,7 +50,7 @@ int loopTerminal(char *envp[]) {
   char args[numTokens][TOKENSIZE];
   initCharArr(args,numTokens);
   while(status == 0) {
-    puts("sbush> ");
+    puts(sbush);
     readLine(line);
     pipeCount = 0;
     initCharArr(args,numTokens);
@@ -137,11 +140,11 @@ int executeScript(char *fileName, char *envp[]) {
     }
     else if(pos != 0) {
       pipeCount = 0;
-      puts("sbush>");
+      //puts("sbush>");
       initCharArr(args,numTokens);
       line[pos] = '\0';
       line[pos+1] = '\n';
-      puts(line); 
+      //puts(line); 
       tokensParsed = parseLine(line, args, &parseCount);
       pos = 0;
       commentFlag = 0;
@@ -255,7 +258,7 @@ int cd(char args[][TOKENSIZE], char *envp[])
 }
 int export(char args[][TOKENSIZE], char *envp[]) {
   char nameValue[2][100];
-  int i =0, j = 0;
+  int i =0, j = 0, m = 0;
   if(args[1] != NULL) {
     while(args[1][i] != '=') {
       nameValue[0][i] = args[1][i];
@@ -268,6 +271,14 @@ int export(char args[][TOKENSIZE], char *envp[]) {
       i++; j++;
     }
     nameValue[1][j] = '\0';
+    if(strcmp(nameValue[0], "PS1") == 0) {
+      while(nameValue[1][m] != '\0') {
+        sbush[m] = nameValue[1][m];
+        m++;
+      }
+     sbush[m] = '>';
+     sbush[m+1] = '\0';
+    }
     setenv(nameValue[0], nameValue[1], envp);
   }
   return 0;
