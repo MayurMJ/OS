@@ -22,10 +22,9 @@ void setenv(char *name, char *value, char *envp[]) {
 	envp[i][k] = value[l];
 	k++;l++;
       }
-      envp[i][k] = '\0'; 
+      envp[i][k] = '\0';
+      break; 
     }
-    puts(envp[i]);
-    puts("\n");
     i++;
   }
   char addVar[256];
