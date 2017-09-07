@@ -2,7 +2,7 @@
 #define _UNISTD_H
 
 #include <sys/defs.h>
-
+#include <dirent.h>
 int open(const char *pathname, int flags);
 int close(int fd);
 ssize_t read(int fd, void *buf, size_t count);
@@ -31,5 +31,5 @@ off_t lseek(int fd, off_t offset, int whence);
 int pipe(int pipefd[2]);
 int dup2(int oldfd, int newfd);
 int dup(int oldfd);
-
+int getdents(unsigned int fd,  ldirent *dirp,unsigned int count);
 #endif
