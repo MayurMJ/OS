@@ -10,12 +10,13 @@ int readLine(char*);
 int parseLine(char*, char [][TOKENSIZE], int*);
 int executeScript(char *, char *envp[]);
 int executeCommand(char [][TOKENSIZE], int, int, char *envp[]);
-int cd(char[][TOKENSIZE]);
-int export(char[][TOKENSIZE]);
-int sbushExit(char[][TOKENSIZE]);
+int cd(char[][TOKENSIZE], char *envp[]);
+int export(char[][TOKENSIZE], char *envp[]);
+int sbushExit(char[][TOKENSIZE], char *envp[]);
 int stringCmp(char *, char *);
 int initArr(int *, int size);
 int initCharArr(char [][TOKENSIZE], int size);
+
 
 char *builtInCommands[] = {
   "cd",
@@ -23,7 +24,7 @@ char *builtInCommands[] = {
   "exit"
 };
 
-int (*builtInFunc[]) (char [][TOKENSIZE]) = {
+int (*builtInFunc[]) (char [][TOKENSIZE], char *envp[]) = {
   &cd,
   &export,
   &sbushExit
@@ -136,9 +137,11 @@ int executeScript(char *fileName, char *envp[]) {
     }
     else if(pos != 0) {
       pipeCount = 0;
-      //puts("sbush>");
+      puts("sbush>");
       initCharArr(args,numTokens);
       line[pos] = '\0';
+      line[pos+1] = '\n';
+      puts(line); 
       tokensParsed = parseLine(line, args, &parseCount);
       pos = 0;
       commentFlag = 0;
@@ -164,7 +167,7 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
   int i = 0, j = 0, k = 0;
   for (i = 0; i < 3; i++) {
     if (stringCmp(args[0], builtInCommands[i]) == 0) {
-      return (*builtInFunc[i])(args);
+      return (*builtInFunc[i])(args, envp);
     }
   }
   pid_t pid = 0;
@@ -241,7 +244,7 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
 
   return 0;
 }
-int cd(char args[][TOKENSIZE])
+int cd(char args[][TOKENSIZE], char *envp[])
 {
   if (args[1] != NULL) {
     if (chdir(args[1]) != 0) {
@@ -250,7 +253,7 @@ int cd(char args[][TOKENSIZE])
   }
   return 0;
 }
-int export(char args[][TOKENSIZE]) {
+int export(char args[][TOKENSIZE], char *envp[]) {
   char nameValue[2][100];
   int i =0, j = 0;
   if(args[1] != NULL) {
@@ -265,14 +268,11 @@ int export(char args[][TOKENSIZE]) {
       i++; j++;
     }
     nameValue[1][j] = '\0';
-    //if (setenv(nameValue[0], nameValue[1], 1) != 0) {
-      //perror("sbush");
-    //}
-     nameValue[0][0] = nameValue[1][0];
+    setenv(nameValue[0], nameValue[1], envp);
   }
   return 0;
 }
-int sbushExit(char args[][TOKENSIZE]) {
+int sbushExit(char args[][TOKENSIZE], char *envp[]) {
   return -1;
 }
 int stringCmp(char *s1, char *s2) {
