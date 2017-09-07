@@ -1,5 +1,5 @@
-#ifndef _UNISTD_H
-#define _UNISTD_H
+#ifndef _SYSCALL_H
+#define _SYSCALL_H
 
 #include <sys/defs.h>
 
