@@ -107,7 +107,7 @@ int parseLine(char *line, char args[][TOKENSIZE], int *pipeCount) {
 * Executes the script whose name is provided in filename
 */
 int executeScript(char *fileName, char *envp[]) {
-  int buffSize = BUFFERSIZE, i = 0, tokensParsed = 0, pos = 0, commentFlag = 0, parseCount = 0, pipeCount = 0, status = 0;
+  int buffSize = BUFFERSIZE, i = 0, tokensParsed = 0, pos = 0, commentFlag = 0, pipeCount = 0, status = 0;
   int numTokens = MAXNUMTOKENS;
   char line[buffSize];
   char args[numTokens][TOKENSIZE];
@@ -117,7 +117,7 @@ int executeScript(char *fileName, char *envp[]) {
   /* Check if script starts with #!sbush*/
   for(i = 0; i < 18; i++) {
     ch = getc(fp);
-    if(ch != checkStart[i]) return 0;
+    if(ch != checkStart[i]);
   }
   /*Skip the first Line*/
   while((ch = getc(fp)) != '\n');
@@ -138,32 +138,35 @@ int executeScript(char *fileName, char *envp[]) {
         }
       }
     }
-    else if(pos != 0) {
-      pipeCount = 0;
-      //puts("sbush>");
-      initCharArr(args,numTokens);
-      line[pos] = '\0';
-      line[pos+1] = '\n';
-      //puts(line); 
-      tokensParsed = parseLine(line, args, &parseCount);
-      pos = 0;
+    else  {
       commentFlag = 0;
-      status = executeCommand(args, tokensParsed, pipeCount, envp);
-      if(status == -1) break;
-      //for(i = 0; i < tokensParsed; i++) {
-        //printf("%s ", args[i]);
-      //}
+      if(pos != 0) {
+        pipeCount = 0;
+        //puts("sbush>");
+        initCharArr(args,numTokens);
+        line[pos] = '\0';
+        line[pos+1] = '\n';
+        //puts(line); 
+        tokensParsed = parseLine(line, args, &pipeCount);
+        pos = 0;
+        status = executeCommand(args, tokensParsed, pipeCount, envp);
+        if(status == -1) break;
+        //for(i = 0; i < tokensParsed; i++) {
+          //printf("%s ", args[i]);
+        //}
+        }
     }
   }
+  if(pos != 0) {
   pipeCount = 0;
   //puts("sbush>");
   initCharArr(args,numTokens);
   line[pos] = '\0';
-  tokensParsed = parseLine(line, args, &parseCount);
+  tokensParsed = parseLine(line, args, &pipeCount);
   pos = 0;
   commentFlag = 0;
   status = executeCommand(args, tokensParsed, pipeCount, envp);
-
+  }
   return 0;
 }
 int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *envp[]) {
@@ -229,7 +232,6 @@ int executeCommand(char args[][TOKENSIZE], int tokenCount, int pipeCount, char *
     }
     else if (pid == 0) {
       if (execvpe(c[i][0], c[i], envp) == -1) {
-        puts("error sbush");
         return -1;
       }
     }
