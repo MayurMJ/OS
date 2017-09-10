@@ -15,6 +15,6 @@ void _start(void) {
     );
 }
 static int _main(int argc, char *argv[]) {
-	main(argc, argv, argc + argv + 1);
-        return 0;
+  main(argc, argv, argc + argv + 1);
+  return 0;
 }
