@@ -3,6 +3,11 @@
 #include <sys/defs.h>
 #include <sys/stdarg.h>
 */
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+
 #define X_AXIS	80
 #define Y_AXIS	200
 #define BUFOVFLOW	2
@@ -120,10 +125,12 @@ int put_char_into_buffer(char c) {
 		buffer_row++;
 		break;
 	default:// normal chars
-		buffer[buffer_row++][buffer_col] = c;
+		buffer[buffer_row][buffer_col] = c;
 		buffer_col = (buffer_col + 1)%80;
+		if (buffer_col == 0) buffer_row++;
 		break;
 	}
+	return 0;
 		
 }
 int put_str_into_buffer(char *str) {
@@ -136,38 +143,50 @@ int put_str_into_buffer(char *str) {
 	}
 	return 0;	
 }
+void init_buffer() {
+	int i,j;
+	for(i=0;i<200;i++)
+		for(j=0;j<80;j++)
+			buffer[i][j]= ' ';
+	return;
+}
 void kprintf(const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	char *tempfmt=fmt;
+	const char *tempfmt=fmt;
 	int error=0;
-	while (*tempfmt) {
+	init_buffer();
+	while (*tempfmt != '\0') {
 		if (*tempfmt == '%' && *(tempfmt+1)) {
 			char *str = NULL;
 			switch(*(tempfmt+1)) {
 			case 's':
-				str = va_args(args, char *);
+				str = va_arg(args, char *);
 				error = put_str_into_buffer(str);
 				break;
-			case 'c':
-				char charval = va_args(args, int);
+			case 'c':;
+				char charval;
+				charval = va_arg(args, int);
 				error = put_char_into_buffer(charval);
 				break;
-			case 'x':
-				int hexval = va_args(args, int);
+			case 'x':;
+				int hexval;
+				hexval = va_arg(args, int);
 				char strhex[17];
                                 str = process_hex(hexval, strhex);
 				error = put_str_into_buffer(str);
 				break;
-			case 'p':
-				uint64_t ptrval = (uint64_t)va_args(args, void *);
+			case 'p':;
+				uint64_t ptrval;
+				ptrval = (uint64_t)va_arg(args, void *);
 				char strptr[19];
                                 str = process_ptr(ptrval, strptr);
 				error = put_str_into_buffer(str);
 				break;
-			case 'd':
-				int intval = va_args(args, int);
+			case 'd':;
+				int intval;
+				intval = va_arg(args, int);
 				char strint[12];
 		                str = process_int(intval, strint);
 				error = put_str_into_buffer(str);
@@ -183,16 +202,34 @@ void kprintf(const char *fmt, ...)
 			tempfmt += 2;
 		}
 		else {
+//			printf("%c\n",*tempfmt);
 			error = put_char_into_buffer(*tempfmt);
-			if (!error)
+			if (error)
                                 break;
 			tempfmt += 1;
 		}
 		
 	}
 	if (buffer_row != Y_AXIS) {
-		buffer[buffer_row][buffer_col] = '\0'
+//		printf("check null %d %d\n",buffer_row,buffer_col);
+		buffer[buffer_row][buffer_col] = '\0';
 	}
 	//handle error here, wrong format and buffer overflow	
 	va_end(args);	
+	int i,j;
+//	printf("elems %c%c%c%c\n",buffer[0][0],buffer[0][1],buffer[0][2],buffer[0][3]);
+	for(int i = 0;i<= buffer_row;i++) {
+		for(j=0;j<80;j++) {
+			printf("%c",buffer[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+
+int main(void) {
+	int c=-1234;
+	//int *b=&c;
+	kprintf("the \nvalue is %x is this\n correct",c);
+	return 0;
 }
