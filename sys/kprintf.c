@@ -18,6 +18,7 @@ void display() {
   int i = 0, j = colIndex/2, k = 0;
   char *vidMem = (char*)0xb8000;
   char *tempMem = vidMem;
+  if(rowIndex >= 24) rowIndex = 24;
   for(k = 0; k < rowIndex; k++) {
     tempMem += 160;
   }
@@ -27,9 +28,10 @@ void display() {
         tempMem[colIndex] = buffer[i][j];
         colIndex += 2; j++;
       }
-      if(buffer[i][j] == '\0') break;
-      rowIndex++; i++; colIndex = 0; j = 0;
-      tempMem += 160;
+      if(colIndex == 160) {
+        rowIndex++; i++; colIndex = 0; j = 0;
+      }
+      else if(buffer[i][j] == '\0') break;
     }
     else {
       tempMem = vidMem;
@@ -44,7 +46,7 @@ void display() {
       }
       if(buffer[i][j] == '\0') break;
       rowIndex++; i++; colIndex = 0; j = 0;
-      tempMem += 160;
+      //tempMem += 160;
     }
   }
 }
