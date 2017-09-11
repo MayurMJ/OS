@@ -2,8 +2,9 @@
 #include <sys/defs.h>
 #include <sys/stdarg.h>
 #include <sys/kmemcpy.h>
-#include <sys/vidBufferArgs.h>
 
+static int colIndex = 0;
+static int rowIndex = 0;
 
 #define X_AXIS	80
 #define Y_AXIS	200
@@ -12,11 +13,9 @@
 char buffer[Y_AXIS][X_AXIS];
 int buffer_row = 0;
 int buffer_col = 0;
-typedef unsigned long uint64_t;
-typedef long int64_t;
 
 void display() {
-  int i = 0, j = colIndex, k = 0;
+  int i = 0, j = colIndex/2, k = 0;
   char *vidMem = (char*)0xb8000;
   char *tempMem = vidMem;
   for(k = 0; k < rowIndex; k++) {
@@ -26,9 +25,9 @@ void display() {
     if(rowIndex < 24) {
       while(buffer[i][j] != '\0' && colIndex < 160) {
         tempMem[colIndex] = buffer[i][j];
-        colIndex =+ 2; j++;
+        colIndex += 2; j++;
       }
-      if(buffer[i][k] == '\0') break;
+      if(buffer[i][j] == '\0') break;
       rowIndex++; i++; colIndex = 0; j = 0;
       tempMem += 160;
     }
@@ -43,7 +42,7 @@ void display() {
         tempMem[colIndex] = buffer[i][j];
         colIndex += 2; j++;
       }
-      if(buffer[i][k] == '\0') break;
+      if(buffer[i][j] == '\0') break;
       rowIndex++; i++; colIndex = 0; j = 0;
       tempMem += 160;
     }
@@ -191,6 +190,7 @@ void kprintf(const char *fmt, ...)
 	const char *tempfmt=fmt;
 	int error=0;
 	init_buffer();
+        buffer_col = colIndex / 2;
 	while (*tempfmt != '\0') {
 		if (*tempfmt == '%' && *(tempfmt+1)) {
 			char *str = NULL;
