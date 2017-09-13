@@ -1,3 +1,5 @@
+#ifndef _KMEMCPY_H
+#define _KMEMCPY_H
 int memcpy(char *s1, char *s2, int size) {
   int i = 0;
   while(i < size/2) {
@@ -8,3 +10,5 @@ int memcpy(char *s1, char *s2, int size) {
   }
   return i;
 }
+
+#endif
