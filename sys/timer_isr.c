@@ -1,5 +1,6 @@
-static time_boot = 0;
+#include <sys/kprintf.h>
+static int time_boot = 0;
 void timer_irqhandler(void)
 {
-    kprint("time since boot %d s \n",time_boot++);
+    kprintf("time since boot %d s \n",time_boot++);
 }
