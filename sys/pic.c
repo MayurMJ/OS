@@ -6,7 +6,7 @@ void program_pic()
 {
 	unsigned char mask1, mask2;
 	uint8_t offset1 = 0x20;
-	uint8_t offset2 = 0x20;
+	uint8_t offset2 = 0x28;
 	
 	__asm__ __volatile("inb $0x21,%0"
 			   :"=a"(mask1));
