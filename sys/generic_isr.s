@@ -20,6 +20,6 @@ general_isr:
     popq    %r10
     popq    %r11
     sti
-    mov al,20h
-    out 20h,al
+//    mov al, 20h
+//    out 20h, al
     iret
