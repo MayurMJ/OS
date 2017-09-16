@@ -29,13 +29,13 @@ void kyb_irqhandler(void) {
                 control = 0;
         }
 	else if (scancode<128) {
-		if(shift == 0) {
-			c = kyb_map[scancode];
+		if(shift == 1 || control == 1) {
+			c = kyb_shift_map[scancode];
 			display = 1;
 		}
-		else if (shift == 1)
+		else if (shift == 0)
 		{
-			c = kyb_shift_map[scancode];
+			c = kyb_map[scancode];
 			display = 1;
 		}
 	}
