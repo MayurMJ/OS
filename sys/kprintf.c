@@ -74,7 +74,7 @@ char *get_ptr(uint64_t num, char *str) {
                 num = num & (~mask);
                 mask = mask << 4;
         }
-        char * newstr = str+str_index+1;
+        char *newstr = str+str_index+1;
         return newstr;
 }
 //19
@@ -106,7 +106,7 @@ char *process_hex(int n, char *str) {
                 num = num & (~mask);
                 mask = mask << 4;
         }
-        char * newstr = str+str_index+1;
+        char *newstr = str+str_index+1;
         return newstr;
 }
 
