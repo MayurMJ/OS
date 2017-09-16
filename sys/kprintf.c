@@ -15,14 +15,30 @@ char buffer[Y_AXIS][X_AXIS];
 int buffer_row = 0;
 int buffer_col = 0;
 
+void shift_up() {
+      int k;
+      char *shiftPtr = (char*)0xb8000;
+      for(k = 0; k < 23; k++) {
+        memcpy(shiftPtr, shiftPtr + 160, 160);
+        shiftPtr += 160;
+      }
+      for(k = 0; k < 80; k++) {
+        *shiftPtr = ' ';
+        shiftPtr = shiftPtr + 2;
+      }
+
+}
 void display() {
-  int i = 0, j = 0, k = 0;
-  char *vidMem = (char*)0xb8000;
+  int i = 0, j = 0; 
   //uint64_t offset;
   while(1) {
-    if(count < 4000) {
       j = 0;
       while(buffer[i][j] != '\0' && j < 80) {
+        if(count >= 3840) {
+          shift_up();
+	  tempMem = tempMem - 160;
+          count = count - 160;
+        }
         *tempMem = buffer[i][j];
         j++;
         tempMem = tempMem + 2;
@@ -30,29 +46,6 @@ void display() {
       }
       if(j >= 80) i++;
       else if(buffer[i][j] == '\0') break;
-    }
-    else {
-      //offset = tempMem - 0xbf000;
-      tempMem = vidMem;
-      for(k = 0; k < 25; k++) {
-        memcpy(tempMem, tempMem + 160, 160);
-        tempMem += 160;
-      }
-      /*for(k = 0; k < 80; k++) {
-        *tempMem = ' ';
-        tempMem = tempMem + 2;
-      }*/
-      tempMem = tempMem - 160;
-      j = 0;
-      while(buffer[i][j] != '\0' && j < 80) {
-        *tempMem = buffer[i][j];
-        j++;
-        tempMem = tempMem + 2;
-        count = count + 2;
-      }
-      if(j >= 80) i++;
-      else if(buffer[i][j] == '\0') break;
-    }
   }
 }
 
