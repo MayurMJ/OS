@@ -15,6 +15,12 @@ struct IDTDescr {
 };
 struct IDTDescr idt[256];
 
+struct IDT_table_ptr {
+  uint16_t limit;
+  uint64_t base;
+};
+struct IDT_table_ptr idt_ptr; 
+
 void init_idt();
 void set_idt(struct IDTDescr *idt_entry, uint16_t offset_1, uint16_t selector, uint8_t ist, uint16_t type_attr, uint16_t offset_2, uint32_t offset_3);
 #endif

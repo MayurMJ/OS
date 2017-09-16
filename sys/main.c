@@ -26,6 +26,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
   init_idt();
   program_pic();
+ // __asm("int  $32");
+  while(1);
+
   //char *s = "Testing Print\n";
   //char *t = "Testing Print";
   //int c = 8;
