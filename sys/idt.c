@@ -10,7 +10,7 @@ void init_idt() {
 	uint32_t offset3=(uint32_t)(((uint64_t)&generic_isr >> 32) & 0xFFFFFFFF);
 	//kprintf("%x, %x, %x, %x\n",  offset1, offset2, ~offset3, (uint64_t)&timer_isr);
 	for(i = 0; i < 32; i++) {
-		set_idt(&idt[i], offset1, 8, 0, 0x8f, offset2, 0);
+		set_idt(&idt[i], offset1, 8, 0, 0x8f, offset2, offset3);
 	}
 	for(i = 32; i < 256; i++) {
 		set_idt(&idt[i], offset1, 8, 0, 0x8e, offset2, offset3);	
