@@ -1,7 +1,7 @@
 .globl   generic_isr
 .align   4
  
-general_isr:
+generic_isr:
     cli
     pushq    %rax
     pushq    %rcx
@@ -20,6 +20,6 @@ general_isr:
     popq    %r10
     popq    %r11
     sti
-//    mov al, 20h
-//    out 20h, al
+    movb    $0x20, %al
+    outb    %al, $0x20
     iret
