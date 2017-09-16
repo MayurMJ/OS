@@ -5,20 +5,20 @@
 
 
 struct IDTDescr {
-   uint16_t id_offset_1 :16; // offset bits 0..15
-   uint16_t id_selector :16;// = 8; // a code segment selector in GDT or LDT
-   uint8_t id_ist :3;       // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-   uint8_t id_type_attr : 8;// = 14; // type and attributes
-   uint16_t id_offset_2 : 16; // offset bits 16..31
-   uint32_t id_offset_3: 32; // offset bits 32..63
-   uint32_t id_zero :32;// = 0;     // reserved
-};
+   uint16_t id_offset_1 ; // offset bits 0..15
+   uint16_t id_selector;// = 8; // a code segment selector in GDT or LDT
+   uint8_t id_ist ;       // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+   uint8_t id_type_attr;// = 14; // type and attributes
+   uint16_t id_offset_2 ; // offset bits 16..31
+   uint32_t id_offset_3; // offset bits 32..63
+   uint32_t id_zero ;// = 0;     // reserved
+}__attribute__((packed));
 struct IDTDescr idt[256];
 
 struct IDT_table_ptr {
   uint16_t limit;
   uint64_t base;
-};
+}__attribute__((packed));
 struct IDT_table_ptr idt_ptr; 
 
 void init_idt();

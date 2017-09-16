@@ -10,7 +10,6 @@ generic_isr:
     pushq    %r9
     pushq    %r10
     pushq    %r11
-    cld /* C code following the sysV ABI requires DF to be clear on function entry */
     call    generic_irqhandler
     popq    %rax
     popq    %rcx
@@ -19,7 +18,7 @@ generic_isr:
     popq    %r9
     popq    %r10
     popq    %r11
-    sti
     movb    $0x20, %al
     outb    %al, $0x20
-    iret
+    sti
+    iretq

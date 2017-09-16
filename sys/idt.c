@@ -19,12 +19,12 @@ void init_idt() {
 	offset2=(uint16_t)(((uint64_t)&timer_isr >> 16) & 0x000000000000FFFF);
 	offset3=(uint32_t)(((uint64_t)&timer_isr >> 32) & 0xFFFFFFFF);
 	set_idt(&idt[32], offset1, 8, 0, 0x8e, offset2, offset3);
-	idt_ptr.limit = sizeof(struct IDTDescr) * 256 -1;
-	idt_ptr.base = (uint64_t)&idt;
-	uint64_t temp = (uint64_t)&idt_ptr;
-		__asm__ __volatile("lidt (%%rax)"
+	idt_ptr.limit = 4095;
+	idt_ptr.base = (uint64_t)idt;
+	//uint64_t temp = (uint64_t)&idt_ptr;
+		__asm__ __volatile("lidt (%0)"
 			   :
-            		   :"a"(temp)
+            		   :"a"((uint64_t)&idt_ptr)
 
              		);
 }

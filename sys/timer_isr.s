@@ -2,6 +2,7 @@
 .align   4
  
 timer_isr:
+    cli
     pushq    %rax
     pushq    %rcx
     pushq    %rdx
@@ -18,5 +19,7 @@ timer_isr:
     popq    %r9
     popq    %r10
     popq    %r11
-
-    iret
+    movb    $0x20, %al
+    outb    %al, $0x20
+    sti
+    iretq
