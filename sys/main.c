@@ -24,6 +24,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   }
   kprintf("physfree %p\n", (uint64_t)physfree);
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+  kprintf("abc");
+  kprintf("xyz\rmno\n");
   init_idt();
   program_pic();
   __asm__ __volatile("sti");

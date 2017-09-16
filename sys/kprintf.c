@@ -26,7 +26,6 @@ void shift_up() {
         *shiftPtr = ' ';
         shiftPtr = shiftPtr + 2;
       }
-
 }
 void display() {
   int i = 0, j = 0; 
@@ -39,6 +38,13 @@ void display() {
 	  tempMem = tempMem - 160;
           count = count - 160;
         }
+	if(buffer[i][j] == '\r') {
+		while((uint64_t)(tempMem) % 160 != 0) {
+			*tempMem = ' ';
+			tempMem -= 2;
+			count -=2;
+		}
+	}
         *tempMem = buffer[i][j];
         j++;
         tempMem = tempMem + 2;
