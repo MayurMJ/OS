@@ -1,5 +1,5 @@
 #ifndef _IDT_H_
-#define IDT_H_
+#define _IDT_H_
 #include <sys/defs.h>
 
 
