@@ -3,9 +3,10 @@
 #include <sys/stdarg.h>
 #include <sys/kmemcpy.h>
 
-static int colIndex = 0;
-static int rowIndex = 0;
-
+static  int count = 0;
+//static int colIndex = 0;
+//static int rowIndex = 0;
+static  char *tempMem = (char*)0xb8000;
 #define X_AXIS	80
 #define Y_AXIS	200
 #define BUFOVFLOW	2
@@ -15,38 +16,42 @@ int buffer_row = 0;
 int buffer_col = 0;
 
 void display() {
-  int i = 0, j = colIndex/2, k = 0;
+  int i = 0, j = 0, k = 0;
   char *vidMem = (char*)0xb8000;
-  char *tempMem = vidMem;
-  if(rowIndex >= 24) rowIndex = 24;
-  for(k = 0; k < rowIndex; k++) {
-    tempMem += 160;
-  }
+  //uint64_t offset;
   while(1) {
-    if(rowIndex < 24) {
-      while(buffer[i][j] != '\0' && colIndex < 160) {
-        tempMem[colIndex] = buffer[i][j];
-        colIndex += 2; j++;
+    if(count < 4000) {
+      j = 0;
+      while(buffer[i][j] != '\0' && j < 80) {
+        *tempMem = buffer[i][j];
+        j++;
+        tempMem = tempMem + 2;
+	count = count + 2;
       }
-      if(colIndex == 160) {
-        rowIndex++; i++; colIndex = 0; j = 0;
-      }
+      if(j >= 80) i++;
       else if(buffer[i][j] == '\0') break;
     }
     else {
+      //offset = tempMem - 0xbf000;
       tempMem = vidMem;
-      for(k = 0; k < 23; k++) {
+      for(k = 0; k < 25; k++) {
         memcpy(tempMem, tempMem + 160, 160);
         tempMem += 160;
       }
+      /*for(k = 0; k < 80; k++) {
+        *tempMem = ' ';
+        tempMem = tempMem + 2;
+      }*/
       tempMem = tempMem - 160;
-      while(buffer[i][j] != '\0' && colIndex < 160) {
-        tempMem[colIndex] = buffer[i][j];
-        colIndex += 2; j++;
+      j = 0;
+      while(buffer[i][j] != '\0' && j < 80) {
+        *tempMem = buffer[i][j];
+        j++;
+        tempMem = tempMem + 2;
+        count = count + 2;
       }
-      if(buffer[i][j] == '\0') break;
-      rowIndex++; i++; colIndex = 0; j = 0;
-      //tempMem += 160;
+      if(j >= 80) i++;
+      else if(buffer[i][j] == '\0') break;
     }
   }
 }
@@ -192,7 +197,8 @@ void kprintf(const char *fmt, ...)
 	const char *tempfmt=fmt;
 	int error=0;
 	init_buffer();
-        buffer_col = colIndex / 2;
+        buffer_col = 0;
+	buffer_row = 0;
 	while (*tempfmt != '\0') {
 		if (*tempfmt == '%' && *(tempfmt+1)) {
 			char *str = NULL;
