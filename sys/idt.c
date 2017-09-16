@@ -1,6 +1,7 @@
 #include <sys/idt.h>
 #include <sys/defs.h>
 #include <sys/kprintf.h>
+extern uint64_t kyb_isr;
 extern uint64_t timer_isr;
 extern uint64_t generic_isr;
 void init_idt() {
@@ -19,6 +20,12 @@ void init_idt() {
 	offset2=(uint16_t)(((uint64_t)&timer_isr >> 16) & 0x000000000000FFFF);
 	offset3=(uint32_t)(((uint64_t)&timer_isr >> 32) & 0xFFFFFFFF);
 	set_idt(&idt[32], offset1, 8, 0, 0x8e, offset2, offset3);
+
+	offset1=(uint16_t)((uint64_t)&kyb_isr & 0x000000000000FFFF);  
+        offset2=(uint16_t)(((uint64_t)&kyb_isr >> 16) & 0x000000000000FFFF);
+        offset3=(uint32_t)(((uint64_t)&kyb_isr >> 32) & 0xFFFFFFFF);
+        set_idt(&idt[33], offset1, 8, 0, 0x8e, offset2, offset3);
+
 	idt_ptr.limit = 4095;
 	idt_ptr.base = (uint64_t)idt;
 	//uint64_t temp = (uint64_t)&idt_ptr;
