@@ -4,7 +4,7 @@
 #include <sys/kmemcpy.h>
 
 static  int count = 0;
-//static int colIndex = 0;
+static int colIndex = 0;
 //static int rowIndex = 0;
 static  char *tempMem = (char*)0xb8000;
 #define X_AXIS	80
@@ -30,31 +30,35 @@ void shift_up() {
 }
 void display() {
   int i = 0, j = 0; 
-  //uint64_t offset;
-  while(1) {
-      j = 0;
-      if(carriage_ret_flag == 1) {
-		while(count % 160 != 0) {
-			*tempMem = ' ';
-			tempMem -= 2;
-			count -=2;
-		}
-	carriage_ret_flag = 0;
-	}
-      while(buffer[i][j] != '\0' && j < 80) {
-        if(count >= 3840) {
-          shift_up();
-	  tempMem = tempMem - 160;
-          count = count - 160;
+  if(carriage_ret_flag == 1) {
+  	while( ((uint64_t)tempMem - 0xb8000)%160 != 0 ) {
+ 		*tempMem = ' ';
+  		tempMem -= 2;
+                count -=2;
         }
-        *tempMem = buffer[i][j];
-        j++;
-        tempMem = tempMem + 2;
-	count = count + 2;
-      }
-      if(j >= 80) i++;
-      else if(buffer[i][j] == '\0') break;
+        carriage_ret_flag = 0;
   }
+
+  while(1) {
+        j = colIndex;
+  	while(buffer[i][j] != '\0' && j < 80) {
+		if(count >= 3840) {
+		  shift_up();
+		  tempMem = tempMem - 160;
+		  count = count - 160;
+		}
+		*tempMem = buffer[i][j];
+		j++;
+		tempMem = tempMem + 2;
+		count = count + 2;
+        }
+        if(j >= 80) {
+		colIndex = 0;
+		i++;
+	}
+        else if(buffer[i][j] == '\0') break;
+  }
+  colIndex = (((uint64_t)tempMem - 0xb8000) % 160) / 2;
 }
 
 
@@ -166,12 +170,15 @@ int put_char_into_buffer(char c) {
 		buffer_row++;
 		break;
 	case '\r':
-		carriage_ret_flag = 1;
+		if (buffer_row == 0) {
+			carriage_ret_flag = 1;
+		}
 		while(buffer_col != 0) {
 			buffer[buffer_row][buffer_col]= ' ';
 			buffer_col--;
 		}
 		buffer[buffer_row][0] = ' ';
+		buffer_col = 0;
 		break;
 	default:// normal chars
 		buffer[buffer_row][buffer_col] = c;
@@ -206,7 +213,7 @@ void kprintf(const char *fmt, ...)
 	const char *tempfmt=fmt;
 	int error=0;
 	init_buffer();
-        buffer_col = 0;
+        buffer_col = colIndex;
 	buffer_row = 0;
 	while (*tempfmt != '\0') {
 		if (*tempfmt == '%' && *(tempfmt+1)) {
