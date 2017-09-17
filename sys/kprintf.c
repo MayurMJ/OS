@@ -14,6 +14,7 @@ static  char *tempMem = (char*)0xb8000;
 char buffer[Y_AXIS][X_AXIS];
 int buffer_row = 0;
 int buffer_col = 0;
+int carriage_ret_flag = 0;
 
 void shift_up() {
       int k;
@@ -162,6 +163,16 @@ int put_char_into_buffer(char c) {
 		break;
 	case '\v':
 		buffer_row++;
+		break;
+	case '\r':
+		if (buffer_row == 0 && buffer_col == 0) {
+			carriage_ret_flag = 1;
+			break;			
+		}
+		while(buffer_col != 0) {
+			buffer[buffer_row][buffer_col]= '';
+			buffer_col--;
+		}
 		break;
 	default:// normal chars
 		buffer[buffer_row][buffer_col] = c;
