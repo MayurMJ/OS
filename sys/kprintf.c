@@ -33,19 +33,20 @@ void display() {
   //uint64_t offset;
   while(1) {
       j = 0;
+      if(carriage_ret_flag == 1) {
+		while(count % 160 != 0) {
+			*tempMem = ' ';
+			tempMem -= 2;
+			count -=2;
+		}
+	carriage_ret_flag = 0;
+	}
       while(buffer[i][j] != '\0' && j < 80) {
         if(count >= 3840) {
           shift_up();
 	  tempMem = tempMem - 160;
           count = count - 160;
         }
-	if(buffer[i][j] == '\r') {
-		while((uint64_t)(tempMem) % 160 != 0) {
-			*tempMem = ' ';
-			tempMem -= 2;
-			count -=2;
-		}
-	}
         *tempMem = buffer[i][j];
         j++;
         tempMem = tempMem + 2;
@@ -165,14 +166,12 @@ int put_char_into_buffer(char c) {
 		buffer_row++;
 		break;
 	case '\r':
-		if (buffer_row == 0 && buffer_col == 0) {
-			carriage_ret_flag = 1;
-			break;			
-		}
+		carriage_ret_flag = 1;
 		while(buffer_col != 0) {
-			buffer[buffer_row][buffer_col]= '';
+			buffer[buffer_row][buffer_col]= ' ';
 			buffer_col--;
 		}
+		buffer[buffer_row][0] = ' ';
 		break;
 	default:// normal chars
 		buffer[buffer_row][buffer_col] = c;
