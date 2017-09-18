@@ -24,7 +24,16 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   }
   kprintf("physfree %p\n", (uint64_t)physfree);
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+  /*
   kprintf("doesnt work\rnope it doesnt\rstill doesnt work\rit works\n");
+  kprintf("%x\n",0xffffffff);
+  kprintf("%x\n",0xfffffff);
+  kprintf("%x\n",-2147483648);
+  kprintf("%x\n",2147483647);
+  kprintf("%x\n",1);
+  kprintf("%x\n",4294967295);
+  kprintf("%x\n",10);
+  */
   init_idt();
   program_pic();
   __asm__ __volatile("sti");

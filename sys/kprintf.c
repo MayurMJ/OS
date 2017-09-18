@@ -94,27 +94,24 @@ char *process_ptr(uint64_t num, char *str) {
         *(--str2) = '0';
 	return str2;	
 }
-//17
-char *process_hex(int n, char *str) {
-        int64_t num = n;
+//9
+char *process_hex(int64_t num, char *str) {
         if(num == 0) {
                 str[0] = 0;
                 str[1]= '\0';
                 return str;
         }
-        str[16] = '\0';
-        int shift = 0;
+        str[8] = '\0';
+	int shift = 4;
         int64_t mask = 0xf;
-        int str_index = 15;
-        while ((str_index > 0) && (num != 0)) {
-                int val = (num & mask) >> shift;
+        int str_index = 7;
+        while ((str_index >= 0) && (num != 0)) {
+		int val = (num & mask);
                 char c;
                 if (val > 9) c = val + 87;
                 else    c = val + '0';
-                shift += 4;
                 str[str_index--] = c;
-                num = num & (~mask);
-                mask = mask << 4;
+                num = (num & (~mask)) >> shift;
         }
         char *newstr = str+str_index+1;
         return newstr;
@@ -231,7 +228,7 @@ void kprintf(const char *fmt, ...)
 			case 'x':;
 				int hexval;
 				hexval = va_arg(args, int);
-				char strhex[17];
+				char strhex[9];
                                 str = process_hex(hexval, strhex);
 				error = put_str_into_buffer(str);
 				break;
