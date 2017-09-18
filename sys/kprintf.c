@@ -64,25 +64,22 @@ void display() {
 
 
 char *get_ptr(uint64_t num, char *str) {
-        //uint64_t num = n;
-        if(num == 0) {
+	if(num == 0) {
                 str[0] = 0;
                 str[1]= '\0';
                 return str;
         }
         str[18] = '\0';
-        int shift = 0;
-        uint64_t mask = 0xf;
+        int shift = 4;
+        int64_t mask = 0xf;
         int str_index = 17;
-        while ((str_index > 0) && (num != 0)) {
-                int val = (num & mask) >> shift;
+        while ((str_index >= 2) && (num != 0)) {
+                int val = (num & mask);
                 char c;
                 if (val > 9) c = val + 87;
                 else    c = val + '0';
-                shift += 4;
                 str[str_index--] = c;
-                num = num & (~mask);
-                mask = mask << 4;
+                num = (num & (~mask)) >> shift;
         }
         char *newstr = str+str_index+1;
         return newstr;
