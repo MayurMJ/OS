@@ -9,8 +9,8 @@ void init_idt() {
 	uint16_t offset1=(uint16_t)((uint64_t)&generic_isr & 0x000000000000FFFF);	
 	uint16_t offset2=(uint16_t)(((uint64_t)&generic_isr >> 16) & 0x000000000000FFFF);
 	uint32_t offset3=(uint32_t)(((uint64_t)&generic_isr >> 32) & 0xFFFFFFFF);
-	//kprintf("%x, %x, %x, %x\n",  offset1, offset2, ~offset3, (uint64_t)&timer_isr);
 	for(i = 0; i < 32; i++) {
+		//kprintf("%x, %x, %x, %x %d \n",  offset1, offset2, ~offset3, (uint64_t)&timer_isr, i);
 		set_idt(&idt[i], offset1, 8, 0, 0x8f, offset2, offset3);
 	}
 	for(i = 32; i < 256; i++) {

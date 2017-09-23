@@ -5,6 +5,8 @@
 #include <sys/ahci.h>
 #include <sys/idt.h>
 #include <sys/pic.h>
+#include <sys/pci.h>
+
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
@@ -34,12 +36,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("%x\n",4294967295);
   kprintf("%x\n",10);
   */
-  init_idt();
-  program_pic();
-  __asm__ __volatile("sti");
+  //init_idt();
+  //program_pic();
+  //__asm__ __volatile("sti");
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
+  enumerate_pci();
   while(1);
 
   //char *s = "Testing Print\n";
