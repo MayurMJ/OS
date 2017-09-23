@@ -59,16 +59,23 @@ uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
     uint32_t device;
     uint32_t bar5;
     uint32_t tempbar;
+    uint32_t bar5location;
     /* try and read the first configuration register. Since there are no */
     /* vendors that == 0xFFFF, it must be a non-existent device. */
     if ((vendor = pciConfigReadWord(bus,slot,0,0)) != 0xFFFF) {
        device = tmpReadWord(bus,slot,0,8);
        if((device >> 16) == 0x106) {
 	bar5 = tmpReadWord(bus, slot, 0, 0x24);
+	bar5location = (uint32_t)((bus << 16) | (slot << 11) |
+              	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
+	SysOutLong(0xcf8,bar5location);
 	SysOutLong(0xcfc, 0xffffffff);
+	hba_mem_t hbamemstruct = *((hba_mem_t *)0xffffffff);
 	tempbar = tmpReadWord(bus, slot, 0, 0x24);
-	kprintf("\n%x", tempbar);
-	SysOutLong(0xcf8, bar5);
+        kprintf("%x\n", tempbar);
+	kprintf("%x\n",hbamemstruct.pi);
+	SysOutLong(0xcf8,bar5location);
+        SysOutLong(0xcfc, bar5);
 	return 1;
        }
     }
@@ -84,10 +91,8 @@ void enumerate_pci() {
              status = pciCheckVendor(bus, device);
 	     if (status == 1)
 		break;
-     //        kprintf("\n Checking Device %d, %d", bus, device);
          }
 	 if (status == 1) break;
-     //   if(bus == 255 ) break;
      }
 }
 
