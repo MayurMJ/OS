@@ -1,5 +1,6 @@
 #include <sys/defs.h>
 #include <sys/kprintf.h>
+#include <sys/ahci.h>
 static inline uint32_t SysInLong(unsigned short readAddress) {
    uint32_t tmp2;
     __asm__ __volatile("inl %1,%0"
@@ -7,6 +8,11 @@ static inline uint32_t SysInLong(unsigned short readAddress) {
                        :"Nd"(readAddress));
    return tmp2;
 
+}
+static inline void SysOutLong(unsigned short writeAddress, uint32_t address) {
+    __asm__ __volatile("outl %0,%1"
+                       :
+                       :"a"(address), "Nd"(writeAddress));
 }
 uint32_t tmpReadWord (uint8_t bus, uint8_t slot,
                              uint8_t func, uint8_t offset) {
@@ -51,12 +57,18 @@ uint16_t pciConfigReadWord (uint8_t bus, uint8_t slot,
 uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
     uint16_t vendor;
     uint32_t device;
+    uint32_t bar5;
+    uint32_t tempbar;
     /* try and read the first configuration register. Since there are no */
     /* vendors that == 0xFFFF, it must be a non-existent device. */
     if ((vendor = pciConfigReadWord(bus,slot,0,0)) != 0xFFFF) {
        device = tmpReadWord(bus,slot,0,8);
        if((device >> 16) == 0x106) {
-	kprintf("FOUND\n");
+	bar5 = tmpReadWord(bus, slot, 0, 0x24);
+	SysOutLong(0xcfc, 0xffffffff);
+	tempbar = tmpReadWord(bus, slot, 0, 0x24);
+	kprintf("\n%x", tempbar);
+	SysOutLong(0xcf8, bar5);
 	return 1;
        }
     }
