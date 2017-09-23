@@ -36,9 +36,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("%x\n",4294967295);
   kprintf("%x\n",10);
   */
-  //init_idt();
-  //program_pic();
-  //__asm__ __volatile("sti");
+  init_idt();
+  program_pic();
+  __asm__ __volatile("sti");
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
