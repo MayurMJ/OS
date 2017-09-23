@@ -54,28 +54,85 @@ uint16_t pciConfigReadWord (uint8_t bus, uint8_t slot,
     return (tmp);
 }
 
+// Check device type
+static int check_type(hba_port_t *port)
+{
+        uint32_t ssts = port->ssts;
+
+        uint8_t ipm = (ssts >> 8) & 0x0F;
+        uint8_t det = ssts & 0x0F;
+
+        if (det != HBA_PORT_DET_PRESENT)        // Check drive status
+                return AHCI_DEV_NULL;
+        if (ipm != HBA_PORT_IPM_ACTIVE)
+                return AHCI_DEV_NULL;
+
+        switch (port->sig)
+        {
+        case SATA_SIG_ATAPI:
+                return AHCI_DEV_SATAPI;
+        case SATA_SIG_SEMB:
+                return AHCI_DEV_SEMB;
+        case SATA_SIG_PM:
+                return AHCI_DEV_PM;
+        default:
+                return AHCI_DEV_SATA;
+        }
+}
+void probe_port(hba_mem_t *abar)
+{
+	// Search disk in impelemented ports
+	uint32_t pi = abar->pi;
+	int i = 0;
+	while (i<32)
+	{
+		if (pi & 1)
+		{
+			int dt = check_type(&abar->ports[i]);
+			if (dt == AHCI_DEV_SATA)
+			{
+				kprintf("SATA drive found at port %d\n", i);
+			}
+			else if (dt == AHCI_DEV_SATAPI)
+			{
+				kprintf("SATAPI drive found at port %d\n", i);
+			}
+			else if (dt == AHCI_DEV_SEMB)
+			{
+				kprintf("SEMB drive found at port %d\n", i);
+			}
+			else if (dt == AHCI_DEV_PM)
+			{
+				kprintf("PM drive found at port %d\n", i);
+			}
+			else
+			{
+				kprintf("No drive found at port %d\n", i);
+			}
+		}
+ 
+		pi >>= 1;
+		i ++;
+	}
+}
+ 
+
 uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
     uint16_t vendor;
     uint32_t device;
-    uint32_t bar5;
-    uint32_t tempbar;
     uint32_t bar5location;
     /* try and read the first configuration register. Since there are no */
     /* vendors that == 0xFFFF, it must be a non-existent device. */
     if ((vendor = pciConfigReadWord(bus,slot,0,0)) != 0xFFFF) {
        device = tmpReadWord(bus,slot,0,8);
        if((device >> 16) == 0x106) {
-	bar5 = tmpReadWord(bus, slot, 0, 0x24);
 	bar5location = (uint32_t)((bus << 16) | (slot << 11) |
               	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
 	SysOutLong(0xcf8,bar5location);
-	SysOutLong(0xcfc, 0xffffffff);
-	hba_mem_t hbamemstruct = *((hba_mem_t *)0xffffffff);
-	tempbar = tmpReadWord(bus, slot, 0, 0x24);
-        kprintf("%x\n", tempbar);
-	kprintf("%x\n",hbamemstruct.pi);
-	SysOutLong(0xcf8,bar5location);
-        SysOutLong(0xcfc, bar5);
+	SysOutLong(0xcfc, 0x3ebf1000);
+	hba_mem_t *hbamemstruct = (hba_mem_t *)0x3ebf1000;
+	kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
+	probe_port(hbamemstruct);
 	return 1;
        }
     }
