@@ -1,6 +1,8 @@
 #ifndef _AHCI_H
 #define _AHCI_H
 #define AHCI_DEV_NULL	0
+#define ATA_CMD_READ_DMA_EX 0x25
+#define ATA_CMD_WRITE_DMA_EX 0x35
 #define HBA_PORT_DET_PRESENT	3
 #define HBA_PORT_IPM_ACTIVE	1
 #define	SATA_SIG_ATA	0x00000101	// SATA drive
