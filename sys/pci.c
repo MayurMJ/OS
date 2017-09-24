@@ -4,6 +4,7 @@
 #include <sys/kmemcpy.h>
 #define TRUE 1
 #define FALSE 0
+void port_rebase(hba_port_t *port, int portno);
 static inline uint32_t SysInLong(unsigned short readAddress) {
    uint32_t tmp2;
     __asm__ __volatile("inl %1,%0"
@@ -95,6 +96,10 @@ void probe_port(hba_mem_t *abar)
 			if (dt == AHCI_DEV_SATA)
 			{
 				kprintf("SATA drive found at port %d\n", i);
+				abar->ghc = 1;
+				abar->ghc |= (1 << 1);
+				abar->ghc |= (1 << 31);
+				port_rebase(&abar->ports[i], i);
 			}
 			else if (dt == AHCI_DEV_SATAPI)
 			{
