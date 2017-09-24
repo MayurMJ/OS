@@ -185,25 +185,25 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	cmdheader += slot;
 	cmdheader->cfl = sizeof(fis_reg_d2h_t)/sizeof(uint32_t);	// Command FIS size
 	cmdheader->w = 1;		// Read from device
-	cmdheader->prdtl = 50;	// PRDT entries count
+	cmdheader->prdtl = 100;	// PRDT entries count
  
 	hba_cmd_tbl_t *cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);
 	memset(cmdtbl, 0, sizeof(hba_cmd_tbl_t) +
  		(cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
-	memset(*buf, 0, 4096);
 	// 8K bytes (16 sectors) per PRDT
-	for (i=0; i<cmdheader->prdtl-1; i++)
+	for (i=0; i<cmdheader->prdtl; i++)
 	{
+		memset(buf,i,4096);
 		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].dbc = 4*1024;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 1;
-		buf += 4*1024;	// 4K words
-		count -= 16;	// 16 sectors
+		buf += 2*1024;	// 4K words
+		count -= 1;	// 16 sectors
 	}
 	// Last entry
-	cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-	cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = 1;
+	//cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
+	//cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
+	//cmdtbl->prdt_entry[i].i = 1;
  
 	// Setup command
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
@@ -212,17 +212,17 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	cmdfis->c = 1;	// Command
 	cmdfis->command = ATA_CMD_WRITE_DMA_EX;
  
-	cmdfis->lba0 = (uint8_t)startl;
-	cmdfis->lba1 = (uint8_t)(startl>>8);
-	cmdfis->lba2 = (uint8_t)(startl>>16);
+	cmdfis->lba0 = 0; //(uint8_t)startl;
+	cmdfis->lba1 = 0; //(uint8_t)(startl>>8);
+	cmdfis->lba2 = 0; //(uint8_t)(startl>>16);
 	cmdfis->device = 1<<6;	// LBA mode
  
-	cmdfis->lba3 = (uint8_t)(startl>>24);
-	cmdfis->lba4 = (uint8_t)starth;
-	cmdfis->lba5 = (uint8_t)(starth>>8);
+	cmdfis->lba3 = 0; //(uint8_t)(startl>>24);
+	cmdfis->lba4 = 0; //(uint8_t)starth;
+	cmdfis->lba5 = 0; //(uint8_t)(starth>>8);
  
-	cmdfis->countl = LOuint8_t(count);
-	cmdfis->counth = HIuint8_t(count);
+	cmdfis->count = 100;
+	//cmdfis->counth = 0;
  
 	// The below loop waits until the port is no longer busy before issuing a new command
 	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
@@ -272,25 +272,25 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	cmdheader += slot;
 	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);	// Command FIS size
 	cmdheader->w = 0;		// Read from device
-	cmdheader->prdtl = (uint16_t)((count-1)>>4) + 1;	// PRDT entries count
+	cmdheader->prdtl = 100;	// PRDT entries count
  
 	hba_cmd_tbl_t *cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);
 	memset(cmdtbl, 0, sizeof(hba_cmd_tbl_t) +
  		(cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
  
 	// 8K bytes (16 sectors) per PRDT
-	for (i=0; i<cmdheader->prdtl-1; i++)
+	for (i=0; i<cmdheader->prdtl; i++)
 	{
 		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].dbc = 4*1024;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 1;
-		buf += 4*1024;	// 4K words
-		count -= 16;	// 16 sectors
+		buf += 2*1024;	// 4K words
+		count -= 1;	// 16 sectors
 	}
 	// Last entry
-	cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-	cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = 1;
+	//cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
+	//cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
+	//cmdtbl->prdt_entry[i].i = 1;
  
 	// Setup command
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
@@ -299,17 +299,17 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	cmdfis->c = 1;	// Command
 	cmdfis->command = ATA_CMD_READ_DMA_EX;
  
-	cmdfis->lba0 = (uint8_t)startl;
-	cmdfis->lba1 = (uint8_t)(startl>>8);
-	cmdfis->lba2 = (uint8_t)(startl>>16);
+	cmdfis->lba0 = 0; //(uint8_t)startl;
+	cmdfis->lba1 = 0; //(uint8_t)(startl>>8);
+	cmdfis->lba2 = 0; //(uint8_t)(startl>>16);
 	cmdfis->device = 1<<6;	// LBA mode
  
-	cmdfis->lba3 = (uint8_t)(startl>>24);
-	cmdfis->lba4 = (uint8_t)starth;
-	cmdfis->lba5 = (uint8_t)(starth>>8);
+	cmdfis->lba3 = 0; //(uint8_t)(startl>>24);
+	cmdfis->lba4 = 0; //(uint8_t)starth;
+	cmdfis->lba5 = 0; //(uint8_t)(starth>>8);
  
-	//cmdfis->countl = LOuint8_t(count);
-	//cmdfis->counth = HIuint8_t(count);
+	cmdfis->count = 100;
+//	cmdfis->counth = 0;
  
 	// The below loop waits until the port is no longer busy before issuing a new command
 	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
@@ -333,7 +333,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 			break;
 		if (port->is_rwc & HBA_PxIS_TFES)	// Task file error
 		{
-			kprintf("Read disk error\n");
+			kprintf("Write disk error\n");
 			return FALSE;
 		}
 	}
@@ -341,7 +341,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	// Check again
 	if (port->is_rwc & HBA_PxIS_TFES)
 	{
-		kprintf("Read disk error\n");
+		kprintf("Write disk error\n");
 		return FALSE;
 	}
  
