@@ -347,3 +347,69 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
  
 	return TRUE;
 }
+
+#define	AHCI_BASE	0x400000	// 4M
+ 
+// Start command engine
+void start_cmd(hba_port_t *port)
+{
+	// Wait until CR (bit15) is cleared
+	while (port->cmd & HBA_PxCMD_CR);
+ 
+	// Set FRE (bit4) and ST (bit0)
+	port->cmd |= HBA_PxCMD_FRE;
+	port->cmd |= HBA_PxCMD_ST; 
+}
+ 
+// Stop command engine
+void stop_cmd(hba_port_t *port)
+{
+	// Clear ST (bit0)
+	port->cmd &= ~HBA_PxCMD_ST;
+ 
+	// Wait until FR (bit14), CR (bit15) are cleared
+	while(1)
+	{
+		if (port->cmd & HBA_PxCMD_FR)
+			continue;
+		if (port->cmd & HBA_PxCMD_CR)
+			continue;
+		break;
+	}
+ 
+	// Clear FRE (bit4)
+	port->cmd &= ~HBA_PxCMD_FRE;
+}
+void port_rebase(hba_port_t *port, int portno)
+{
+	stop_cmd(port);	// Stop command engine
+ 
+	// Command list offset: 1K*portno
+	// Command list entry size = 32
+	// Command list entry maxim count = 32
+	// Command list maxim size = 32*32 = 1K per port
+	port->clb = AHCI_BASE + (portno<<10);
+	//port->clbu = 0;
+	memset((void*)(port->clb), 0, 1024);
+ 
+	// FIS offset: 32K+256*portno
+	// FIS entry size = 256 bytes per port
+	port->fb = AHCI_BASE + (32<<10) + (portno<<8);
+	//port->fbu = 0;
+	memset((void*)(port->fb), 0, 256);
+ 
+	// Command table offset: 40K + 8K*portno
+	// Command table size = 256*32 = 8K per port
+	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)(port->clb);
+	for (int i=0; i<32; i++)
+	{
+		cmdheader[i].prdtl = 100;	// 8 prdt entries per command table
+					// 256 bytes per command table, 64+16+48+16*8
+		// Command table offset: 40K + 8K*portno + cmdheader_index*256
+		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
+		//cmdheader[i].ctbau = 0;
+		memset((void*)cmdheader[i].ctba, 0, 256);
+	}
+ 
+	start_cmd(port);	// Start command engine
+} 
