@@ -1,6 +1,7 @@
 #include <sys/defs.h>
 #include <sys/kprintf.h>
 #include <sys/ahci.h>
+#include <sys/kmemcpy.h>
 #define TRUE 1
 #define FALSE 0
 static inline uint32_t SysInLong(unsigned short readAddress) {
