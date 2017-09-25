@@ -411,9 +411,9 @@ void port_rebase(hba_port_t *port, int portno)
 		cmdheader[i].prdtl = 100;	// 8 prdt entries per command table
 					// 256 bytes per command table, 64+16+48+16*8
 		// Command table offset: 40K + 8K*portno + cmdheader_index*256
-		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
+		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno * 55296) + (i * 1728);
 		//cmdheader[i].ctbau = 0;
-		memset((void*)cmdheader[i].ctba, 0, 256);
+		memset((void*)cmdheader[i].ctba, 0, 1728);
 	}
  
 	start_cmd(port);	// Start command engine
