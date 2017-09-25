@@ -45,6 +45,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   hba_port_t* port = enumerate_pci();
   uint16_t buf[204800];
   //write_port(port, 0, 0, 100, buf);
+  write(port, 0, 0, 800, buf);
   read(port, 0, 0, 800, buf);
   kprintf("\n%sWe are here", buf);
   while(1);

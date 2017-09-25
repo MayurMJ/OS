@@ -95,12 +95,14 @@ hba_port_t* probe_port(hba_mem_t *abar)
 			int dt = check_type(&abar->ports[i]);
 			if (dt == AHCI_DEV_SATA)
 			{
+				if(i != 0) {
 				kprintf("SATA drive found at port %d\n", i);
 				abar->ghc = 1;
 				abar->ghc |= (1 << 1);
 				abar->ghc |= (1 << 31);
 				port_rebase(&abar->ports[i], i);
 				return &abar->ports[i];
+				}
 			}
 			else if (dt == AHCI_DEV_SATAPI)
 			{
@@ -324,12 +326,12 @@ void port_rebase(hba_port_t *port, int portno)
 	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)(port->clb);
 	for (int i=0; i<32; i++)
 	{
-		cmdheader[i].prdtl = 100;	// 8 prdt entries per command table
+		cmdheader[i].prdtl = 50;	// 8 prdt entries per command table
 					// 256 bytes per command table, 64+16+48+16*8
 		// Command table offset: 40K + 8K*portno + cmdheader_index*256
-		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno * 55296) + (i * 1728);
+		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno * 29696) + (i * 928);
 		//cmdheader[i].ctbau = 0;
-		memset((void*)cmdheader[i].ctba, 0, 1728);
+		memset((void*)cmdheader[i].ctba, 0, 237586);
 	}
  
 	start_cmd(port);	// Start command engine
@@ -373,6 +375,97 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	cmdfis->fis_type = FIS_TYPE_REG_H2D;
 	cmdfis->c = 1;	// Command
 	cmdfis->command = ATA_CMD_READ_DMA_EX;
+ 
+	cmdfis->lba0 = (uint8_t)startl;
+	cmdfis->lba1 = (uint8_t)(startl>>8);
+	cmdfis->lba2 = (uint8_t)(startl>>16);
+	cmdfis->device = 1<<6;	// LBA mode
+ 
+	cmdfis->lba3 = (uint8_t)(startl>>24);
+	cmdfis->lba4 = (uint8_t)starth;
+	cmdfis->lba5 = (uint8_t)(starth>>8);
+ 
+	cmdfis->count = count;
+	//cmdfis->counth = HIuint8_t(count);
+ 
+	// The below loop waits until the port is no longer busy before issuing a new command
+	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
+	{
+		spin++;
+	}
+	if (spin == 1000000)
+	{
+		kprintf("Port is hung\n");
+		return FALSE;
+	}
+ 
+	port->ci = 1<<slot;	// Issue command
+ 
+	// Wait for completion
+	while (1)
+	{
+		// In some longer duration reads, it may be helpful to spin on the DPS bit 
+		// in the PxIS port field as well (1 << 5)
+		if ((port->ci & (1<<slot)) == 0) 
+			break;
+		if (port->is_rwc & HBA_PxIS_TFES)	// Task file error
+		{
+			kprintf("Read disk error\n");
+			return FALSE;
+		}
+	}
+ 
+	// Check again
+	if (port->is_rwc & HBA_PxIS_TFES)
+	{
+		kprintf("Read disk error\n");
+		return FALSE;
+	}
+ 
+	return TRUE;
+} 
+int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
+{
+	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
+	int spin = 0; // Spin lock timeout counter
+	int slot = find_cmdslot(port);
+	if (slot == -1)
+		return FALSE;
+ 
+	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)port->clb;
+	cmdheader += slot;
+	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);	// Command FIS size
+	cmdheader->w = 1;		// Write to device
+	cmdheader->c = 1;
+	cmdheader->p = 1;
+	cmdheader->prdtl = (uint16_t)((count-1)>>4) + 1;	// PRDT entries count
+ 
+	hba_cmd_tbl_t *cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);
+	memset(cmdtbl, 0, sizeof(hba_cmd_tbl_t) +
+ 		(cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
+ 
+	// 8K bytes (16 sectors) per PRDT
+	int i = 0;
+	for (i=0; i<cmdheader->prdtl-1; i++)
+	{
+		memset(buf, i, 4096);
+		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
+		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].i = 1;
+		buf += 4*1024;	// 4K words
+		count -= 16;	// 16 sectors
+	}
+	// Last entry
+	cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
+	cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
+	cmdtbl->prdt_entry[i].i = 1;
+ 
+	// Setup command
+	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
+ 
+	cmdfis->fis_type = FIS_TYPE_REG_H2D;
+	cmdfis->c = 1;	// Command
+	cmdfis->command = ATA_CMD_WRITE_DMA_EX;
  
 	cmdfis->lba0 = (uint8_t)startl;
 	cmdfis->lba1 = (uint8_t)(startl>>8);
