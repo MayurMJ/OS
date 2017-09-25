@@ -439,8 +439,8 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	cmdheader += slot;
 	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);	// Command FIS size
 	cmdheader->w = 1;		// Write to device
-	cmdheader->c = 1;
-	cmdheader->p = 1;
+//	cmdheader->c = 1;
+//	cmdheader->p = 1;
 	cmdheader->prdtl = (uint16_t)((count-1)>>4) + 1;	// PRDT entries count
  
 	hba_cmd_tbl_t *cmdtbl = (hba_cmd_tbl_t*)(cmdheader->ctba);

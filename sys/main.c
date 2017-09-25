@@ -6,6 +6,7 @@
 #include <sys/idt.h>
 #include <sys/pic.h>
 #include <sys/pci.h>
+#include <sys/kmemcpy.h>
 
 #define INITIAL_STACK_SIZE 4096
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
@@ -44,9 +45,25 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
   uint64_t buf = (uint64_t) 0x100000 + 1024 + 256 + 928 *32;
+  //memset((void *)buf,0,4096); 
+  uint64_t tmpbuf = buf;
+  int j;
+
+  for(j=0;j< 100;j++) {
+	memset((void *)tmpbuf,j,4096);
+	tmpbuf += 4096;
+  }
+
   write(port, 0, 0, 800, buf);
+
+  memset((void *)buf,0,409600);
+
   read(port, 0, 0, 800, buf);
+
+  kprintf("\nvalue is %d",*((int *)(buf+5000)));
+
   kprintf("\n%sWe are here", buf);
+
   while(1);
 
   //char *s = "Testing Print\n";
