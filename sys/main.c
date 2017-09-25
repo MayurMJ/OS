@@ -53,14 +53,14 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	memset((void *)tmpbuf,j,4096);
 	tmpbuf += 4096;
   }
-
+  kprintf("\nbefore write %d",*((int *)(buf+5000)));
   write(port, 0, 0, 800, buf);
-
+  kprintf("\naftre write is %d",*((int *)(buf+5000)));
   memset((void *)buf,0,409600);
-
+  kprintf("\nafter memset 0 is %d",*((int *)(buf+5000)));
   read(port, 0, 0, 800, buf);
 
-  kprintf("\nvalue is %d",*((int *)(buf+5000)));
+  kprintf("\naftre read %d",*((int *)(buf+5000)));
 
   kprintf("\n%sWe are here", buf);
 
