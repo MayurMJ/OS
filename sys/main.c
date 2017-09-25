@@ -44,24 +44,26 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
-  uint64_t buf = (uint64_t) 0x100000 + 1024 + 256 + 928 *32;
+  uint64_t buf = (uint64_t) 0x4000000;// + 1024 + 256 + 928 *32;
   //memset((void *)buf,0,4096); 
   uint64_t tmpbuf = buf;
   int j, k = 3;
 
-  kprintf("\nbefore kmemset %d",*((uint8_t *)(buf + 5001)));
+  kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
   for(j=0;j < 100;j++) {
 	memset((uint8_t *)tmpbuf,k,4096);
 	tmpbuf += 4096;
   }
-  kprintf("\nbefore write %d",*((uint8_t *)(buf + 5001)));
-  write(port, 0, 0, 800, buf);
-  kprintf("\naftre write is %d",*((uint8_t *)(buf + 5001)));
+  kprintf("\nbefore write %d",*((uint8_t *)(buf)));
+  write(port, 0, 0, 2, buf);
+  kprintf("\naftre write is %d",*((uint8_t *)(buf)));
   memset((uint8_t *)buf,0,409600);
-  kprintf("\nafter memset 0 is %d",*((uint8_t *)(buf+5001)));
-  //read(port, 0, 0, 800, buf);
+  kprintf("\nafter memset 0 is %d",*((uint8_t *)(buf)));
+  read(port, 0, 0, 2, buf);
 
-  kprintf("\naftre read %d",*((uint8_t *)(buf+5001)));
+  kprintf("\naftre read %d",*((uint8_t *)(buf)));
+  kprintf("\naftre read + 511 %d %d %d",*((uint8_t *)(buf+511)),*((uint8_t *)(buf+512)),*((uint8_t *)(buf+513)));
+  kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
 
   kprintf("\n%sWe are here", buf);
   while(1);
