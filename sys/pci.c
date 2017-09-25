@@ -339,7 +339,7 @@ void port_rebase(hba_port_t *port, int portno)
  
 	start_cmd(port);	// Start command engine
 }
-int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
+int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
@@ -362,7 +362,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	for (i=0; i<cmdheader->prdtl-1; i++)
 	{
 		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].dbc = 8*1024 - 1;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 1;
 		buf += 4*1024;	// 4K words
 		count -= 16;	// 16 sectors

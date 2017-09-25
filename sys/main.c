@@ -47,33 +47,24 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t buf = (uint64_t) 0x100000 + 1024 + 256 + 928 *32;
   //memset((void *)buf,0,4096); 
   uint64_t tmpbuf = buf;
-  int j;
+  int j, k = 3;
 
-  for(j=0;j< 100;j++) {
-	memset((void *)tmpbuf,j,4096);
+  kprintf("\nbefore kmemset %d",*((uint8_t *)(buf + 5001)));
+  for(j=0;j < 100;j++) {
+	memset((uint8_t *)tmpbuf,k,4096);
 	tmpbuf += 4096;
   }
-  kprintf("\nbefore write %d",*((int *)(buf+5000)));
+  kprintf("\nbefore write %d",*((uint8_t *)(buf + 5001)));
   write(port, 0, 0, 800, buf);
-  kprintf("\naftre write is %d",*((int *)(buf+5000)));
-  memset((void *)buf,0,409600);
-  kprintf("\nafter memset 0 is %d",*((int *)(buf+5000)));
-  read(port, 0, 0, 800, buf);
+  kprintf("\naftre write is %d",*((uint8_t *)(buf + 5001)));
+  memset((uint8_t *)buf,0,409600);
+  kprintf("\nafter memset 0 is %d",*((uint8_t *)(buf+5001)));
+  //read(port, 0, 0, 800, buf);
 
-  kprintf("\naftre read %d",*((int *)(buf+5000)));
+  kprintf("\naftre read %d",*((uint8_t *)(buf+5001)));
 
   kprintf("\n%sWe are here", buf);
-
   while(1);
-
-  //char *s = "Testing Print\n";
-  //char *t = "Testing Print";
-  //int c = 8;
-  //char d = 'X';
-  //int h = 0x1c; 
-  //kprintf("%s", s);
-  //kprintf("%s", t);
- 
 }
 
 void boot(void)

@@ -1,4 +1,4 @@
-#include <sys/kprintf.h>
+#include <sys/defs.h>
 int memcpy(char *s1, char *s2, int size) {
   int i = 0;
   while(i < size/2) {
@@ -9,10 +9,10 @@ int memcpy(char *s1, char *s2, int size) {
   }
   return i;
 }
-int memset(void *bufptr, int val, int size) {
+int memset(uint8_t *bufptr, int val, int size) {
   int i = 0;
   while(i < size) {
-    *((int *)bufptr) = val;
+    *(bufptr) = val;
     bufptr++;
     i++;
   }
