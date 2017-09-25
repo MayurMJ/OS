@@ -272,7 +272,7 @@ int write_port(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t coun
 	return TRUE;
 }
 
-#define	AHCI_BASE	0x3eaf1000
+#define	AHCI_BASE	0x100000
  
 // Start command engine
 void start_cmd(hba_port_t *port)
@@ -427,14 +427,14 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
  
 	return TRUE;
 } 
-int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
+int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
 	int slot = find_cmdslot(port);
 	if (slot == -1)
 		return FALSE;
- 
+	//port->clb = AHCI_BASE; 
 	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)port->clb;
 	cmdheader += slot;
 	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);	// Command FIS size
@@ -451,18 +451,18 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	int i = 0;
 	for (i=0; i<cmdheader->prdtl-1; i++)
 	{
-		memset(buf, 1, 4096);
-		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		//memset(buf, 1, 4096);
+		cmdtbl->prdt_entry[i].dba = buf & (0xFFFFFFFF);
+		cmdtbl->prdt_entry[i].dbc = 8*1024 - 1;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 0;
 		buf += 4*1024;	// 4K words
 		count -= 16;	// 16 sectors
 	}
 	// Last entry
-	cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
+	cmdtbl->prdt_entry[i].dba = (uint64_t)buf &(0xFFFFFFFF);
 	cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
 	cmdtbl->prdt_entry[i].i = 0;
- 
+	 
 	// Setup command
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
  

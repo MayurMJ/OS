@@ -43,7 +43,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
-  uint16_t buf[204800];
+  uint64_t buf = (uint64_t) 0x100000 + 1024 + 256 + 928 *32;
   write(port, 0, 0, 800, buf);
   read(port, 0, 0, 800, buf);
   kprintf("\n%sWe are here", buf);
