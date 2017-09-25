@@ -225,14 +225,14 @@ void port_rebase(hba_port_t *port, int portno)
 	// Command list entry size = 32
 	// Command list entry maxim count = 32
 	// Command list maxim size = 32*32 = 1K per port
-	port->clb = AHCI_BASE;
+	port->clb = AHCI_BASE  + (portno <<10);
 	kprintf("\n BASe:clb %x", AHCI_BASE);
 	//port->clbu = 0;
 	memset((void*)(port->clb), 0, 1024);
  
 	// FIS offset: 32K+256*portno
 	// FIS entry size = 256 bytes per port
-	port->fb = AHCI_BASE + 0x400;
+	port->fb = AHCI_BASE + (32 << 10) + (portno << 8);
 	kprintf("\n BASe:fis %x", AHCI_BASE + 0x400);
 	//port->fbu = 0;
 	memset((void*)(port->fb), 0, 256);
@@ -242,12 +242,12 @@ void port_rebase(hba_port_t *port, int portno)
 	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)(port->clb);
 	for (int i=0; i<32; i++)
 	{
-		cmdheader[i].prdtl = 50;	// 8 prdt entries per command table
+		cmdheader[i].prdtl = 8;	// 8 prdt entries per command table
 					// 256 bytes per command table, 64+16+48+16*8
 		// Command table offset: 40K + 8K*portno + cmdheader_index*256
-		cmdheader[i].ctba = AHCI_BASE + 0x400 + 0x100 + (928*i);
+		cmdheader[i].ctba = AHCI_BASE + (40 << 10) + (portno << 13) + (i << 8);
 		//cmdheader[i].ctbau = 0;
-		memset((void*)cmdheader[i].ctba, 0, 928);
+		memset((void*)cmdheader[i].ctba, 0, 256);
 	}
  
 	start_cmd(port);	// Start command engine

@@ -15,6 +15,7 @@ extern char kernmem, physbase;
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
+  int i = 0;
   struct smap_t {
     uint64_t base, length;
     uint32_t type;
@@ -47,25 +48,31 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t buf = (uint64_t) 0x4000000;// + 1024 + 256 + 928 *32;
   //memset((void *)buf,0,4096); 
   uint64_t tmpbuf = buf;
-  int j, k = 3;
+  int j;
 
   kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
   for(j=0;j < 100;j++) {
-	memset((uint8_t *)tmpbuf,k,4096);
+	memset((uint8_t *)tmpbuf,j,4096);
 	tmpbuf += 4096;
   }
   kprintf("\nbefore write %d",*((uint8_t *)(buf)));
-  write(port, 0, 0, 2, buf);
+  int sectorIndex = 0;
+  for(sectorIndex = 0; sectorIndex < 800; sectorIndex++) {
+    write(port, sectorIndex, 0, 1, buf + (sectorIndex * 512));
+  }
   kprintf("\naftre write is %d",*((uint8_t *)(buf)));
   memset((uint8_t *)buf,0,409600);
-  kprintf("\nafter memset 0 is %d",*((uint8_t *)(buf)));
-  read(port, 0, 0, 2, buf);
+  kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
+  for(i = 0; i < 100; i++) {
+  	read(port, i*8, 0, 1, buf);
+  	kprintf("%d",*((uint8_t *)(buf)));
+  }
 
-  kprintf("\naftre read %d",*((uint8_t *)(buf)));
-  kprintf("\naftre read + 511 %d %d %d",*((uint8_t *)(buf+511)),*((uint8_t *)(buf+512)),*((uint8_t *)(buf+513)));
-  kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
+ // kprintf("\naftre read %d",*((uint8_t *)(buf)));
+  //kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
+  //kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
 
-  kprintf("\n%sWe are here", buf);
+  //kprintf("\n%sWe are here", buf);
   while(1);
 }
 
