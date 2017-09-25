@@ -42,7 +42,10 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
-  enumerate_pci();
+   hba_port_t* port = enumerate_pci();
+  uint16_t buf[204800];
+  write_port(port, 0, 0, 100, buf);
+  
   while(1);
 
   //char *s = "Testing Print\n";

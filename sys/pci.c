@@ -83,7 +83,7 @@ static int check_type(hba_port_t *port)
                 return AHCI_DEV_SATA;
         }
 }
-void probe_port(hba_mem_t *abar)
+hba_port_t* probe_port(hba_mem_t *abar)
 {
 	// Search disk in impelemented ports
 	uint32_t pi = abar->pi;
@@ -100,6 +100,7 @@ void probe_port(hba_mem_t *abar)
 				abar->ghc |= (1 << 1);
 				abar->ghc |= (1 << 31);
 				port_rebase(&abar->ports[i], i);
+				return &abar->ports[i];
 			}
 			else if (dt == AHCI_DEV_SATAPI)
 			{
@@ -122,43 +123,45 @@ void probe_port(hba_mem_t *abar)
 		pi >>= 1;
 		i ++;
 	}
+	return NULL;
 }
  
 
 uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
     uint16_t vendor;
     uint32_t device;
-    uint32_t bar5location;
     /* try and read the first configuration register. Since there are no */
     /* vendors that == 0xFFFF, it must be a non-existent device. */
     if ((vendor = pciConfigReadWord(bus,slot,0,0)) != 0xFFFF) {
        device = tmpReadWord(bus,slot,0,8);
        if((device >> 16) == 0x106) {
-	bar5location = (uint32_t)((bus << 16) | (slot << 11) |
-              	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
-	SysOutLong(0xcf8,bar5location);
-	SysOutLong(0xcfc, 0x3ebf1000);
-	hba_mem_t *hbamemstruct = (hba_mem_t *)0x3ebf1000;
-	kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
-	probe_port(hbamemstruct);
 	return 1;
        }
     }
     return 0;
 }
-void enumerate_pci() {
+hba_port_t* enumerate_pci() {
      uint8_t bus;
      uint8_t device;
      int status=0;
- 
+     uint32_t bar5location = 0;
      for(bus = 0; bus < 256; bus++) {
          for(device = 0; device < 32; device++) {
              status = pciCheckVendor(bus, device);
-	     if (status == 1)
-		break;
+	     if (status == 1) {
+		bar5location = (uint32_t)((bus << 16) | (device << 11) |
+              	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
+		SysOutLong(0xcf8,bar5location);
+		SysOutLong(0xcfc, 0x3ebf1000);
+		hba_mem_t *hbamemstruct = (hba_mem_t *)0x3ebf1000;
+		kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
+		return (probe_port(hbamemstruct));
+		//break;
+             }
          }
 	 if (status == 1) break;
      }
+	return NULL;
 }
 
 #define ATA_DEV_BUSY 0x80
@@ -178,7 +181,7 @@ int find_cmdslot(hba_port_t *port)
 	kprintf("Cannot find free command list entry\n");
 	return -1;
 }
-int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
+int write_port(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
@@ -265,7 +268,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
  
 	return TRUE;
 }
-int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
+int read_port(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
