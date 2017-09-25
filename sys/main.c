@@ -44,8 +44,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
    hba_port_t* port = enumerate_pci();
   uint16_t buf[204800];
-  write_port(port, 0, 0, 100, buf);
-  
+  //write_port(port, 0, 0, 100, buf);
+  int status = read_port(port, 0, 0, 800,buf);
+  kprintf("the status is %d\n",status);
   while(1);
 
   //char *s = "Testing Print\n";
