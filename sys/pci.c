@@ -271,7 +271,7 @@ int write_port(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t coun
 	return TRUE;
 }
 
-#define	AHCI_BASE	0x400000	// 4M
+#define	AHCI_BASE	0x3ebf1000	// 4M
  
 // Start command engine
 void start_cmd(hba_port_t *port)
@@ -427,7 +427,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
-	int spin = 0; // Spin lock timeout counter
+	//int spin = 0; // Spin lock timeout counter
 	int slot = find_cmdslot(port);
 	if (slot == -1)
 		return FALSE;
@@ -448,17 +448,17 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	int i = 0;
 	for (i=0; i<cmdheader->prdtl-1; i++)
 	{
-		memset(buf, i, 4096);
+		memset(buf, 1, 4096);
 		cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
 		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
-		cmdtbl->prdt_entry[i].i = 1;
+		cmdtbl->prdt_entry[i].i = 0;
 		buf += 4*1024;	// 4K words
 		count -= 16;	// 16 sectors
 	}
 	// Last entry
 	cmdtbl->prdt_entry[i].dba = (uint64_t)buf;
 	cmdtbl->prdt_entry[i].dbc = count<<9;	// 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = 1;
+	cmdtbl->prdt_entry[i].i = 0;
  
 	// Setup command
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*)(&cmdtbl->cfis);
@@ -480,7 +480,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	//cmdfis->counth = HIuint8_t(count);
  
 	// The below loop waits until the port is no longer busy before issuing a new command
-	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
+	/*while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
 	{
 		spin++;
 	}
@@ -489,7 +489,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 		kprintf("Port is hung\n");
 		return FALSE;
 	}
- 
+ */
 	port->ci = 1<<slot;	// Issue command
  
 	// Wait for completion
