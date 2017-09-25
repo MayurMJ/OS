@@ -242,7 +242,7 @@ typedef struct {
   // 0x50
   uint8_t rsv[48];           // Reserved
   // 0x80
-  hba_prdt_entry_t prdt_entry[100]; // Physical region descriptor table entries, 0 ~ 65535
+  hba_prdt_entry_t prdt_entry[50]; // Physical region descriptor table entries, 0 ~ 65535
 }__attribute__((__packed__)) __attribute__((aligned(128))) hba_cmd_tbl_t;
 
 /* Command Header */

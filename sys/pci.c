@@ -97,9 +97,10 @@ hba_port_t* probe_port(hba_mem_t *abar)
 			{
 				if(i != 0) {
 				kprintf("SATA drive found at port %d\n", i);
-				abar->ghc = 1;
-				abar->ghc |= (1 << 1);
-				abar->ghc |= (1 << 31);
+				abar->ghc = (1 << 31);
+				abar->ghc = (1 << 0);
+				abar->ghc = (1 << 31);
+				abar->ghc = (1 << 1);
 				port_rebase(&abar->ports[i], i);
 				return &abar->ports[i];
 				}
@@ -271,7 +272,7 @@ int write_port(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t coun
 	return TRUE;
 }
 
-#define	AHCI_BASE	0x3ebf1000	// 4M
+#define	AHCI_BASE	0x3eaf1000
  
 // Start command engine
 void start_cmd(hba_port_t *port)
@@ -311,13 +312,15 @@ void port_rebase(hba_port_t *port, int portno)
 	// Command list entry size = 32
 	// Command list entry maxim count = 32
 	// Command list maxim size = 32*32 = 1K per port
-	port->clb = AHCI_BASE + (portno<<10);
+	port->clb = AHCI_BASE;
+	kprintf("\n BASe:clb %x", AHCI_BASE);
 	//port->clbu = 0;
 	memset((void*)(port->clb), 0, 1024);
  
 	// FIS offset: 32K+256*portno
 	// FIS entry size = 256 bytes per port
-	port->fb = AHCI_BASE + (32<<10) + (portno<<8);
+	port->fb = AHCI_BASE + 0x400;
+	kprintf("\n BASe:fis %x", AHCI_BASE + 0x400);
 	//port->fbu = 0;
 	memset((void*)(port->fb), 0, 256);
  
@@ -329,9 +332,9 @@ void port_rebase(hba_port_t *port, int portno)
 		cmdheader[i].prdtl = 50;	// 8 prdt entries per command table
 					// 256 bytes per command table, 64+16+48+16*8
 		// Command table offset: 40K + 8K*portno + cmdheader_index*256
-		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno * 29696) + (i * 928);
+		cmdheader[i].ctba = AHCI_BASE + 0x400 + 0x100 + (928*i);
 		//cmdheader[i].ctbau = 0;
-		memset((void*)cmdheader[i].ctba, 0, 237586);
+		memset((void*)cmdheader[i].ctba, 0, 928);
 	}
  
 	start_cmd(port);	// Start command engine
@@ -427,7 +430,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint16_t *buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
-	//int spin = 0; // Spin lock timeout counter
+	int spin = 0; // Spin lock timeout counter
 	int slot = find_cmdslot(port);
 	if (slot == -1)
 		return FALSE;
@@ -480,7 +483,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	//cmdfis->counth = HIuint8_t(count);
  
 	// The below loop waits until the port is no longer busy before issuing a new command
-	/*while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
+	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
 	{
 		spin++;
 	}
@@ -489,7 +492,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 		kprintf("Port is hung\n");
 		return FALSE;
 	}
- */
+ 
 	port->ci = 1<<slot;	// Issue command
  
 	// Wait for completion
