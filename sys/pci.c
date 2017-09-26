@@ -157,7 +157,7 @@ hba_port_t* enumerate_pci() {
 		SysOutLong(0xcf8,bar5location);
 		SysOutLong(0xcfc, 0x3ebf1000);
 		hba_mem_t *hbamemstruct = (hba_mem_t *)0x3ebf1000;
-		kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
+		//kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
 		return (probe_port(hbamemstruct));
 		//break;
              }
@@ -185,7 +185,7 @@ int find_cmdslot(hba_port_t *port)
 	return -1;
 }
 
-#define	AHCI_BASE	0x100000
+#define	AHCI_BASE	0x400000
  
 // Start command engine
 void start_cmd(hba_port_t *port)
@@ -226,14 +226,14 @@ void port_rebase(hba_port_t *port, int portno)
 	// Command list entry maxim count = 32
 	// Command list maxim size = 32*32 = 1K per port
 	port->clb = AHCI_BASE  + (portno <<10);
-	kprintf("\n BASe:clb %x", AHCI_BASE);
+	//kprintf("\n BASe:clb %x", AHCI_BASE);
 	//port->clbu = 0;
 	memset((void*)(port->clb), 0, 1024);
  
 	// FIS offset: 32K+256*portno
 	// FIS entry size = 256 bytes per port
 	port->fb = AHCI_BASE + (32 << 10) + (portno << 8);
-	kprintf("\n BASe:fis %x", AHCI_BASE + 0x400);
+	//kprintf("\n BASe:fis %x", AHCI_BASE + 0x400);
 	//port->fbu = 0;
 	memset((void*)(port->fb), 0, 256);
  

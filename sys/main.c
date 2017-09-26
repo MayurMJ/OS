@@ -65,12 +65,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
   for(i = 0; i < 100; i++) {
   	read(port, i*8, 0, 1, buf);
-  	kprintf("%d",*((uint8_t *)(buf)));
+  	kprintf("%d ",*((uint8_t *)(buf + 2)));
   }
 
- // kprintf("\naftre read %d",*((uint8_t *)(buf)));
-  //kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
-  //kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
+  kprintf("\naftre read %d",*((uint8_t *)(buf)));
+  kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
+  kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
 
   //kprintf("\n%sWe are here", buf);
   while(1);
