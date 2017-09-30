@@ -101,8 +101,8 @@ hba_port_t* probe_port(hba_mem_t *abar)
 				///*
 				abar->ghc = (1 << 31);
 				abar->ghc = (1 << 0);
-				abar->ghc = (1 << 1);
 				abar->ghc = (1 << 31);
+				abar->ghc |= (1 << 1);
 				//*/
 				port_rebase(&abar->ports[i], i);
 				return &abar->ports[i];
