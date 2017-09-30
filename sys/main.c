@@ -15,7 +15,7 @@ extern char kernmem, physbase;
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
-//  int i = 0;
+  int i = 0;
   struct smap_t {
     uint64_t base, length;
     uint32_t type;
@@ -46,7 +46,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
   if (port == NULL) kprintf("nothing found\n");
-/*
+
   uint64_t buf = (uint64_t) 0x4000000;// + 1024 + 256 + 928 *32;
   //memset((void *)buf,0,4096); 
   uint64_t tmpbuf = buf;
@@ -60,13 +60,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\nbefore write %d",*((uint8_t *)(buf)));
   int sectorIndex = 0;
   for(sectorIndex = 0; sectorIndex < 800; sectorIndex++) {
-    write(port, sectorIndex, 0, 1, buf + (sectorIndex * 512));
+//    write(port, sectorIndex, 0, 1, buf + (sectorIndex * 512));
   }
   kprintf("\naftre write is %d",*((uint8_t *)(buf)));
   memset((uint8_t *)buf,0,409600);
   kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
   for(i = 0; i < 100; i++) {
-  	read(port, i*8, 0, 1, buf);
+  //	read(port, i*8, 0, 1, buf);
 	for(j=0;j<2;j++)
   		kprintf("%d ",*((uint8_t *)(buf + j)));
 	for(j=510;j<512;j++)
@@ -77,7 +77,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\naftre read %d",*((uint8_t *)(buf)));
   kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
   kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
-*/
   //kprintf("\n%sWe are here", buf);
   while(1);
 }

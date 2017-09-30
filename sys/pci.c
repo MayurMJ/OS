@@ -206,7 +206,12 @@ void start_cmd(hba_port_t *port)
  
 	// Set FRE (bit4) and ST (bit0)
 	port->cmd |= HBA_PxCMD_FRE;
-	port->cmd |= HBA_PxCMD_ST; 
+	port->cmd |= 0x00000016;
+	port->sctl |= 0x1;
+	uint32_t timer;
+	for(timer = 0;timer<100000000;timer++){}
+	while((port->sctl & 0x1)==1){kprintf("sctl clear wait");}
+	port->cmd |= 0x10000000;
 }
  
 // Stop command engine
@@ -260,8 +265,9 @@ void port_rebase(hba_port_t *port, int portno)
 		//cmdheader[i].ctbau = 0;
 		memset((void*)cmdheader[i].ctba, 0, 256);
 	}
- 
-	start_cmd(port);	// Start command engine
+	 
+	start_cmd(port);	// Start command enginei
+	kprintf("\nSSTS %d  %x",port->ssts,port->ssts);
 }
 int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
