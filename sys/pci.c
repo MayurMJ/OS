@@ -66,9 +66,9 @@ static int check_type(hba_port_t *port)
         uint8_t ipm = (ssts >> 8) & 0x0F;
         uint8_t det = ssts & 0x0F;
 
-        if (det != HBA_PORT_DET_PRESENT)        // Check drive status
+        if (det == HBA_PORT_DET_PRESENT)        // Check drive status
                 return AHCI_DEV_NULL;
-        if (ipm != HBA_PORT_IPM_ACTIVE)
+        if (ipm == HBA_PORT_IPM_ACTIVE)
                 return AHCI_DEV_NULL;
 
         switch (port->sig)
@@ -87,6 +87,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 {
 	// Search disk in impelemented ports
 	uint32_t pi = abar->pi;
+	kprintf("\nPi inside:%x", abar->pi);
 	int i = 0;
 	while (i<32)
 	{
@@ -95,15 +96,17 @@ hba_port_t* probe_port(hba_mem_t *abar)
 			int dt = check_type(&abar->ports[i]);
 			if (dt == AHCI_DEV_SATA)
 			{
-				if(i != 0) {
+				//if(i != 0) {
 				kprintf("SATA drive found at port %d\n", i);
+				///*
 				abar->ghc = (1 << 31);
 				abar->ghc = (1 << 0);
-				abar->ghc = (1 << 31);
 				abar->ghc = (1 << 1);
+				abar->ghc = (1 << 31);
+				//*/
 				port_rebase(&abar->ports[i], i);
 				return &abar->ports[i];
-				}
+				//}
 			}
 			else if (dt == AHCI_DEV_SATAPI)
 			{
@@ -119,7 +122,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 			}
 			else
 			{
-				kprintf("No drive found at port %d\n", i);
+				//kprintf("No drive found at port %d\n", i);
 			}
 		}
  
@@ -133,13 +136,19 @@ hba_port_t* probe_port(hba_mem_t *abar)
 uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
     uint16_t vendor;
     uint32_t device;
+    uint8_t function;
+//    vendor = pciConfigReadWord(bus,slot,0,0);
+    
+    for(function = 0;function < 8; function++) {  
     /* try and read the first configuration register. Since there are no */
     /* vendors that == 0xFFFF, it must be a non-existent device. */
-    if ((vendor = pciConfigReadWord(bus,slot,0,0)) != 0xFFFF) {
-       device = tmpReadWord(bus,slot,0,8);
+    if ((vendor = pciConfigReadWord(bus,slot,function,0)) != 0xFFFF) {
+       device = tmpReadWord(bus,slot,function,8);
        if((device >> 16) == 0x106) {
+	kprintf("AHCI controller found\n");
 	return 1;
        }
+    }
     }
     return 0;
 }
@@ -155,9 +164,12 @@ hba_port_t* enumerate_pci() {
 		bar5location = (uint32_t)((bus << 16) | (device << 11) |
               	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
 		SysOutLong(0xcf8,bar5location);
-		SysOutLong(0xcfc, 0x3ebf1000);
-		hba_mem_t *hbamemstruct = (hba_mem_t *)0x3ebf1000;
-		//kprintf("PI %x CAP %x\n",hbamemstruct->pi, hbamemstruct->cap);
+		SysOutLong(0xcfc, 0xa6000);
+		SysOutLong(0xcf8,bar5location);
+		uint64_t var = (uint64_t)SysInLong(0xcfc);
+		hba_mem_t *hbamemstruct = (hba_mem_t *)(var);
+		kprintf("PI %x\n",hbamemstruct->pi);
+		kprintf("other values are %x %x %x %x\n",*((int *)var),*((int *)var+4),*((int *)var+8), *((int *)var + 12));
 		return (probe_port(hbamemstruct));
 		//break;
              }

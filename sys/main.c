@@ -15,7 +15,7 @@ extern char kernmem, physbase;
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
-  int i = 0;
+//  int i = 0;
   struct smap_t {
     uint64_t base, length;
     uint32_t type;
@@ -45,6 +45,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
+  if (port == NULL) kprintf("nothing found\n");
+/*
   uint64_t buf = (uint64_t) 0x4000000;// + 1024 + 256 + 928 *32;
   //memset((void *)buf,0,4096); 
   uint64_t tmpbuf = buf;
@@ -75,7 +77,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\naftre read %d",*((uint8_t *)(buf)));
   kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
   kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
-
+*/
   //kprintf("\n%sWe are here", buf);
   while(1);
 }

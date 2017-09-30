@@ -3,8 +3,8 @@
 #define AHCI_DEV_NULL	0
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
-#define HBA_PORT_DET_PRESENT	3
-#define HBA_PORT_IPM_ACTIVE	1
+#define HBA_PORT_DET_PRESENT	0
+#define HBA_PORT_IPM_ACTIVE	0
 #define	SATA_SIG_ATA	0x00000101	// SATA drive
 #define	SATA_SIG_ATAPI	0xEB140101	// SATAPI drive
 #define	SATA_SIG_SEMB	0xC33C0101	// Enclosure management bridge
