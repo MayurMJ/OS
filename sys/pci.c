@@ -13,7 +13,7 @@ static inline uint32_t SysInLong(unsigned short readAddress) {
    return tmp2;
 
 }
-static inline void SysOutLong(unsigned short writeAddress, uint32_t address) {
+static inline void SysOutLong(uint16_t writeAddress, uint32_t address) {
     __asm__ __volatile("outl %0,%1"
                        :
                        :"a"(address), "Nd"(writeAddress));
@@ -133,46 +133,45 @@ hba_port_t* probe_port(hba_mem_t *abar)
 }
  
 
-uint16_t pciCheckVendor(uint8_t bus, uint8_t slot) {
+uint16_t pciCheckVendor(uint8_t bus, uint8_t slot, uint8_t function) {
     uint16_t vendor;
     uint32_t device;
-    uint8_t function;
 //    vendor = pciConfigReadWord(bus,slot,0,0);
     
-    for(function = 0;function < 8; function++) {  
-    /* try and read the first configuration register. Since there are no */
-    /* vendors that == 0xFFFF, it must be a non-existent device. */
-    if ((vendor = pciConfigReadWord(bus,slot,function,0)) != 0xFFFF) {
-       device = tmpReadWord(bus,slot,function,8);
-       if((device >> 16) == 0x106) {
-	kprintf("AHCI controller found\n");
-	return 1;
-       }
-    }
-    }
+   // for(function = 0;function < 8; function++) {  
+	    /* try and read the first configuration register. Since there are no */
+	    /* vendors that == 0xFFFF, it must be a non-existent device. */
+	    if ((vendor = pciConfigReadWord(bus,slot,function,0)) != 0xFFFF) {
+	       device = tmpReadWord(bus,slot,function,8);
+	       if((device >> 16) == 0x106) {
+		kprintf("AHCI controller found %d %d %d\n",bus,slot,function);
+		return 1;
+	       }
+	    }
+    // }
     return 0;
 }
 hba_port_t* enumerate_pci() {
      uint8_t bus;
      uint8_t device;
      int status=0;
+     uint8_t function;
      uint32_t bar5location = 0;
      for(bus = 0; bus < 256; bus++) {
          for(device = 0; device < 32; device++) {
-             status = pciCheckVendor(bus, device);
-	     if (status == 1) {
-		bar5location = (uint32_t)((bus << 16) | (device << 11) |
-              	       (0 << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
-		SysOutLong(0xcf8,bar5location);
-		SysOutLong(0xcfc, 0xa6000);
-		SysOutLong(0xcf8,bar5location);
-		uint64_t var = (uint64_t)SysInLong(0xcfc);
-		hba_mem_t *hbamemstruct = (hba_mem_t *)(var);
-		kprintf("PI %x\n",hbamemstruct->pi);
-		kprintf("other values are %x %x %x %x\n",*((int *)var),*((int *)var+4),*((int *)var+8), *((int *)var + 12));
-		return (probe_port(hbamemstruct));
-		//break;
-             }
+	     for(function =0; function<8; function++) {
+             	     status = pciCheckVendor(bus, device, function);
+		     if (status == 1) {
+			kprintf("\nAHCI controller found %d %d\n",bus,device);
+			bar5location = (uint32_t)((bus << 16) | (device << 11) |
+			       (function << 8) | (0x24 & 0xfc) | ((uint32_t)0x80000000));
+			SysOutLong(0xcf8,bar5location);
+			SysOutLong(0xcfc, 0xa6000);
+			hba_mem_t *hbamemstruct = (hba_mem_t *)0xa6000;
+			kprintf("PI %x\n",hbamemstruct->pi);
+			return (probe_port(hbamemstruct));
+		     }
+	    }
          }
 	 if (status == 1) break;
      }
