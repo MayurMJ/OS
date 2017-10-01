@@ -4,7 +4,7 @@
 #include <sys/kmemcpy.h>
 #define TRUE 1
 #define FALSE 0
-void port_rebase(hba_port_t *port, int portno);
+void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar);
 static inline uint32_t SysInLong(unsigned short readAddress) {
    uint32_t tmp2;
     __asm__ __volatile("inl %1,%0"
@@ -100,11 +100,11 @@ hba_port_t* probe_port(hba_mem_t *abar)
 				kprintf("SATA drive found at port %d\n", i);
 				///*
 				abar->ghc = (1 << 31);
-				abar->ghc = (1 << 0);
-				abar->ghc = (1 << 31);
-				abar->ghc |= (1 << 1);
+				//abar->ghc = (1 << 0);
+				//abar->ghc = (1 << 31);
+	//			abar->ghc |= (1 << 1);
 				//*/
-				port_rebase(&abar->ports[i], i);
+				port_rebase(&abar->ports[i], i, abar);
 				return &abar->ports[i];
 				//}
 			}
@@ -205,12 +205,14 @@ void start_cmd(hba_port_t *port)
 	while (port->cmd & HBA_PxCMD_CR);
  
 	// Set FRE (bit4) and ST (bit0)
-	port->cmd |= HBA_PxCMD_FRE;
-	port->cmd |= 0x00000016;
+//	port->cmd |= HBA_PxCMD_FRE;
+//	port->cmd |= 0x00000016;
+	port->sctl |= 0x700;
 	port->sctl |= 0x1;
 	uint32_t timer;
-	for(timer = 0;timer<100000000;timer++){}
-	while((port->sctl & 0x1)==1){kprintf("sctl clear wait");}
+	for(timer = 0;timer<1000000000;timer++){}
+	port->sctl |= 0x0;
+//	while((port->sctl & 0x1)==1){kprintf("sctl clear wait");}
 	port->cmd |= 0x10000000;
 }
  
@@ -223,17 +225,21 @@ void stop_cmd(hba_port_t *port)
 	// Wait until FR (bit14), CR (bit15) are cleared
 	while(1)
 	{
-		if (port->cmd & HBA_PxCMD_FR)
-			continue;
 		if (port->cmd & HBA_PxCMD_CR)
 			continue;
 		break;
 	}
- 
 	// Clear FRE (bit4)
 	port->cmd &= ~HBA_PxCMD_FRE;
+	while(1)
+	{
+		if (port->cmd & HBA_PxCMD_FR)
+			continue;
+		break;
+	}
+	kprintf("\nport cmd = %d %x\n",port->cmd ); 
 }
-void port_rebase(hba_port_t *port, int portno)
+void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 {
 	stop_cmd(port);	// Stop command engine
  
@@ -252,7 +258,7 @@ void port_rebase(hba_port_t *port, int portno)
 	//kprintf("\n BASe:fis %x", AHCI_BASE + 0x400);
 	//port->fbu = 0;
 	memset((void*)(port->fb), 0, 256);
- 
+
 	// Command table offset: 40K + 8K*portno
 	// Command table size = 256*32 = 8K per port
 	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*)(port->clb);
@@ -266,7 +272,28 @@ void port_rebase(hba_port_t *port, int portno)
 		memset((void*)cmdheader[i].ctba, 0, 256);
 	}
 	 
-	start_cmd(port);	// Start command enginei
+//setting FRE to 1	
+	port->cmd |= HBA_PxCMD_FRE;
+
+//setting all valid bits of SERR to 1
+	port->serr_rwc = 0x7FF0F03;
+
+//setting all interrupt status bits to 0
+	port->is_rwc = 0x0;
+
+//setting all interrupt status bits to 0
+	abar->is_rwc = 0x0;
+
+	
+	abar->ghc |= (1 << 1);
+
+	port->ie = 0xffffffff;
+
+	kprintf("tfd  %x %d\n",port->tfd, port->tfd);
+	kprintf("ssts  %x %d\n",port->ssts, port->ssts);
+	
+ 
+//	start_cmd(port);	// Start command enginei
 	kprintf("\nSSTS %d  %x",port->ssts,port->ssts);
 }
 int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
