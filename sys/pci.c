@@ -208,12 +208,13 @@ void start_cmd(hba_port_t *port)
 //	port->cmd |= HBA_PxCMD_FRE;
 //	port->cmd |= 0x00000016;
 	port->sctl |= 0x700;
-	port->sctl |= 0x1;
+//	port->sctl |= 0x1;
+//	port->cmd |= 0x10000000;
 	uint32_t timer;
 	for(timer = 0;timer<1000000000;timer++){}
-	port->sctl |= 0x0;
+//	port->sctl |= 0x0;
 //	while((port->sctl & 0x1)==1){kprintf("sctl clear wait");}
-	port->cmd |= 0x10000000;
+	port->cmd |= 0x00000001;
 }
  
 // Stop command engine
@@ -276,7 +277,7 @@ void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 	port->cmd |= HBA_PxCMD_FRE;
 
 //setting all valid bits of SERR to 1
-	port->serr_rwc = 0x7FF0F03;
+//	port->serr_rwc = 0x7FF0F03;
 
 //setting all interrupt status bits to 0
 	port->is_rwc = 0x0;
@@ -287,13 +288,13 @@ void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 	
 	abar->ghc |= (1 << 1);
 
-	port->ie = 0xffffffff;
+//	port->ie = 0xffffffff;
 
 	kprintf("tfd  %x %d\n",port->tfd, port->tfd);
 	kprintf("ssts  %x %d\n",port->ssts, port->ssts);
 	
  
-//	start_cmd(port);	// Start command enginei
+	start_cmd(port);	// Start command enginei
 	kprintf("\nSSTS %d  %x",port->ssts,port->ssts);
 }
 int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
@@ -347,7 +348,9 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
  
 	cmdfis->count = count;
 	//cmdfis->counth = HIuint8_t(count);
+		kprintf("\%d\n",__LINE__);
  
+		kprintf("tfd =  %d\n",port->tfd);
 	// The below loop waits until the port is no longer busy before issuing a new command
 	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
 	{
@@ -439,8 +442,9 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	cmdfis->count = count;
 	//cmdfis->counth = HIuint8_t(count);
  
+		kprintf("\%d\n",__LINE__);
 	// The below loop waits until the port is no longer busy before issuing a new command
-	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
+	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000000)
 	{
 		spin++;
 	}
@@ -449,8 +453,10 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 		kprintf("Port is hung\n");
 		return FALSE;
 	}
+		kprintf("\%d\n",__LINE__);
  
 	port->ci = 1<<slot;	// Issue command
+		kprintf("\%d\n",__LINE__);
  
 	// Wait for completion
 	while (1)
@@ -465,6 +471,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 			return FALSE;
 		}
 	}
+		kprintf("\%d\n",__LINE__);
  
 	// Check again
 	if (port->is_rwc & HBA_PxIS_TFES)
