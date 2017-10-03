@@ -1,10 +1,15 @@
 #include <sys/defs.h>
 #include <sys/kprintf.h>
+#include <sys/pci.h>
 #include <sys/ahci.h>
 #include <sys/kmemcpy.h>
 #define TRUE 1
 #define FALSE 0
 void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar);
+void stop_cmd(hba_port_t *port);
+void stop_tmp_cmd(hba_port_t *port);
+void start_tmp_cmd(hba_port_t *port);
+void start_cmd(hba_port_t *port);
 static inline uint32_t SysInLong(unsigned short readAddress) {
    uint32_t tmp2;
     __asm__ __volatile("inl %1,%0"
@@ -92,7 +97,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 	for (int x=0;x< 10000000;x++);
 	for (int x=0;x< 10000000;x++);
 	uint32_t pi = abar->pi;
-	kprintf("\nPi inside:%x", abar->pi);
+	//* kprintf("\nPi inside:%x", abar->pi);
 	int i = 0;
 	while (i<32)
 	{
@@ -101,14 +106,58 @@ hba_port_t* probe_port(hba_mem_t *abar)
 			int dt = check_type(&abar->ports[i]);
 			if (dt == AHCI_DEV_SATA)
 			{
+				port_rebase(&abar->ports[i], i, abar);
 				//if(i != 0) {
 				kprintf("SATA drive found at port %d\n", i);
+				uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
+
+  				memset((void *)buf,0,409600);
+
+ 				uint64_t tmpbuf = buf;
+  				int j;
+
+  //kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
+  				for(j=0;j < 100;j++) {
+        				memset((uint8_t *)tmpbuf,j,4096);
+        				tmpbuf += 4096;
+  				}
+
+  				int sectorIndex = 0;
+  				for(sectorIndex = 0; sectorIndex < 100; sectorIndex++) {
+        				for(int j = 0; j < 1000000; j++);
+        				for(int j = 0; j < 1000000; j++);
+					//port_rebase(&abar->ports[i], i, abar);
+					if (sectorIndex != 0) {
+					stop_tmp_cmd(&abar->ports[i]);
+					start_tmp_cmd(&abar->ports[i]);
+					}
+					//* kprintf("write number %d\n",sectorIndex);
+        				write(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+				//	kprintf("\nOut Of write");
+				}
+				tmpbuf = buf;
+  				for(j=0;j < 100;j++) {
+        				memset((uint8_t *)tmpbuf,0,4096);
+        				tmpbuf += 4096;
+  				}
+  				for(sectorIndex = 0; sectorIndex < 100; sectorIndex++) {
+        				for(int j = 0; j < 1000000; j++);
+        				for(int j = 0; j < 1000000; j++);
+					//port_rebase(&abar->ports[i], i, abar);
+					if (sectorIndex != 0) {
+					stop_tmp_cmd(&abar->ports[i]);
+					start_tmp_cmd(&abar->ports[i]);
+					}
+					//* kprintf("read number %d\n",sectorIndex);
+        				read(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+					kprintf("buf value %d %d\n",*((uint8_t *)(buf + (sectorIndex *8 * 512))),
+								 *((uint8_t *)(buf + (sectorIndex *8 * 512) + 4095)));
+				}
+
+
+
 				///*
-				//abar->ghc = (1 << 0);
-				//abar->ghc = (1 << 31);
-	//			abar->ghc |= (1 << 1);
-				//*/
-				port_rebase(&abar->ports[i], i, abar);
+				//port_rebase(&abar->ports[i], i, abar);
 				return &abar->ports[i];
 				//}
 			}
@@ -148,7 +197,7 @@ uint16_t pciCheckVendor(uint8_t bus, uint8_t slot, uint8_t function) {
 	    if ((vendor = pciConfigReadWord(bus,slot,function,0)) != 0xFFFF) {
 	       device = tmpReadWord(bus,slot,function,8);
 	       if((device >> 16) == 0x106) {
-		kprintf("AHCI controller found %d %d %d\n",bus,slot,function);
+		//* kprintf("AHCI controller found %d %d %d\n",bus,slot,function);
 		return 1;
 	       }
 	    }
@@ -172,7 +221,7 @@ hba_port_t* enumerate_pci() {
 			SysOutLong(0xcf8,bar5location);
 			SysOutLong(0xcfc, 0xa6000);
 			hba_mem_t *hbamemstruct = (hba_mem_t *)0xa6000;
-			kprintf("PI %x\n",hbamemstruct->pi);
+			//kprintf("PI %x\n",hbamemstruct->pi);
 			return (probe_port(hbamemstruct));
 		     }
 	    }
@@ -190,14 +239,14 @@ int find_cmdslot(hba_port_t *port)
 {
 	// If not set in SACT and CI, the slot is free
 	uint32_t slots = (port->sact | port->ci);
-	kprintf("ci value in find_cmdslot %x\n",port->ci);
+	//kprintf("ci value in find_cmdslot %x\n",port->ci);
 	for (int i=0; i<32; i++)
 	{
 		if ((slots&1) == 0)
 			return i;
 		slots >>= 1;
 	}
-	kprintf("Cannot find free command list entry\n");
+	// kprintf("Cannot find free command list entry\n");
 	return -1;
 }
 
@@ -206,7 +255,8 @@ int find_cmdslot(hba_port_t *port)
 // Start command engine
 void start_cmd(hba_port_t *port)
 {
-/*	port->sctl |= 0x10;
+	//kprintf("start of start_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
+	port->sctl |= 0x10;
 	port->sctl |= 0x301;
 	int x;
         for (x=0;x< 10000000;x++);
@@ -217,18 +267,75 @@ void start_cmd(hba_port_t *port)
 	port->cmd = 0x10000016;
         for (x=0;x< 10000000;x++);
         for (x=0;x< 10000000;x++);
-	port->serr_rwc = 0xffffffff;*/
+	port->serr_rwc = 0xffffffff;
+
 	while (port->cmd & HBA_PxCMD_CR);
 	port->cmd |= HBA_PxCMD_FRE;
 	port->cmd |= HBA_PxCMD_ST;
 
-	kprintf("\nchecking ssts again %x tfd %x\n",port->ssts,port->tfd);
+	//kprintf("end of start_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
 }
- 
+
+
+
+void start_tmp_cmd(hba_port_t *port)
+{
+        //kprintf("start of start_tmp_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
+     /*   port->sctl |= 0x10;
+        port->sctl |= 0x301;
+        int x;
+        for (x=0;x< 10000000;x++);
+        for (x=0;x< 10000000;x++);
+        for (x=0;x< 10000000;x++);
+        port->sctl = 0x300;
+        while((port->ssts & 0x3) != 0x3);
+        port->cmd = 0x10000016;
+        for (x=0;x< 10000000;x++);
+        for (x=0;x< 10000000;x++);
+        port->serr_rwc = 0xffffffff;
+
+*/
+	//port->cmd = 0x10000016;
+        port->cmd |= HBA_PxCMD_FRE;
+	port->cmd |= 0x2;
+	port->cmd |= 0x8;
+        int x;
+	for (x=0;x< 10000000;x++);
+        for (x=0;x< 10000000;x++);
+	while(1) {
+		if((((port->ssts & 0xf)==0x1) || ((port->ssts & 0xf)==0x3)) && (((port->ssts>>8)&0xf)==0x1))
+			break;
+	}
+	port->serr_rwc = 0xffffffff;
+	
+        //while (port->cmd & HBA_PxCMD_CR);
+        port->cmd |= HBA_PxCMD_ST;
+
+        //kprintf("end of start_tmp_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
+}
+void stop_tmp_cmd(hba_port_t *port)
+{
+        // Clear ST (bit0)
+        //kprintf("start of stop_tmp_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
+        port->cmd &= ~HBA_PxCMD_ST;
+
+        // Wait until FR (bit14), CR (bit15) are cleared
+        while(1)
+        {
+                if (port->cmd & HBA_PxCMD_CR)
+                        continue;
+                break;
+        }
+        // Clear FRE (bit4)
+        port->cmd &= ~HBA_PxCMD_FRE;
+	port->sctl |= 0xf;
+        //kprintf("end of stop_tmp_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
+} 
 // Stop command engine
 void stop_cmd(hba_port_t *port)
 {
 	// Clear ST (bit0)
+	//kprintf("start of stop_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
 	port->cmd &= ~HBA_PxCMD_ST;
  
 	// Wait until FR (bit14), CR (bit15) are cleared
@@ -246,12 +353,12 @@ void stop_cmd(hba_port_t *port)
 		break;
 	}
 	port->cmd &= ~HBA_PxCMD_FRE;
-	kprintf("\nport cmd = %d %x\n",port->cmd ); 
+	//kprintf("end of stop_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
 }
 void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 {
 	stop_cmd(port);	// Stop command engine
-		port->sctl |= 0x10;
+	/*	port->sctl |= 0x10;
 		port->sctl |= 0x301;
 		int x;
 		for (x=0;x< 10000000;x++);
@@ -263,7 +370,7 @@ void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 		for (x=0;x< 10000000;x++);
 		for (x=0;x< 10000000;x++);
 		port->serr_rwc = 0xffffffff;
- 	
+ 	*/
 	/*port->cmd |= 0x10000000;
 	port->cmd |= 0x00000004;
 	port->cmd |= 0x00000002;
@@ -276,7 +383,7 @@ void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 	// Command list entry size = 32
 	// Command list entry maxim count = 32
 	// Command list maxim size = 32*32 = 1K per port
-	kprintf("\nchecking ssts  %x tfd %x\n",port->ssts,port->tfd);
+	//kprintf("\nchecking ssts  %x tfd %x\n",port->ssts,port->tfd);
 	port->clb = AHCI_BASE  + (portno <<10);
 	//kprintf("\n BASe:clb %x", AHCI_BASE);
 	//port->clbu = 0;
@@ -356,9 +463,9 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
  
 	cmdfis->count = count;
 	//cmdfis->counth = HIuint8_t(count);
-		kprintf("\%d\n",__LINE__);
+		//kprintf("\%d\n",__LINE__);
  
-		kprintf("tfd =  %d\n",port->tfd);
+		//kprintf("tfd =  %d\n",port->tfd);
 	// The below loop waits until the port is no longer busy before issuing a new command
 	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
 	{
@@ -378,7 +485,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 		// In some longer duration reads, it may be helpful to spin on the DPS bit 
 		// in the PxIS port field as well (1 << 5)
 		if ((port->ci & (1<<slot)) == 0) {
-			kprintf("port ci value %x\n",port->ci);
+			//kprintf("port ci value %x\n",port->ci);
 			break;
 		}
 		if (port->is_rwc & HBA_PxIS_TFES)	// Task file error
@@ -399,12 +506,13 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 } 
 int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
+	//kprintf("BEFORE WRITE tfd %x ssts %x sctl %x\n",port->tfd,port->ssts, port->sctl);
 //	while(port->tfd != 0x50);
-	kprintf("tfd value after looping in write %x\n",port->tfd);
+	//kprintf("tfd value after looping in write %x\n",port->tfd);
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
 	int slot = find_cmdslot(port);
-	kprintf("slot value is %d\n",slot);
+	//kprintf("slot value is %d\n",slot);
 	if (slot == -1)
 		return FALSE;
 	//port->clb = AHCI_BASE; 
@@ -455,7 +563,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	cmdfis->count = count;
 	//cmdfis->counth = HIuint8_t(count);
  
-		kprintf("\%d\n",__LINE__);
+		//kprintf("\%d\n",__LINE__);
 	// The below loop waits until the port is no longer busy before issuing a new command
 	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
 	{
@@ -466,11 +574,10 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 		kprintf("Port is hung\n");
 		return FALSE;
 	}
-		kprintf("\%d\n",__LINE__);
+		//kprintf("\%d\n",__LINE__);
  
 	port->ci = 1<<slot;	// Issue command
-		kprintf("\%d\n",__LINE__);
- 
+//		kprintf("\%d\n",__LINE__);
 	// Wait for completion
 	while (1)
 	{
@@ -484,7 +591,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 			return FALSE;
 		}
 	}
-		kprintf("\%d\n",__LINE__);
+		//kprintf("\%d\n",__LINE__);
 // */
 	// Check again
 	if (port->is_rwc & HBA_PxIS_TFES)

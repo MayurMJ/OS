@@ -46,7 +46,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
   if (port == NULL) kprintf("nothing found\n");
- 
+/* 
   uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
 
   memset((void *)buf,0,409600); 
@@ -61,14 +61,14 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   }
 
   //kprintf("\nbefore write %d",*((uint8_t *)(buf)));
- /* int sectorIndex = 0;
-  for(sectorIndex = 0; sectorIndex < 5; sectorIndex++) {
+  int sectorIndex = 0;
+  for(sectorIndex = 0; sectorIndex < 1; sectorIndex++) {
 	kprintf("\n%d WRITE tfd %x ssts %x sctl %x",sectorIndex,port->tfd,port->ssts, port->sctl);
     	for(int i = 0; i < 1000000; i++);
     	for(int i = 0; i < 1000000; i++);
-	write(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));*/
-// }
-
+	write(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+}
+*/
   //kprintf("\naftre write buf is %d",*((uint8_t *)(buf)));
  
 	//int sectorIndex = 0;
