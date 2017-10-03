@@ -109,8 +109,8 @@ hba_port_t* probe_port(hba_mem_t *abar)
 				port_rebase(&abar->ports[i], i, abar);
 				//if(i != 0) {
 				kprintf("SATA drive found at port %d\n", i);
-				uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
-
+				//uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
+				uint64_t buf = (uint64_t)0x4000000;
   				memset((void *)buf,0,409600);
 
  				uint64_t tmpbuf = buf;
@@ -150,7 +150,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 					}
 					//* kprintf("read number %d\n",sectorIndex);
         				read(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
-					kprintf("buf value %d %d\n",*((uint8_t *)(buf + (sectorIndex *8 * 512))),
+					kprintf("%d %d ",*((uint8_t *)(buf + (sectorIndex *8 * 512))),
 								 *((uint8_t *)(buf + (sectorIndex *8 * 512) + 4095)));
 				}
 
@@ -346,12 +346,14 @@ void stop_cmd(hba_port_t *port)
 		break;
 	}
 	// Clear FRE (bit4)
+/*
 	while(1)
 	{
 		if (port->cmd & HBA_PxCMD_FR)
 			continue;
 		break;
 	}
+*/
 	port->cmd &= ~HBA_PxCMD_FRE;
 	//kprintf("end of stop_cmd ssts %x tfd %x\n",port->ssts,port->tfd);
 }
@@ -473,7 +475,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	}
 	if (spin == 1000000)
 	{
-		kprintf("Port is hung\n");
+		kprintf("Port is hung read\n");
 		return FALSE;
 	}
  
@@ -571,7 +573,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	}
 	if (spin == 1000000)
 	{
-		kprintf("Port is hung\n");
+		kprintf("Port is hung write\n");
 		return FALSE;
 	}
 		//kprintf("\%d\n",__LINE__);
