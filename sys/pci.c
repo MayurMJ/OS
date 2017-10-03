@@ -435,7 +435,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
 	for (i=0; i<cmdheader->prdtl-1; i++)
 	{
 		cmdtbl->prdt_entry[i].dba = (uint64_t)(buf & 0xFFFFFFFFFFFFFFFF);;
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].dbc = 8*1024-1;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 1;
 		buf += 4*1024;	// 4K words
 		count -= 16;	// 16 sectors
@@ -534,7 +534,7 @@ int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, ui
 	{
 		//memset(buf, 1, 4096);
 		cmdtbl->prdt_entry[i].dba = (uint64_t)(buf & 0xFFFFFFFFFFFFFFFF) ;//& (0xFFFFFFFF);
-		cmdtbl->prdt_entry[i].dbc = 8*1024;	// 8K bytes
+		cmdtbl->prdt_entry[i].dbc = 8*1024-1;	// 8K bytes
 		cmdtbl->prdt_entry[i].i = 1;
 		buf += 4*1024;	// 4K words
 		count -= 16;	// 16 sectors
