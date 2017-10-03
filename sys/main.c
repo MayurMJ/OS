@@ -46,42 +46,57 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // __asm__ __volatile("int  $32");
   hba_port_t* port = enumerate_pci();
   if (port == NULL) kprintf("nothing found\n");
+ 
+  uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
 
-  uint64_t buf = (uint64_t) 0x4000000;// + 1024 + 256 + 928 *32;
-  //memset((void *)buf,0,4096); 
-  uint64_t tmpbuf = buf;
+  memset((void *)buf,0,409600); 
+	
+ uint64_t tmpbuf = buf;
   int j;
 
-  kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
-  for(j=3;j < 100;j++) {
+  //kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
+  for(j=3;j < 103;j++) {
 	memset((uint8_t *)tmpbuf,j,4096);
 	tmpbuf += 4096;
   }
-  kprintf("\nbefore write %d",*((uint8_t *)(buf)));
-  int sectorIndex = 0;
-//  for(sectorIndex = 0; sectorIndex < 800; sectorIndex++) {
-    int ret = write(port, 0, 0, 1, buf + (sectorIndex * 512));
-     ret = write(port, 1, 0, 1, buf + (sectorIndex * 512));
-	kprintf("write returned %d \n", ret);
-//  }
-  kprintf("\naftre write is %d",*((uint8_t *)(buf)));
-  memset((uint8_t *)buf,0,409600);
-  kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
+
+  //kprintf("\nbefore write %d",*((uint8_t *)(buf)));
+ /* int sectorIndex = 0;
+  for(sectorIndex = 0; sectorIndex < 5; sectorIndex++) {
+	kprintf("\n%d WRITE tfd %x ssts %x sctl %x",sectorIndex,port->tfd,port->ssts, port->sctl);
+    	for(int i = 0; i < 1000000; i++);
+    	for(int i = 0; i < 1000000; i++);
+	write(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));*/
+// }
+
+  //kprintf("\naftre write buf is %d",*((uint8_t *)(buf)));
+ 
+	//int sectorIndex = 0;
+//memset((uint8_t *)buf,0,409600);
+/*  for(sectorIndex = 0; sectorIndex < 5; sectorIndex++) {
+        kprintf("\n%d tfd %x ssts %x sctl %x",sectorIndex,port->tfd,port->ssts, port->sctl);
+         read(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+	kprintf("\nread returned %d\n",*((uint8_t *)(buf + (sectorIndex *8 * 512))));
+ }
+  //kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
 //  for(i = 0; i < 100; i++) {
 //  	ret = read(port, 0, 0, 1, buf);
 //  	ret = read(port, 1, 0, 1, buf);
 //  	ret = read(port, 2, 0, 1, buf);
-	kprintf("write returned %d \n", ret);
-	for(j=0;j<2;j++)
-  		kprintf("%d ",*((uint8_t *)(buf + j)));
-	for(j=510;j<512;j++)
-		kprintf("%d ",*((uint8_t *)(buf + j)));
+//	kprintf("write returned %d \n", ret);
+
+	//for(j=0;j<2;j++)
+  	//	kprintf("%d ",*((uint8_t *)(buf + j)));
+	//for(j=510;j<512;j++)
+	//	kprintf("%d ",*((uint8_t *)(buf + j)));
+
 	//kprintf("\n");
  // }
 
-  kprintf("\naftre read %d",*((uint8_t *)(buf)));
-  kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
-  kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
+ // kprintf("\naftre read %d",*((uint8_t *)(buf)));
+ // kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
+  //kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
+//  */
   //kprintf("\n%sWe are here", buf);
   while(1);
 }
