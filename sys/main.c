@@ -5,7 +5,11 @@
 #include <sys/ahci.h>
 #include <sys/idt.h>
 #include <sys/pic.h>
+/*
+deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
+*/
+#include <sys/paging.h>
 #include <sys/kmemcpy.h>
 
 #define INITIAL_STACK_SIZE 4096
@@ -15,89 +19,61 @@ extern char kernmem, physbase;
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
-//  int i = 0;
   struct smap_t {
     uint64_t base, length;
     uint32_t type;
   }__attribute__((packed)) *smap;
+
+  int num_pages = 0;
+  smap_copy_t smap_copy[10];
+  int smap_copy_index = 0;
+  int i;
+
   while(modulep[0] != 0x9001) modulep += modulep[1]+2;
   for(smap = (struct smap_t*)(modulep+2); smap < (struct smap_t*)((char*)modulep+modulep[1]+2*4); ++smap) {
     if (smap->type == 1 /* memory */ && smap->length != 0) {
+
+      smap_copy[smap_copy_index].starting_addr = smap->base;
+      smap_copy[smap_copy_index].last_addr = smap->base + smap->length;
+
       kprintf("Available Physical Memory [%p-%p]\n", smap->base, smap->base + smap->length);
+      
+      smap_copy_index++;
     }
   }
-  kprintf("physfree %p\n", (uint64_t)physfree);
+  
+  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-  /*
-  kprintf("doesnt work\rnope it doesnt\rstill doesnt work\rit works\n");
-  kprintf("%x\n",0xffffffff);
-  kprintf("%x\n",0xfffffff);
-  kprintf("%x\n",-2147483648);
-  kprintf("%x\n",2147483647);
-  kprintf("%x\n",1);
-  kprintf("%x\n",4294967295);
-  kprintf("%x\n",10);
-  */
   init_idt();
   program_pic();
+
+  for (i=0; i < smap_copy_index ; i++) {
+	uint64_t align_start_addr, align_end_addr;
+	if ((smap_copy[i].starting_addr & 0x0000000000000fff) == 0) {
+		// already aligned
+		align_start_addr = smap_copy[i].starting_addr;
+	}
+	else {
+		align_start_addr = ((smap_copy[i].starting_addr+4096) >> 12) << 12;
+	}
+
+	if ((smap_copy[i].last_addr & 0x0000000000000fff) == 0) {
+                // already aligned
+                align_end_addr = smap_copy[i].last_addr;
+        }
+        else {
+                align_end_addr = (smap_copy[i].last_addr >> 12) << 12;
+        }
+  	num_pages += (align_end_addr - align_start_addr)/4096;
+	kprintf("num pages = %d\n",(align_end_addr - align_start_addr)/4096);
+  }
+  
+
   __asm__ __volatile("sti");
- // __asm__ __volatile("int  $32");
- // __asm__ __volatile("int  $32");
- // __asm__ __volatile("int  $32");
+  /*
   hba_port_t* port = enumerate_pci();
   if (port == NULL) kprintf("nothing found\n");
-/* 
-  uint64_t buf = (uint64_t)0x3ff9c000;// + 1024 + 256 + 928 *32;
-
-  memset((void *)buf,0,409600); 
-	
- uint64_t tmpbuf = buf;
-  int j;
-
-  //kprintf("\nbefore kmemset %d",*((uint8_t *)(buf)));
-  for(j=3;j < 103;j++) {
-	memset((uint8_t *)tmpbuf,j,4096);
-	tmpbuf += 4096;
-  }
-
-  //kprintf("\nbefore write %d",*((uint8_t *)(buf)));
-  int sectorIndex = 0;
-  for(sectorIndex = 0; sectorIndex < 1; sectorIndex++) {
-	kprintf("\n%d WRITE tfd %x ssts %x sctl %x",sectorIndex,port->tfd,port->ssts, port->sctl);
-    	for(int i = 0; i < 1000000; i++);
-    	for(int i = 0; i < 1000000; i++);
-	write(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
-}
-*/
-  //kprintf("\naftre write buf is %d",*((uint8_t *)(buf)));
- 
-	//int sectorIndex = 0;
-//memset((uint8_t *)buf,0,409600);
-/*  for(sectorIndex = 0; sectorIndex < 5; sectorIndex++) {
-        kprintf("\n%d tfd %x ssts %x sctl %x",sectorIndex,port->tfd,port->ssts, port->sctl);
-         read(port, sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
-	kprintf("\nread returned %d\n",*((uint8_t *)(buf + (sectorIndex *8 * 512))));
- }
-  //kprintf("\nafter memset 0 is %d\n",*((uint8_t *)(buf)));
-//  for(i = 0; i < 100; i++) {
-//  	ret = read(port, 0, 0, 1, buf);
-//  	ret = read(port, 1, 0, 1, buf);
-//  	ret = read(port, 2, 0, 1, buf);
-//	kprintf("write returned %d \n", ret);
-
-	//for(j=0;j<2;j++)
-  	//	kprintf("%d ",*((uint8_t *)(buf + j)));
-	//for(j=510;j<512;j++)
-	//	kprintf("%d ",*((uint8_t *)(buf + j)));
-
-	//kprintf("\n");
- // }
-
- // kprintf("\naftre read %d",*((uint8_t *)(buf)));
- // kprintf("\naftre read + 100 %d",*((uint8_t *)(buf+510)));
-  //kprintf("\naftre read + 1023 %d %d %d",*((uint8_t *)(buf+1023)),*((uint8_t *)(buf+1024)),*((uint8_t *)(buf+1024)));
-//  */
-  //kprintf("\n%sWe are here", buf);
+  */
   while(1);
 }
 
