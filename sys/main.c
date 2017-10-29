@@ -27,7 +27,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   int num_pages = 0;
   smap_copy_t smap_copy[10];
   int smap_copy_index = 0;
-  //int i;
+  int i;
 
   while(modulep[0] != 0x9001) modulep += modulep[1]+2;
   for(smap = (struct smap_t*)(modulep+2); smap < (struct smap_t*)((char*)modulep+modulep[1]+2*4); ++smap) {
@@ -49,7 +49,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
   kprintf("\n Num Pages %d", num_pages);
-  /*uint64_t free_list_begin;
+  uint64_t free_list_begin;
   if (((uint64_t)physfree & 0x0000000000000fff) == 0)
 	free_list_begin = (0xffffffff80000000 + (uint64_t)physfree);
   else
@@ -78,7 +78,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	begin = ((uint64_t)physbase >> 12) << 12;
 
   // kernel + free list area
-  for (x=begin ; x < free_list_end; x+=4096) {
+  for (x=begin ; x < (free_list_end-0xffffffff80000000); x+=4096) {
 	free_list[x/4096].is_avail = 0; // it is not free
   } 
 
@@ -94,9 +94,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	for (j = first_page; j < second_page; j++)
 		free_list[j].is_avail = 0; // it is not free
   }
-   
+ 
+  init_idt();
+  program_pic();  
   __asm__ __volatile("sti");
-  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase); */
+ 
+  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");
