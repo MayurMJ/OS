@@ -44,11 +44,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   
 //  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-//  init_idt();
-//  program_pic();
-//  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
-  kprintf("\n Num Pages %d", num_pages);
+  kprintf("Num Pages %d\n", num_pages);
   uint64_t free_list_begin;
   if (((uint64_t)physfree & 0x0000000000000fff) == 0)
 	free_list_begin = (0xffffffff80000000 + (uint64_t)physfree);
@@ -80,6 +77,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // kernel + free list area
   for (x=begin ; x < (free_list_end-0xffffffff80000000); x+=4096) {
 	free_list[x/4096].is_avail = 0; // it is not free
+	kprintf("%d ",x/4096);
   } 
 
   int j; 
@@ -91,10 +89,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 		second_page = smap_copy[i+1].starting_addr / 4096;
 	else
 		second_page = (smap_copy[i+1].starting_addr / 4096) + 1;
-	for (j = first_page; j < second_page; j++)
+	for (j = first_page; j < second_page; j++) {
 		free_list[j].is_avail = 0; // it is not free
+		kprintf("%d ",j);
+	}
   }
- 
+  kprintf("\n");
   init_idt();
   program_pic();  
   __asm__ __volatile("sti");
