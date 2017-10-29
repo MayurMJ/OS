@@ -42,11 +42,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     }
   }
   
-  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
+//  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-  init_idt();
-  program_pic();
-
+//  init_idt();
+//  program_pic();
+//  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   for (i=0; i < smap_copy_index ; i++) {
 	uint64_t align_start_addr, align_end_addr;
 	if ((smap_copy[i].starting_addr & 0x0000000000000fff) == 0) {
@@ -65,11 +65,14 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                 align_end_addr = (smap_copy[i].last_addr >> 12) << 12;
         }
   	num_pages += (align_end_addr - align_start_addr)/4096;
-	kprintf("num pages = %d\n",(align_end_addr - align_start_addr)/4096);
   }
+  uint64_t *temp_free_list = (uint64_t *)(0xffffffff80000000 + physfree);
+  free_list = (pg_desc_t *)temp_free_list;
+  // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
   
 
   __asm__ __volatile("sti");
+  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   /*
   hba_port_t* port = enumerate_pci();
   if (port == NULL) kprintf("nothing found\n");
