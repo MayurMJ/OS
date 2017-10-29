@@ -47,30 +47,53 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //  init_idt();
 //  program_pic();
 //  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
-  for (i=0; i < smap_copy_index ; i++) {
-	uint64_t align_start_addr, align_end_addr;
-	if ((smap_copy[i].starting_addr & 0x0000000000000fff) == 0) {
-		// already aligned
-		align_start_addr = smap_copy[i].starting_addr;
-	}
-	else {
-		align_start_addr = ((smap_copy[i].starting_addr+4096) >> 12) << 12;
-	}
+  num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
+  uint64_t free_list_begin;
+  if (((uint64_t)physfree & 0x0000000000000fff) == 0)
+	free_list_begin = (0xffffffff80000000 + (uint64_t)physfree);
+  else
+   	free_list_begin = (0xffffffff80000000 + ((((uint64_t)physfree+4096)>>12)<<12));
 
-	if ((smap_copy[i].last_addr & 0x0000000000000fff) == 0) {
-                // already aligned
-                align_end_addr = smap_copy[i].last_addr;
-        }
-        else {
-                align_end_addr = (smap_copy[i].last_addr >> 12) << 12;
-        }
-  	num_pages += (align_end_addr - align_start_addr)/4096;
-  }
-  uint64_t *temp_free_list = (uint64_t *)(0xffffffff80000000 + physfree);
-  free_list = (pg_desc_t *)temp_free_list;
-  // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
+  free_list = (pg_desc_t *)free_list_begin;
   
 
+  uint64_t free_list_end;
+  if (((free_list_begin + (num_pages * sizeof(pg_desc_t))) & 0x0000000000000fff) == 0)
+	free_list_end = (free_list_begin + (num_pages * sizeof(pg_desc_t)));
+  else
+   	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
+  // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
+
+  for (i=0; i < num_pages ; i++) {
+	free_list[i].is_avail = 1;
+  } 
+  uint64_t x;
+  // note free_list_begin and free_list_end hold vaddresses while smap_copy holds phys addresses
+
+  uint64_t begin;
+  if (((uint64_t)physbase & 0x0000000000000fff) == 0) // already aligned
+	begin = (uint64_t)physbase;
+  else
+	begin = ((uint64_t)physbase >> 12) << 12;
+
+  // kernel + free list area
+  for (x=begin ; x < free_list_end; x+=4096) {
+	free_list[x/4096].is_avail = 0; // it is not free
+  } 
+
+  int j; 
+  // other areas where ram does not exist
+  for (i=0; i<(smap_copy_index-1) ; i++) {
+	int first_page, second_page;
+	first_page = smap_copy[i].last_addr/ 4096;
+	if ((smap_copy[i+1].starting_addr & 0x0000000000000fff) == 0) // already aligned
+		second_page = smap_copy[i+1].starting_addr / 4096;
+	else
+		second_page = (smap_copy[i+1].starting_addr / 4096) + 1;
+	for (j = first_page; j < second_page; j++)
+		free_list[j].is_avail = 0; // it is not free
+  }
+   
   __asm__ __volatile("sti");
   kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   /*
