@@ -16,7 +16,32 @@ deleted pci.c and pci.h due to reduction in available memory
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
+pg_desc_t *free_list_head;
 
+uint64_t get_free_page () {
+  if(free_list_head == NULL)
+    return 0;
+  if(free_list_head->is_avail==0) {
+    kprintf("ERROR: trying to allocate a non avaialable page\n");
+    return 0;
+  }
+  uint64_t addr = (uint64_t) (free_list_head->index * 4096);
+  pg_desc_t * temp = free_list_head;
+  free_list_head = free_list_head->next;
+  temp->next = NULL;
+  temp->prev = NULL;
+  temp->is_avail = 0;
+  return addr;
+}
+
+void __free_page( pg_desc_t *page){
+  page->next=free_list_head;
+  page->prev = NULL;
+  page->is_avail = 1;
+  free_list_head = page;
+}
+void free_page(void *addr);
+  
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
   struct smap_t {
@@ -61,20 +86,23 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   else
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
-  free_list[0].is_avail = 1;
-  free_list[0].prev = NULL;
-  free_list[0].next = &free_list[1];
+  free_list[1].is_avail = 1;
+  free_list[1].prev = NULL;
+  free_list[1].next = &free_list[2];
+  free_list[1].index = 0;
 
-  for (i=1; i < (num_pages-1) ; i++) {
+  for (i=2; i < (num_pages-1) ; i++) {
 	free_list[i].is_avail = 1;
 	free_list[i].prev = &free_list[i-1];
 	free_list[i].next = &free_list[i+1];
+	free_list[i].index = i;
   }
   free_list[num_pages - 1].is_avail = 1;
   free_list[num_pages - 1].prev = &free_list[num_pages - 2];
   free_list[num_pages - 1].next = NULL;
+  free_list[num_pages - 1].index = num_pages - 1; 
 
-  pg_desc_t *free_list_head = free_list;
+  free_list_head = &free_list[1];
 
   uint64_t x;
   // note free_list_begin and free_list_end hold vaddresses while smap_copy holds phys addresses

@@ -7,6 +7,7 @@ typedef struct {
 
 typedef struct pg_desc {
 	uint8_t is_avail;
+	uint64_t index;
 	struct pg_desc *prev;
 	struct pg_desc *next; 
 }__attribute__((__packed__)) pg_desc_t;
