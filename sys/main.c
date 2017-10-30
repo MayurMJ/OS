@@ -48,9 +48,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("Num Pages %d\n", num_pages);
   uint64_t free_list_begin;
   if (((uint64_t)physfree & 0x0000000000000fff) == 0)
-	free_list_begin = (0xffffffff80000000 + (uint64_t)physfree);
+	free_list_begin = (uint64_t)physfree;
   else
-   	free_list_begin = (0xffffffff80000000 + ((((uint64_t)physfree+4096)>>12)<<12));
+   	free_list_begin = ((((uint64_t)physfree+4096)>>12)<<12);
 
   free_list = (pg_desc_t *)free_list_begin;
   
@@ -61,10 +61,21 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   else
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
+  free_list[0].is_avail = 1;
+  free_list[0].prev = NULL;
+  free_list[0].next = &free_list[1];
 
-  for (i=0; i < num_pages ; i++) {
+  for (i=1; i < (num_pages-1) ; i++) {
 	free_list[i].is_avail = 1;
-  } 
+	free_list[i].prev = &free_list[i-1];
+	free_list[i].next = &free_list[i+1];
+  }
+  free_list[num_pages - 1].is_avail = 1;
+  free_list[num_pages - 1].prev = &free_list[num_pages - 2];
+  free_list[num_pages - 1].next = NULL;
+
+  pg_desc_t *free_list_head = free_list;
+
   uint64_t x;
   // note free_list_begin and free_list_end hold vaddresses while smap_copy holds phys addresses
 
@@ -75,11 +86,28 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	begin = ((uint64_t)physbase >> 12) << 12;
 
   // kernel + free list area
-  for (x=begin ; x < (free_list_end-0xffffffff80000000); x+=4096) {
+  for (x=begin ; x < free_list_end; x+=4096) {
 	free_list[x/4096].is_avail = 0; // it is not free
+	if ((x/4096) == (num_pages-1)) {
+		free_list[(x/4096)-1].next = NULL;
+		free_list[x/4096].prev = NULL;
+		free_list[x/4096].next = NULL;
+	}
+	else if ((x/4096) == 0) {
+		free_list_head = &free_list[(x/4096)+1];
+		free_list[(x/4096)+1].prev = NULL;
+		free_list[x/4096].prev = NULL;
+                free_list[x/4096].next = NULL;
+	}
+	else {
+		free_list[(x/4096)-1].next = &free_list[(x/4096)+1];
+		free_list[(x/4096)+1].prev = &free_list[(x/4096)-1];
+		free_list[x/4096].prev = NULL;
+                free_list[x/4096].next = NULL;
+	}
 	kprintf("%d ",x/4096);
   } 
-
+  kprintf("\n");
   int j; 
   // other areas where ram does not exist
   for (i=0; i<(smap_copy_index-1) ; i++) {
@@ -91,9 +119,27 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 		second_page = (smap_copy[i+1].starting_addr / 4096) + 1;
 	for (j = first_page; j < second_page; j++) {
 		free_list[j].is_avail = 0; // it is not free
+		if (j == (num_pages-1)) {
+         	       	free_list[j-1].next = NULL;
+                	free_list[j].prev = NULL;
+               		free_list[j].next = NULL;
+        	}
+        	else if (j == 0) {
+                	free_list_head = &free_list[j+1];
+                	free_list[j+1].prev = NULL;
+                	free_list[j].prev = NULL;
+                	free_list[j].next = NULL;
+        	}
+        	else {
+                	free_list[j-1].next = &free_list[j+1];
+                	free_list[j+1].prev = &free_list[j-1];
+                	free_list[j].prev = NULL;
+                	free_list[j].next = NULL;
+        	}
 		kprintf("%d ",j);
 	}
   }
+  kprintf("random print %d\n",free_list_head->is_avail);
   uint64_t cr3val;
   __asm __volatile("movq %%cr3, %0\n\t"
                     :"=a"(cr3val));
@@ -102,13 +148,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                     :"=a"(cr3val));
     kprintf("\nValue of efer: %x", cr3val);*/
     //free_list_end += 4096;
-    //free_list[free_list_end / 4096].is_avail = 0;
-    //free_list[(free_list_end / 4096) + 1].is_avail = 0;
-  uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end - (uint64_t)0xffffffff80000000);
+  free_list[free_list_end / 4096].is_avail = 0;
+  free_list[(free_list_end / 4096) + 1].is_avail = 0;
+  uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end);
   //uint64_t *PML4 = (uint64_t *) PML;
   *PML4 = 0;
-  PML4[511] = ((uint64_t)free_list_end -(uint64_t) 0xffffffff80000000) | 7;
-  PML4[510] = ((uint64_t)free_list_end -(uint64_t) 0xffffffff80000000) | 7;
+  PML4[511] = ((uint64_t)free_list_end) | 7;
+  PML4[510] = ((uint64_t)free_list_end) | 7;
   uint64_t *PTE = (uint64_t *)PML4 + 512;
   PML4[1] = (uint64_t)PTE;
   PML4[1] = PML4[1] | 7;
@@ -137,7 +183,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     ind++;
   }
 
-  cr3val = free_list_end - 0xffffffff80000000;
+  cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
