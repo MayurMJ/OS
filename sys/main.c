@@ -107,8 +107,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end - (uint64_t)0xffffffff80000000);
   //uint64_t *PML4 = (uint64_t *) PML;
   *PML4 = 0;
-  PML4[511] = (free_list_end - 0xffffffff80000000) | 7;
-  PML4[510] = (free_list_end - 0xffffffff80000000) | 7;
+  PML4[511] = ((uint64_t)free_list_end -(uint64_t) 0xffffffff80000000) | 7;
+  PML4[510] = ((uint64_t)free_list_end -(uint64_t) 0xffffffff80000000) | 7;
   uint64_t *PTE = (uint64_t *)PML4 + 512;
   PML4[1] = (uint64_t)PTE;
   PML4[1] = PML4[1] | 7;
@@ -127,13 +127,23 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   for(int i = 2; i < 510; i++) {
     PML4[i] = 0;
   }
+  /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
+  PML4[0] = (uint64_t)PML4|7;
+  ind = 160;
+  uint64_t vidstart = 0xa0000;
+  uint64_t vidend = 0x100000;
+  for(x = (uint64_t) vidstart; x < (uint64_t) vidend; x += 4096) {
+    PML4[ind] = x | 7;
+    ind++;
+  }
+
   cr3val = free_list_end - 0xffffffff80000000;
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
 
   
- // kprintf("\n");
+  kprintf("\nTest Print after reclocation of CR3\n");
  // init_idt();
  // program_pic();  
  //__asm__ __volatile("sti");
