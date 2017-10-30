@@ -97,23 +97,28 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t cr3val;
   __asm __volatile("movq %%cr3, %0\n\t"
                     :"=a"(cr3val));
-    kprintf("\nValue of cr3: %x", cr3val);
+  kprintf("\nValue of cr3: %x", cr3val);
+/*  __asm __volatile("movq %%ia32_efer, %0\n\t"
+                    :"=a"(cr3val));
+    kprintf("\nValue of efer: %x", cr3val);*/
     //free_list_end += 4096;
     //free_list[free_list_end / 4096].is_avail = 0;
     //free_list[(free_list_end / 4096) + 1].is_avail = 0;
-  uint64_t *PML4 = (uint64_t *)free_list_end;
-  PML4[0] = 0;
-  PML4[511] = free_list_end | 7;
-  PML4[510] = free_list_end | 7;
-  PML4[1] = PML4[512];
-  uint64_t *PTE = (uint64_t *)PML4[512];
-  uint64_t temp_addr = (uint64_t)(kernmem+physbase);
+  uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end - (uint64_t)0xffffffff80000000);
+  //uint64_t *PML4 = (uint64_t *) PML;
+  *PML4 = 0;
+  PML4[511] = (free_list_end - 0xffffffff80000000) | 7;
+  PML4[510] = (free_list_end - 0xffffffff80000000) | 7;
+  uint64_t *PTE = (uint64_t *)PML4 + 512;
+  PML4[1] = (uint64_t)PTE;
+  PML4[1] = PML4[1] | 7;
+  uint64_t temp_addr = (uint64_t)(0xffffffff80000000+physbase);
   temp_addr = temp_addr >> 12;
-  uint64_t temp = 0;
-  temp = temp | 0x1ff;
+  uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
+  kprintf("\nindex: %d", ind);
   for(uint64_t x = (uint64_t)physbase; x < (uint64_t) physfree; x += 4096) {
-    PTE[ind] = x;
+    PTE[ind] = x | 7;
     ind++;
   }
   for(int i = ind; i < 512; i++) {
@@ -122,7 +127,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   for(int i = 2; i < 510; i++) {
     PML4[i] = 0;
   }
-  cr3val = free_list_end;
+  cr3val = free_list_end - 0xffffffff80000000;
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
@@ -133,7 +138,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
  // program_pic();  
  //__asm__ __volatile("sti");
  
-  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
+  //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");
