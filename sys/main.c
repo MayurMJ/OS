@@ -94,8 +94,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 		kprintf("%d ",j);
 	}
   }
-  free_list[free_list_end / 4096].is_avail = 0;
-  free_list[(free_list_end / 4096) + 1].is_avail = 0;
+  uint64_t cr3val;
+  __asm __volatile("movq %%cr3, %0\n\t"
+                    :"=a"(cr3val));
+    kprintf("\nValue of cr3: %x", cr3val);
+    //free_list_end += 4096;
+    //free_list[free_list_end / 4096].is_avail = 0;
+    //free_list[(free_list_end / 4096) + 1].is_avail = 0;
   uint64_t *PML4 = (uint64_t *)free_list_end;
   PML4[0] = 0;
   PML4[511] = free_list_end | 7;
@@ -117,14 +122,16 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   for(int i = 2; i < 510; i++) {
     PML4[i] = 0;
   }
+  cr3val = free_list_end;
+  __asm __volatile("movq %0, %%cr3\n\t"
+                    :
+                    :"a"(cr3val));
+
   
-  /*__asm__ __volatile("movq $0,%%rax\n\t"
-                     "inb $0x60,%0\n\t"
-                     :"=a"(scancode));*/
-  kprintf("\n");
-  init_idt();
-  program_pic();  
-  //__asm__ __volatile("sti");
+ // kprintf("\n");
+ // init_idt();
+ // program_pic();  
+ //__asm__ __volatile("sti");
  
   kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   
