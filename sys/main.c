@@ -94,10 +94,37 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 		kprintf("%d ",j);
 	}
   }
+  free_list[free_list_end / 4096].is_avail = 0;
+  free_list[(free_list_end / 4096) + 1].is_avail = 0;
+  uint64_t *PML4 = (uint64_t *)free_list_end;
+  PML4[0] = 0;
+  PML4[511] = free_list_end | 7;
+  PML4[510] = free_list_end | 7;
+  PML4[1] = PML4[512];
+  uint64_t *PTE = (uint64_t *)PML4[512];
+  uint64_t temp_addr = (uint64_t)(kernmem+physbase);
+  temp_addr = temp_addr >> 12;
+  uint64_t temp = 0;
+  temp = temp | 0x1ff;
+  uint64_t ind = temp & temp_addr;
+  for(uint64_t x = (uint64_t)physbase; x < (uint64_t) physfree; x += 4096) {
+    PTE[ind] = x;
+    ind++;
+  }
+  for(int i = ind; i < 512; i++) {
+    PTE[i] = 0;
+  }
+  for(int i = 2; i < 510; i++) {
+    PML4[i] = 0;
+  }
+  
+  /*__asm__ __volatile("movq $0,%%rax\n\t"
+                     "inb $0x60,%0\n\t"
+                     :"=a"(scancode));*/
   kprintf("\n");
   init_idt();
   program_pic();  
-  __asm__ __volatile("sti");
+  //__asm__ __volatile("sti");
  
   kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   
