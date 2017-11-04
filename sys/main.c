@@ -5,6 +5,7 @@
 #include <sys/ahci.h>
 #include <sys/idt.h>
 #include <sys/pic.h>
+#include <sys/kernel_threads.h>
 /*
 deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
@@ -17,6 +18,24 @@ uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
 pg_desc_t *free_list_head;
+
+ 
+void initTasking(Task *mainTask, Task *otherTask) {
+	__asm__ __volatile__("movq %%cr3, %0\n\t"
+                    	     :"=a"(mainTask->regs.cr3));
+	__asm__ __volatile__("pushl\n\t"
+			     "movq (%%rsp), %%rax\n\t"
+			     "movq %%rax, %0\n\t"
+			     "popl\n\t"
+			     :"=m"(mainTask->regs.rflags)::"%rax");
+}
+
+void f1() {
+	kprintf("f1 1\n");
+	kprintf("f1 2\n");
+	kprintf("f1 3\n");
+	yield();
+}
 
 uint64_t get_free_page () {
   if(free_list_head == NULL)
@@ -85,6 +104,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 	free_list_end = (free_list_begin + (num_pages * sizeof(pg_desc_t)));
   else
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
+
+  // --------------------------------------
+  Task mainTask = (Task *)free_list_end;
+  free_list_end += 4096;
+  Task otherTask = (Task *)free_list_end;
+  free_list_end += 4096;
+  // --------------------------------------
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
   free_list[1].is_avail = 1;
   free_list[1].prev = NULL;
@@ -133,9 +159,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 		free_list[x/4096].prev = NULL;
                 free_list[x/4096].next = NULL;
 	}
-	kprintf("%d ",x/4096);
+	//kprintf("%d ",x/4096);
   } 
-  kprintf("\n");
+  //kprintf("\n");
   int j; 
   // other areas where ram does not exist
   for (i=0; i<(smap_copy_index-1) ; i++) {
@@ -164,10 +190,10 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                 	free_list[j].prev = NULL;
                 	free_list[j].next = NULL;
         	}
-		kprintf("%d ",j);
+		//kprintf("%d ",j);
 	}
   }
-  kprintf("random print %d\n",free_list_head->is_avail);
+  //kprintf("random print %d\n",free_list_head->is_avail);
   uint64_t cr3val;
   __asm __volatile("movq %%cr3, %0\n\t"
                     :"=a"(cr3val));
@@ -218,6 +244,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   
   kprintf("\nTest Print after reclocation of CR3\n");
+  // ------------------------------------------------
+  initTasking(&mainTask, &otherTask);
+  // ------------------------------------------------
  // init_idt();
  // program_pic();  
  //__asm__ __volatile("sti");
