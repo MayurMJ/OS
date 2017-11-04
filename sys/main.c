@@ -20,6 +20,15 @@ extern char kernmem, physbase;
 pg_desc_t *free_list_head;
 
 Task *runningTask;
+Task *mainTask;
+Task *otherTask;
+
+void yield() {
+    Task *last = runningTask;
+    runningTask = runningTask->next;
+    //switchTask(&last->regs, &runningTask->regs);
+}
+
 void f1() {
         kprintf("f1 1\n");
         kprintf("f1 2\n");
@@ -35,13 +44,13 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rsi = 0;
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
-    task->regs.rip = (uint64_t) main;
+    task->regs.rip = (uint64_t) f1;
     task->regs.cr3 = (uint64_t) otherTask->regs.cr3;
     //task->regs.esp = (uint32_t) allocPage() + 0x1000; // Not implemented here
     task->next = 0;
 }
 
-void initTasking(Task *mainTask, Task *otherTask) {
+void initTasking() {
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
                     	     :"=a"(mainTask->regs.cr3));
 	__asm__ __volatile__("PUSHFQ \n\t"
@@ -126,9 +135,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
 
   // --------------------------------------
-  Task *mainTask = (Task *)free_list_end;
+  mainTask = (Task *)free_list_end;
   free_list_end += 4096;
-  Task *otherTask = (Task *)free_list_end;
+  otherTask = (Task *)free_list_end;
   free_list_end += 4096;
   otherTask->kstack = (uint64_t *)free_list_end;
   free_list_end += 4096;
