@@ -24,22 +24,37 @@ void f1() {
         kprintf("f1 1\n");
         kprintf("f1 2\n");
         kprintf("f1 3\n");
-        yield();
+        //yield();
 }
+
+void createTask(Task *task, void (*main)(), Task *otherTask) {
+    task->regs.rax = 0;
+    task->regs.rbx = 0;
+    task->regs.rcx = 0;
+    task->regs.rdx = 0;
+    task->regs.rsi = 0;
+    task->regs.rdi = 0;
+    task->regs.rflags = otherTask->regs.rflags;
+    task->regs.rip = (uint64_t) main;
+    task->regs.cr3 = (uint64_t) otherTask->regs.cr3;
+    //task->regs.esp = (uint32_t) allocPage() + 0x1000; // Not implemented here
+    task->next = 0;
+}
+
 void initTasking(Task *mainTask, Task *otherTask) {
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
                     	     :"=a"(mainTask->regs.cr3));
-	__asm__ __volatile__("pushl\n\t"
+	__asm__ __volatile__("push %%RFLAGS \n\t"
 			     "movq (%%rsp), %%rax\n\t"
 			     "movq %%rax, %0\n\t"
-			     "popl\n\t"
+			     "pop %%rflags\n\t"
 			     :"=m"(mainTask->regs.rflags)::"%rax");
 	
 	createTask(otherTask, f1, mainTask);
-    	mainTask->next = &otherTask;
-    	otherTask->next = &mainTask;
+    	mainTask->next = otherTask;
+    	otherTask->next = mainTask;
  
-    	runningTask = &mainTask;
+    	runningTask = mainTask;
 }
 
 uint64_t get_free_page () {
@@ -252,7 +267,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   
   kprintf("\nTest Print after reclocation of CR3\n");
   // ------------------------------------------------
-  initTasking(&mainTask, &otherTask);
+  initTasking(mainTask, otherTask);
   // ------------------------------------------------
  // init_idt();
  // program_pic();  

@@ -9,7 +9,7 @@ typedef struct {
 typedef struct TASK {
    uint64_t *kstack;
    enum { RUNNING, SLEEPING, ZOMBIE } state;
-   Registers reg;
+   Registers regs;
    struct TASK *next;
 } Task ;
 
