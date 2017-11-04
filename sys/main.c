@@ -44,10 +44,10 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
 void initTasking(Task *mainTask, Task *otherTask) {
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
                     	     :"=a"(mainTask->regs.cr3));
-	__asm__ __volatile__("push %%RFLAGS \n\t"
+	__asm__ __volatile__("PUSHFQ \n\t"
 			     "movq (%%rsp), %%rax\n\t"
 			     "movq %%rax, %0\n\t"
-			     "pop %%rflags\n\t"
+			     "POPFQ\n\t"
 			     :"=m"(mainTask->regs.rflags)::"%rax");
 	
 	createTask(otherTask, f1, mainTask);
