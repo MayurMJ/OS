@@ -26,7 +26,7 @@ Task *otherTask;
 void yield() {
     Task *last = runningTask;
     runningTask = runningTask->next;
-    //switchTask(&last->regs, &runningTask->regs);
+    switchTask(&last->regs, &runningTask->regs);
 }
 
 void f1() {
