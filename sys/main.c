@@ -26,21 +26,6 @@ Task *otherTask;
 void yield() {
     Task *last = runningTask;
     runningTask = runningTask->next;
-    __asm__ __volatile__("pushq %rax\n\t"
-			 "pushq %rbx\n\t"
-			 "pushq %rcx\n\t"
-			 "pushq %rdx\n\t"
-			 "pushq %rdi\n\t"
-			 "pushq %rsi\n\t"
-			 "pushq %rbp\n\t"
-			 "pushq %r8\n\t"
-			 "pushq %r9\n\t"
-			 "pushq %r10\n\t"
-			 "pushq %r11\n\t"
-			 "pushq %r12\n\t"
-			 "pushq %r13\n\t"
-			 "pushq %r14\n\t"
-			 "pushq %r15\n\t");
     switchTask(&last->regs, &runningTask->regs);
 }
 
@@ -48,7 +33,7 @@ void f1() {
         kprintf("f1 1\n");
         kprintf("f1 2\n");
         kprintf("f1 3\n");
-        //yield();
+        yield();
 }
 
 void createTask(Task *task, void (*main)(), Task *otherTask) {
@@ -270,7 +255,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
   kprintf("\nindex: %d", ind);
-  for(uint64_t x = (uint64_t)physbase; x < (uint64_t) physfree; x += 4096) {
+  for(uint64_t x = (uint64_t)physbase; x < (uint64_t) free_list_end; x += 4096) {
     PTE[ind] = x | 7;
     ind++;
   }
@@ -299,6 +284,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\nTest Print after reclocation of CR3\n");
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
+  kprintf("Trying multitasking from main\n");
+  yield();
+  kprintf("back in main after multitasking\n");
   // ------------------------------------------------
  // init_idt();
  // program_pic();  
