@@ -26,6 +26,21 @@ Task *otherTask;
 void yield() {
     Task *last = runningTask;
     runningTask = runningTask->next;
+    __asm__ __volatile__("pushq %rax\n\t"
+			 "pushq %rbx\n\t"
+			 "pushq %rcx\n\t"
+			 "pushq %rdx\n\t"
+			 "pushq %rdi\n\t"
+			 "pushq %rsi\n\t"
+			 "pushq %rbp\n\t"
+			 "pushq %r8\n\t"
+			 "pushq %r9\n\t"
+			 "pushq %r10\n\t"
+			 "pushq %r11\n\t"
+			 "pushq %r12\n\t"
+			 "pushq %r13\n\t"
+			 "pushq %r14\n\t"
+			 "pushq %r15\n\t");
     switchTask(&last->regs, &runningTask->regs);
 }
 
@@ -46,8 +61,15 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rflags = otherTask->regs.rflags;
     task->regs.rip = (uint64_t) f1;
     task->regs.cr3 = (uint64_t) otherTask->regs.cr3;
+    task->regs.r8 = 0;
+    task->regs.r9 = 0;
+    task->regs.r10 = 0;
+    task->regs.r11 = 0;
+    task->regs.r12 = 0;
+    task->regs.r13 = 0;
+    task->regs.r14 = 0;
+    task->regs.r15 = 0;
     //task->regs.esp = (uint32_t) allocPage() + 0x1000; // Not implemented here
-    task->next = 0;
 }
 
 void initTasking() {
