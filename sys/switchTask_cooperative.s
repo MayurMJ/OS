@@ -1,23 +1,5 @@
 .section .text
 .global switchTask
-# rax 0, rbx 8, rcx 16, rdx 24, rsi 32, rdi 40, rsp 48, rbp 56, rip 64, rflags 72, cr3 80
-# r8 88, r9 96, r10 104, r11 112, r12 120, r13 128, r14 136, r15 144
-# ------------------push order----------------
-# 160			  "pushq %rax\n\t"
-# 152                        "pushq %rbx\n\t"
-# 144                        "pushq %rcx\n\t"
-# 136                        "pushq %rdx\n\t"
-# 128                        "pushq %rdi\n\t"
-# 120                        "pushq %rsi\n\t"
-# 112                        "pushq %rbp\n\t"
-# 104                        "pushq %r8\n\t"
-# 96                        "pushq %r9\n\t"
-# 88                      "pushq %r10\n\t"
-# 80                        "pushq %r11\n\t"
-# 72                        "pushq %r12\n\t"
-# 64                        "pushq %r13\n\t"
-# 56                        "pushq %r14\n\t"
-# 48                        "pushq %r15\n\t"
 
 switchTask:
 	pushq %rax # +136
