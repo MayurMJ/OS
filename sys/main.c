@@ -54,7 +54,7 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    //task->regs.esp = (uint32_t) allocPage() + 0x1000; // Not implemented here
+    task->regs.rsp = (uint64_t)task->kstack; // since it grows downward
 }
 
 void initTasking() {
@@ -146,8 +146,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   free_list_end += 4096;
   otherTask = (Task *)free_list_end;
   free_list_end += 4096;
+  free_list_end += 4096; // since stack grows downward
   otherTask->kstack = (uint64_t *)free_list_end;
-  free_list_end += 4096;
+  //free_list_end += 4096;
   // --------------------------------------
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
   free_list[1].is_avail = 1;
@@ -285,6 +286,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   kprintf("Trying multitasking from main\n");
+
   yield();
   kprintf("back in main after multitasking\n");
   // ------------------------------------------------
