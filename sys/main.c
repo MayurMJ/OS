@@ -22,6 +22,27 @@ pg_desc_t *free_list_head;
 Task *runningTask;
 Task *mainTask;
 Task *otherTask;
+void user_mode() {
+	while(1);
+}
+void switch_user_mode(uint64_t symbol) {
+        __asm__ __volatile__ ( "cli\n\t"
+                        "movw $0x23, %%ax\n\t"
+                        "movw %%ax, %%ds\n\t"
+                        "movw %%ax, %%es\n\t"
+                        "movw %%ax, %%fs\n\t"
+                        "movw %%ax, %%gs\n\t"
+                        "movq %%rsp, %%rax\n\t"
+                        "pushq $0x23\n\t"
+                        "pushq %%rax\n\t"
+                        "pushfq\n\t"
+                        "pushq $0x1B\n\t"
+                        "push %0\n\t"
+                        "iretq\n\t"
+        		::"b"(symbol)
+	);
+
+}
 
 void yield() {
     Task *last = runningTask;
@@ -30,10 +51,15 @@ void yield() {
 }
 
 void f1() {
+	switch_user_mode((uint64_t)&user_mode);
+	/*
         kprintf("f1 1\n");
         kprintf("f1 2\n");
+	yield();
         kprintf("f1 3\n");
+	kprintf("f1 4\n");
         yield();
+	*/
 }
 
 void createTask(Task *task, void (*main)(), Task *otherTask) {
@@ -286,9 +312,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   kprintf("Trying multitasking from main\n");
-
+  //switch_user_mode((uint64_t)&user_mode);
   yield();
-  kprintf("back in main after multitasking\n");
+  //kprintf("back in main the first time after multitasking\n");
+  //yield();
+  //kprintf("back in main for the last time\n");
   // ------------------------------------------------
  // init_idt();
  // program_pic();  
