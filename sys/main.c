@@ -280,12 +280,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t *PTE_vidmem = (uint64_t *)PML4 + 512; 
   PML4[0] = (uint64_t)PTE_vidmem;
   PML4[0] = PML4[0] | 7;
-  uint64_t temp_addr = (uint64_t)(0xffffffff80000000+0xa000);
+  uint64_t temp_addr = (uint64_t)(0xffffffff80000000+0xa0000);
   temp_addr = temp_addr >> 12;
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
   //kprintf("\nindex: %d", ind);
-  for(uint64_t x = (uint64_t)0xa000; x < (uint64_t) 0x100000; x += 4096) {
+  for(uint64_t x = (uint64_t)0xa0000; x < (uint64_t) 0x100000; x += 4096) {
     PTE_vidmem[ind] = x | 7;
     ind++;
   }
