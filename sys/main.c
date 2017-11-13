@@ -56,15 +56,15 @@ void yield() {
 
 void f1() {
         //kprintf("f1 1\n");
-	switch_user_mode((uint64_t)&user_mode);
-	/*
+	//switch_user_mode((uint64_t)&user_mode);
+	
         kprintf("f1 1\n");
         kprintf("f1 2\n");
 	yield();
         kprintf("f1 3\n");
 	kprintf("f1 4\n");
         yield();
-	*/
+	
 }
 
 void createTask(Task *task, void (*main)(), Task *otherTask) {
@@ -318,12 +318,15 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   
   kprintf("\nTest Print after reclocation of CR3\n");
-  init_idt();
+//  init_idt();
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
   switch_user_mode((uint64_t)&user_mode);
+//  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
+  //kprintf("Trying multitasking from main\n");
+  //switch_user_mode((uint64_t)&user_mode);
   //yield();
   //kprintf("back in main the first time after multitasking\n");
   //yield();
