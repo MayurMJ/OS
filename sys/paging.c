@@ -138,5 +138,28 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
   free_list[(free_list_end / 4096) + 1].is_avail = 0;
 
     return free_list_end;
+}
 
+void init_self_referencing(uint64_t free_list_end) {
+  PML4 =(uint64_t *) ((uint64_t)free_list_end);
+  *PML4 = 0;
+  PML4[511] = ((uint64_t)free_list_end) | 3;
+  PML4[510] = ((uint64_t)free_list_end) | 3; 
+  for(int i = 2; i < 510; i++) {
+    PML4[i] = 0;
+  }
+}
+
+void map_memory_range(uint64_t start, uint64_t end, uint64_t offset, int map_index) {
+  uint64_t *PTE = (uint64_t *)PML4 + offset;
+  PML4[map_index] = (uint64_t)PTE;
+  PML4[map_index] = PML4[map_index] | 3;
+  uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
+  temp_addr = temp_addr >> 12;
+  uint64_t temp = 0x1ff;
+  uint64_t ind = temp & temp_addr;
+  for(uint64_t x = (uint64_t)start; x < (uint64_t) end; x += 4096) {
+    PTE[ind] = x | 3;
+    ind++;
+  } 
 }
