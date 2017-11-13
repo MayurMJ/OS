@@ -318,7 +318,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   
   kprintf("\nTest Print after reclocation of CR3\n");
-//  init_idt();
+  init_idt();
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
