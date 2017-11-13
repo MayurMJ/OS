@@ -23,6 +23,7 @@ Task *runningTask;
 Task *mainTask;
 Task *otherTask;
 void user_mode() {
+	kprintf("in user mode\n");
 	while(1);
 }
 void switch_user_mode(uint64_t symbol) {
@@ -276,31 +277,31 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end);
   //uint64_t *PML4 = (uint64_t *) PML;
   *PML4 = 0;
-  PML4[511] = ((uint64_t)free_list_end) | 7;
-  PML4[510] = ((uint64_t)free_list_end) | 7;
+  PML4[511] = ((uint64_t)free_list_end) | 3;
+  PML4[510] = ((uint64_t)free_list_end) | 3;
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   uint64_t *PTE_vidmem = (uint64_t *)PML4 + 512; 
   PML4[0] = (uint64_t)PTE_vidmem;
-  PML4[0] = PML4[0] | 7;
+  PML4[0] = PML4[0] | 3;
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000+0xa0000);
   temp_addr = temp_addr >> 12;
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
   //kprintf("\nindex: %d", ind);
   for(uint64_t x = (uint64_t)0xa0000; x < (uint64_t) 0x100000; x += 4096) {
-    PTE_vidmem[ind] = x | 7;
+    PTE_vidmem[ind] = x | 3;
     ind++;
   }
 
   uint64_t *PTE = (uint64_t *)PML4 + 1024;
   PML4[1] = (uint64_t)PTE;
-  PML4[1] = PML4[1] | 7;
+  PML4[1] = PML4[1] | 3;
   temp_addr = (uint64_t)(0xffffffff80000000+physbase);
   temp_addr = temp_addr >> 12;
   ind = temp & temp_addr;
   //kprintf("\nphysbase %x", physbase);
   for(uint64_t x = (uint64_t)physbase; x <= (uint64_t) (free_list_end + 4096); x += 4096) {
-    PTE[ind] = x | 7;
+    PTE[ind] = x | 3;
     ind++;
   }
   for(int i = ind; i < 512; i++) {
@@ -309,14 +310,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   for(int i = 2; i < 510; i++) {
     PML4[i] = 0;
   }
-  /*PML4[0] = (uint64_t)PML4|7;
-  ind = 160;
-  uint64_t vidstart = 0xa0000;
-  uint64_t vidend = 0x100000;
-  for(x = (uint64_t) vidstart; x < (uint64_t) vidend; x += 4096) {
-    PML4[ind] = x | 7;
-    ind++;
-  }*/
 
   cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
@@ -329,9 +322,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
-  kprintf("Trying multitasking from main\n");
-  //switch_user_mode((uint64_t)&user_mode);
-  yield();
+  //kprintf("Trying multitasking from main\n");
+  switch_user_mode((uint64_t)&user_mode);
+  //yield();
   //kprintf("back in main the first time after multitasking\n");
   //yield();
   //kprintf("back in main for the last time\n");
