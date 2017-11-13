@@ -134,6 +134,8 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
                 //kprintf("%d ",j);
         }
   }
+  free_list[free_list_end / 4096].is_avail = 0;
+  free_list[(free_list_end / 4096) + 1].is_avail = 0;
 
     return free_list_end;
 
