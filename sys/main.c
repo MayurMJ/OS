@@ -85,8 +85,9 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
 }
 
 void initTasking() {
+	uint64_t cr3;	
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
-                    	     :"=a"(mainTask->regs.cr3));
+                    	     :"=a"(cr3));
 	__asm__ __volatile__("PUSHFQ \n\t"
 			     "movq (%%rsp), %%rax\n\t"
 			     "movq %%rax, %0\n\t"
@@ -169,12 +170,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
 
   // --------------------------------------
-  mainTask = (Task *)free_list_end;
+  mainTask = (Task *)(free_list_end + 0xffffffff80000000);
   free_list_end += 4096;
-  otherTask = (Task *)free_list_end;
+  otherTask = (Task *)(free_list_end + 0xffffffff80000000);
   free_list_end += 4096;
   free_list_end += 4096; // since stack grows downward
-  otherTask->kstack = (uint64_t *)free_list_end;
+  otherTask->kstack = (uint64_t *)(free_list_end  + 0xffffffff80000000);
   //free_list_end += 4096;
   // --------------------------------------
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
