@@ -36,6 +36,9 @@ void switch_user_mode(uint64_t symbol) {
                         "pushq $0x23\n\t"
                         "pushq %%rax\n\t"
                         "pushfq\n\t"
+			"popq %%rax\n\t"
+                        "orq $0x200, %%rax\n\t"
+                        "pushq %%rax\n\t"
                         "pushq $0x1B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
@@ -322,8 +325,10 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   
   kprintf("\nTest Print after reclocation of CR3\n");
+  init_idt();
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
+  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   kprintf("Trying multitasking from main\n");
   //switch_user_mode((uint64_t)&user_mode);
   yield();
