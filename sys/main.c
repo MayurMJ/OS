@@ -104,7 +104,7 @@ void initTasking() {
     	runningTask = mainTask;
 }
 
-uint64_t get_free_page () {
+uint64_t get_physical_free_page () {
   if(free_list_head == NULL)
     return 0;
   if(free_list_head->is_avail==0) {
@@ -120,7 +120,7 @@ uint64_t get_free_page () {
   return addr;
 }
 
-void __free_page( pg_desc_t *page){
+void __free_physical_page( pg_desc_t *page){
   page->next=free_list_head;
   page->prev = NULL;
   page->is_avail = 1;
@@ -300,7 +300,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   temp_addr = temp_addr >> 12;
   ind = temp & temp_addr;
   //kprintf("\nphysbase %x", physbase);
-  for(uint64_t x = (uint64_t)physbase; x <= (uint64_t) (free_list_end + 4096); x += 4096) {
+  for(uint64_t x = (uint64_t)physbase; x < (uint64_t) free_list_end; x += 4096) {
     PTE[ind] = x | 3;
     ind++;
   }

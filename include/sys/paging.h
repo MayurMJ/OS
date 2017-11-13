@@ -14,4 +14,9 @@ typedef struct pg_desc {
 
 pg_desc_t *free_list;
 
+uint64_t get_physical_free_page ();
+void free_physical_page( pg_desc_t *page);
+void free_page(void *addr);
+uint64_t get_free_page();
+
 #endif
