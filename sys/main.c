@@ -85,9 +85,8 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
 }
 
 void initTasking() {
-	uint64_t cr3;	
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
-                    	     :"=a"(cr3));
+                    	     :"=a"(mainTask->regs.cr3));
 	__asm__ __volatile__("PUSHFQ \n\t"
 			     "movq (%%rsp), %%rax\n\t"
 			     "movq %%rax, %0\n\t"
@@ -297,7 +296,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   temp_addr = temp_addr >> 12;
   ind = temp & temp_addr;
   //kprintf("\nphysbase %x", physbase);
-  for(uint64_t x = (uint64_t)physbase; x < (uint64_t) free_list_end; x += 4096) {
+  for(uint64_t x = (uint64_t)physbase; x <= (uint64_t) (free_list_end + 4096); x += 4096) {
     PTE[ind] = x | 7;
     ind++;
   }
