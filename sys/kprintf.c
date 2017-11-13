@@ -6,7 +6,7 @@
 static  int count = 0;
 static int colIndex = 0;
 //static int rowIndex = 0;
-static  char *tempMem = (char*)0xb8000;
+static  char *tempMem = (char*)0xffffffff80000000 + 0xb8000;
 #define X_AXIS	80
 #define Y_AXIS	200
 #define BUFOVFLOW	2
@@ -18,7 +18,7 @@ int carriage_ret_flag = 0;
 
 void shift_up() {
       int k;
-      char *shiftPtr = (char*)0xb8000;
+      char *shiftPtr = (char*)0xffffffff80000000 + 0xb8000;
       for(k = 0; k < 23; k++) {
         memcpy(shiftPtr, shiftPtr + 160, 160);
         shiftPtr += 160;
@@ -31,7 +31,7 @@ void shift_up() {
 void display() {
   int i = 0, j = 0; 
   if(carriage_ret_flag == 1) {
-  	while( ((uint64_t)tempMem - 0xb8000)%160 != 0 ) {
+  	while( ((uint64_t)tempMem - (0xffffffff80000000 + 0xb8000))%160 != 0 ) {
  		*tempMem = ' ';
   		tempMem -= 2;
                 count -=2;
@@ -58,7 +58,7 @@ void display() {
 	}
         else if(buffer[i][j] == '\0') break;
   }
-  colIndex = (((uint64_t)tempMem - 0xb8000) % 160) / 2;
+  colIndex = (((uint64_t)tempMem - (0xffffffff80000000 + 0xb8000)) % 160) / 2;
 }
 
 

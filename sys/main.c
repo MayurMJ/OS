@@ -30,7 +30,7 @@ void yield() {
 }
 
 void f1() {
-        kprintf("f1 1\n");
+        //kprintf("f1 1\n");
         kprintf("f1 2\n");
         kprintf("f1 3\n");
         yield();
@@ -116,16 +116,16 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
       smap_copy[smap_copy_index].starting_addr = smap->base;
       smap_copy[smap_copy_index].last_addr = smap->base + smap->length;
 
-      kprintf("Available Physical Memory [%p-%p]\n",  smap_copy[smap_copy_index].starting_addr, smap_copy[smap_copy_index].last_addr );
+      //kprintf("Available Physical Memory [%p-%p]\n",  smap_copy[smap_copy_index].starting_addr, smap_copy[smap_copy_index].last_addr );
       
       smap_copy_index++;
     }
   }
   
 //  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
-  kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+  //kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
   num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
-  kprintf("Num Pages %d\n", num_pages);
+  //kprintf("Num Pages %d\n", num_pages);
   uint64_t free_list_begin;
   if (((uint64_t)physfree & 0x0000000000000fff) == 0)
 	free_list_begin = (uint64_t)physfree;
@@ -236,7 +236,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t cr3val;
   __asm __volatile("movq %%cr3, %0\n\t"
                     :"=a"(cr3val));
-  kprintf("\nValue of cr3: %x", cr3val);
+  //kprintf("\nValue of cr3: %x", cr3val);
 /*  __asm __volatile("movq %%ia32_efer, %0\n\t"
                     :"=a"(cr3val));
     kprintf("\nValue of efer: %x", cr3val);*/
@@ -248,14 +248,27 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   *PML4 = 0;
   PML4[511] = ((uint64_t)free_list_end) | 7;
   PML4[510] = ((uint64_t)free_list_end) | 7;
-  uint64_t *PTE = (uint64_t *)PML4 + 512;
-  PML4[1] = (uint64_t)PTE;
-  PML4[1] = PML4[1] | 7;
-  uint64_t temp_addr = (uint64_t)(0xffffffff80000000+physbase);
+  /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
+  uint64_t *PTE_vidmem = (uint64_t *)PML4 + 512; 
+  PML4[0] = (uint64_t)PTE_vidmem;
+  PML4[0] = PML4[0] | 7;
+  uint64_t temp_addr = (uint64_t)(0xffffffff80000000+0xa000);
   temp_addr = temp_addr >> 12;
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
-  kprintf("\nindex: %d", ind);
+  //kprintf("\nindex: %d", ind);
+  for(uint64_t x = (uint64_t)0xa000; x < (uint64_t) 0x100000; x += 4096) {
+    PTE_vidmem[ind] = x | 7;
+    ind++;
+  }
+
+  uint64_t *PTE = (uint64_t *)PML4 + 1024;
+  PML4[1] = (uint64_t)PTE;
+  PML4[1] = PML4[1] | 7;
+  temp_addr = (uint64_t)(0xffffffff80000000+physbase);
+  temp_addr = temp_addr >> 12;
+  ind = temp & temp_addr;
+  //kprintf("\nphysbase %x", physbase);
   for(uint64_t x = (uint64_t)physbase; x < (uint64_t) free_list_end; x += 4096) {
     PTE[ind] = x | 7;
     ind++;
@@ -266,15 +279,14 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   for(int i = 2; i < 510; i++) {
     PML4[i] = 0;
   }
-  /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
-  PML4[0] = (uint64_t)PML4|7;
+  /*PML4[0] = (uint64_t)PML4|7;
   ind = 160;
   uint64_t vidstart = 0xa0000;
   uint64_t vidend = 0x100000;
   for(x = (uint64_t) vidstart; x < (uint64_t) vidend; x += 4096) {
     PML4[ind] = x | 7;
     ind++;
-  }
+  }*/
 
   cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
