@@ -17,7 +17,7 @@ deleted pci.c and pci.h due to reduction in available memory
 uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
-pg_desc_t *free_list_head;
+//pg_desc_t *free_list_head;
 
 Task *runningTask;
 Task *mainTask;
@@ -111,10 +111,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     uint32_t type;
   }__attribute__((packed)) *smap;
 
-  int num_pages = 0;
+//  int num_pages = 0;
   smap_copy_t smap_copy[10];
   int smap_copy_index = 0;
-  int i;
 
   while(modulep[0] != 0x9001) modulep += modulep[1]+2;
   for(smap = (struct smap_t*)(modulep+2); smap < (struct smap_t*)((char*)modulep+modulep[1]+2*4); ++smap) {
@@ -129,21 +128,24 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     }
   }
   
+  
+
 //  kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   //kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-  num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
+//  num_pages = (smap_copy[smap_copy_index-1].last_addr - smap_copy[0].starting_addr)/4096;
   //kprintf("Num Pages %d\n", num_pages);
-  uint64_t free_list_begin;
+ 
+/* uint64_t free_list_begin;
   if (((uint64_t)physfree & 0x0000000000000fff) == 0)
 	free_list_begin = (uint64_t)physfree;
   else
    	free_list_begin = ((((uint64_t)physfree+4096)>>12)<<12);
 
   free_list = (pg_desc_t *)free_list_begin;
-  
+  */
 
-  uint64_t free_list_end;
-  if (((free_list_begin + (num_pages * sizeof(pg_desc_t))) & 0x0000000000000fff) == 0)
+  uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
+ /* if (((free_list_begin + (num_pages * sizeof(pg_desc_t))) & 0x0000000000000fff) == 0)
 	free_list_end = (free_list_begin + (num_pages * sizeof(pg_desc_t)));
   else
    	free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
@@ -238,7 +240,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
         	}
 		//kprintf("%d ",j);
 	}
-  }
+  }*/
   //kprintf("random print %d\n",free_list_head->is_avail);
   uint64_t cr3val;
   __asm __volatile("movq %%cr3, %0\n\t"
@@ -248,8 +250,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                     :"=a"(cr3val));
     kprintf("\nValue of efer: %x", cr3val);*/
     //free_list_end += 4096;
-  free_list[free_list_end / 4096].is_avail = 0;
-  free_list[(free_list_end / 4096) + 1].is_avail = 0;
+ // free_list[free_list_end / 4096].is_avail = 0;
+ // free_list[(free_list_end / 4096) + 1].is_avail = 0;
   uint64_t *PML4 =(uint64_t *) ((uint64_t)free_list_end);
   //uint64_t *PML4 = (uint64_t *) PML;
   *PML4 = 0;
@@ -296,8 +298,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("\nTest Print after reclocation of CR3\n");
 //  init_idt();
   // ------------------------------------------------
-  initTasking(mainTask, otherTask);
-  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
+  //initTasking(mainTask, otherTask);
+  //set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
  // switch_user_mode((uint64_t)&user_mode);
 //  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
