@@ -150,16 +150,22 @@ void init_self_referencing(uint64_t free_list_end) {
   }
 }
 
-void map_memory_range(uint64_t start, uint64_t end, uint64_t offset, int map_index) {
-  uint64_t *PTE = (uint64_t *)PML4 + offset;
+void map_memory_range(uint64_t start, uint64_t end, int map_index) {
+  uint64_t *PTE = (uint64_t *)get_physical_free_page();
   PML4[map_index] = (uint64_t)PTE;
   PML4[map_index] = PML4[map_index] | 3;
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
   temp_addr = temp_addr >> 12;
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
+  for(int i = 0; i < ind; ++i) {
+    PTE[i] = 0;
+  } 
   for(uint64_t x = (uint64_t)start; x < (uint64_t) end; x += 4096) {
     PTE[ind] = x | 3;
     ind++;
+  }
+  for(int i = ind; i < 512; i++) {
+    PTE[i] = 0;
   } 
 }

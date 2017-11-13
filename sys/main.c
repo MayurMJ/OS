@@ -118,12 +118,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   while(modulep[0] != 0x9001) modulep += modulep[1]+2;
   for(smap = (struct smap_t*)(modulep+2); smap < (struct smap_t*)((char*)modulep+modulep[1]+2*4); ++smap) {
     if (smap->type == 1 /* memory */ && smap->length != 0) {
-
       smap_copy[smap_copy_index].starting_addr = smap->base;
       smap_copy[smap_copy_index].last_addr = smap->base + smap->length;
-
       //kprintf("Available Physical Memory [%p-%p]\n",  smap_copy[smap_copy_index].starting_addr, smap_copy[smap_copy_index].last_addr );
-      
       smap_copy_index++;
     }
   }
@@ -131,12 +128,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   init_self_referencing(free_list_end);
-  map_memory_range(0xa0000, 0x100000, 512, 0);
-  map_memory_range((uint64_t)physbase, free_list_end, 1024, 1);
-  /*for(int i = ind; i < 512; i++) {
-    PTE[i] = 0;
-  }
-  }*/
+  map_memory_range(0xa0000, 0x100000, 0);
+  map_memory_range((uint64_t)physbase, free_list_end, 1);
 
   uint64_t cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
