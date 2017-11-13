@@ -104,30 +104,6 @@ void initTasking() {
     	runningTask = mainTask;
 }
 
-uint64_t get_physical_free_page () {
-  if(free_list_head == NULL)
-    return 0;
-  if(free_list_head->is_avail==0) {
-    kprintf("ERROR: trying to allocate a non avaialable page\n");
-    return 0;
-  }
-  uint64_t addr = (uint64_t) (free_list_head->index * 4096);
-  pg_desc_t * temp = free_list_head;
-  free_list_head = free_list_head->next;
-  temp->next = NULL;
-  temp->prev = NULL;
-  temp->is_avail = 0;
-  return addr;
-}
-
-void __free_physical_page( pg_desc_t *page){
-  page->next=free_list_head;
-  page->prev = NULL;
-  page->is_avail = 1;
-  free_list_head = page;
-}
-void free_page(void *addr);
-  
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
   struct smap_t {
@@ -318,12 +294,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   
   kprintf("\nTest Print after reclocation of CR3\n");
-  init_idt();
+//  init_idt();
   // ------------------------------------------------
   initTasking(mainTask, otherTask);
   set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
-  switch_user_mode((uint64_t)&user_mode);
+ // switch_user_mode((uint64_t)&user_mode);
 //  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
   //switch_user_mode((uint64_t)&user_mode);
