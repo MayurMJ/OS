@@ -178,9 +178,10 @@ uint64_t get_free_page() {
     PML4[PMLframe] = (uint64_t)PTE;
     PML4[PMLframe] = PML4[PMLframe] | 3;
   }
-  uint64_t *PTE = (uint64_t *)PML4[PMLframe];
+  uint64_t x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
+  x = x & 0xfffffffffffffffc; 
+  uint64_t *PTE = (uint64_t *)x;
   uint64_t PTEframe = (virt_addr >> 12) & (uint64_t) 0x1ff;
   PTE[PTEframe] = phy_addr | 3;
-  return virt_addr;
-    
+  return virt_addr; 
 }
