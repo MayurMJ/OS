@@ -33,7 +33,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
     if (((uint64_t)physfree & 0x0000000000000fff) == 0)
         free_list_begin = (uint64_t)(physfree);
     else
-        free_list_begin = ((((uint64_t)(physfree+4096)>>12)<<12);
+        free_list_begin = (((uint64_t)(physfree+4096)>>12)<<12);
 
     free_list = (pg_desc_t *)free_list_begin;
 
@@ -52,17 +52,17 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
   free_list[0].is_avail = 1;
   free_list[0].prev = NULL;
-  free_list[0].next = ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[1]));
+  free_list[0].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[1]));
   free_list[0].index = 0;
   int i=0;
   for (i=1; i < (num_pages-1) ; i++) {
         free_list[i].is_avail = 1;
-        free_list[i].prev = ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i-1]));
-        free_list[i].next = ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i+1]));
+        free_list[i].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i-1]));
+        free_list[i].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i+1]));
         free_list[i].index = i;
   }
   free_list[num_pages - 1].is_avail = 1;
-  free_list[num_pages - 1].prev = ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[num_pages - 2]);
+  free_list[num_pages - 1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[num_pages - 2]);
   free_list[num_pages - 1].next = NULL;
   free_list[num_pages - 1].index = num_pages - 1;
 
@@ -93,8 +93,8 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
                 free_list[x/4096].next = NULL;
         }
         else {
-                free_list[(x/4096)-1].next = ((uint64_t)0xffffffff80000000 + (uint64_t) + &free_list[(x/4096)+1]);
-                free_list[(x/4096)+1].prev = ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[(x/4096)-1]);
+                free_list[(x/4096)-1].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[(x/4096)+1]);
+                free_list[(x/4096)+1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[(x/4096)-1]);
                 free_list[x/4096].prev = NULL;
                 free_list[x/4096].next = NULL;
         }
@@ -125,8 +125,8 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
                         free_list[j].next = NULL;
                 }
                 else {
-                        free_list[j-1].next = ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j+1]);
-                        free_list[j+1].prev = ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j-1]);
+                        free_list[j-1].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j+1]);
+                        free_list[j+1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j-1]);
                         free_list[j].prev = NULL;
                         free_list[j].next = NULL;
                 }
@@ -135,7 +135,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
   }
   free_list[free_list_end / 4096].is_avail = 0;
   free_list[(free_list_end / 4096) + 1].is_avail = 0;
-  free_list_head = ((uint64_t)0xffffffff80000000 + (uint64_t)free_list_head);
+  free_list_head = (struct pg_desc *)((uint64_t)0xffffffff80000000 + (uint64_t)free_list_head);
     return free_list_end;
 }
 
