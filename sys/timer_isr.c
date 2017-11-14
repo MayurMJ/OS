@@ -49,7 +49,7 @@ void timer_irqhandler(void)
 	    time_boot++;
 	}
     }
-    char * videomem = (char*)0xb8f70;
+    char * videomem = (char*)(0xffffffff80000000+0xb8f70);
     char * str = "time since boot:";
     //char * itr = (char *) &str[0];
     int i = 0;
@@ -58,9 +58,9 @@ void timer_irqhandler(void)
         videomem+=2;
         i++;
     }
-    videomem = (char*)0xb8f9e;
+    videomem = (char*)(0xffffffff80000000+0xb8f9e);
     *videomem = 's';
-    videomem = (char*)0xb8f8e;
+    videomem = (char*)(0xffffffff80000000+0xb8f8e);
     process_in(time_boot,videomem);
     //kprintf("address of timer_isr %x\n",&timer_isr);
     //kprintf("time since boot %d s \n",time_boot++);

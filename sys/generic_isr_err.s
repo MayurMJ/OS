@@ -1,7 +1,7 @@
-.globl   generic_isr_noerr
+.macro	 set_generic_isr_err    index
+.globl   generic_isr_err\index
 .align   4
- 
-generic_isr_noerr:
+generic_isr_err\index:
     cli
     pushq    %rax
     pushq    %rbx
@@ -18,7 +18,7 @@ generic_isr_noerr:
     pushq    %rdi
     pushq    %rsi
     pushq    %rbp
-    call    generic_irqhandler
+    call    generic_irqhandler_err\index
     popq    %rbp
     popq    %rsi
     popq    %rdi
@@ -34,5 +34,14 @@ generic_isr_noerr:
     popq    %rcx
     popq    %rbx
     popq    %rax
+    addq    $8, %rsp # pop error code that was pushed in
     sti
     iretq
+.endm
+
+set_generic_isr_err 8
+set_generic_isr_err 10
+set_generic_isr_err 11
+set_generic_isr_err 12
+set_generic_isr_err 13
+set_generic_isr_err 14

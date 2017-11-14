@@ -23,7 +23,7 @@ Task *runningTask;
 Task *mainTask;
 Task *otherTask;
 void user_mode() {
-	kprintf("in user mode\n");
+	__asm__("int $0x80\n\t");
 	while(1);
 }
 void switch_user_mode(uint64_t symbol) {
