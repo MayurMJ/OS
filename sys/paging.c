@@ -151,8 +151,7 @@ void init_self_referencing(uint64_t free_list_end) {
 }
 
 void map_memory_range(uint64_t start, uint64_t end, int map_index) {
- // uint64_t *PTE = (uint64_t *)get_physical_free_page();
-  uint64_t *PTE = (uint64_t *);
+  uint64_t *PTE = (uint64_t *)get_physical_free_page();
   PML4[map_index] = (uint64_t)PTE;
   PML4[map_index] = PML4[map_index] | 3;
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
