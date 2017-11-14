@@ -129,7 +129,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   init_self_referencing(free_list_end);
   map_memory_range(0xa0000, 0x100000, 0);
-  uint64_t *PTE = (uint64_t *)(uint64_t) free_list_end + (uint64_t)4096;
+  int i = 0;
+  for(i=0;i<510;i++) {
+    uint64_t *PTE = (uint64_t *)(uint64_t) free_list_end + (uint64_t)(4096*(i+1));
+    PML4[i] = (uint64_t) PTE; 
+  }
 
   map_memory_range((uint64_t)physbase, free_list_end + (520*4096), 1);
 
