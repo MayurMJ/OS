@@ -132,7 +132,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   int i = 0;
   for(i=0;i<510;i++) {
     uint64_t *PTE = (uint64_t *)(uint64_t) free_list_end + (uint64_t)(4096*(i+1));
-    PML4[i] = (uint64_t) PTE; 
+    PML4[i] = (uint64_t) PTE;
+    PML4[i] = PML4[i] | 3; 
   }
 
   map_memory_range((uint64_t)physbase, free_list_end + (520*4096), 1);
