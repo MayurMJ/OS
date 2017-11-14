@@ -153,7 +153,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   PML4 = (uint64_t *) temp;
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
-  get_free_page();
+  get_free_page(3);
   //init_idt();
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);

@@ -169,19 +169,19 @@ void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
     PTE[i] = 0;
   }
 }
-uint64_t get_free_page() {
+uint64_t get_free_page(uint8_t flags) {
   uint64_t phy_addr = get_physical_free_page();
   uint64_t virt_addr = 0xffffffff80000000 + phy_addr;
   uint64_t PMLframe = (virt_addr >> 21) & (uint64_t) 0x1ff;
   if(PML4[PMLframe] == 0) {
     uint64_t *PTE = (uint64_t *)get_physical_free_page();
     PML4[PMLframe] = (uint64_t)PTE;
-    PML4[PMLframe] = PML4[PMLframe] | 3;
+    PML4[PMLframe] = PML4[PMLframe] | flags;
   }
   uint64_t x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
   x = x & 0xfffffffffffffffc; 
   uint64_t *PTE = (uint64_t *)x;
   uint64_t PTEframe = (virt_addr >> 12) & (uint64_t) 0x1ff;
-  PTE[PTEframe] = phy_addr | 3;
+  PTE[PTEframe] = phy_addr | flags;
   return virt_addr; 
 }
