@@ -129,7 +129,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   init_self_referencing(free_list_end);
   map_memory_range(0xa0000, 0x100000, 0);
-  map_memory_range((uint64_t)physbase, free_list_end, 1);
+  uint64_t *PTE = (uint64_t *)(uint64_t) free_list_end + (uint64_t)4096;
+
+  map_memory_range((uint64_t)physbase, free_list_end + (520*4096), 1);
 
   uint64_t cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
@@ -141,8 +143,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   t1 = (uint64_t)PML4;
   temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   PML4 = (uint64_t *) temp;
+  kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
-  get_free_page();
+ // get_free_page();
   //init_idt();
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);

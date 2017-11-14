@@ -80,7 +80,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 
 
   // kernel + free list area
-  for (x=begin ; x < free_list_end; x+=4096) {
+  for (x=begin ; x < free_list_end+(520*4096); x+=4096) {
         free_list[x/4096].is_avail = 0; // it is not free
         if ((x/4096) == (num_pages-1)) {
                 free_list[(x/4096)-1].next = NULL;
@@ -151,7 +151,8 @@ void init_self_referencing(uint64_t free_list_end) {
 }
 
 void map_memory_range(uint64_t start, uint64_t end, int map_index) {
-  uint64_t *PTE = (uint64_t *)get_physical_free_page();
+ // uint64_t *PTE = (uint64_t *)get_physical_free_page();
+  uint64_t *PTE = (uint64_t *);
   PML4[map_index] = (uint64_t)PTE;
   PML4[map_index] = PML4[map_index] | 3;
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
