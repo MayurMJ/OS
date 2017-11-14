@@ -26,5 +26,5 @@ void free_page(void *addr);
 uint64_t get_free_page();
 uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, int index);
 void init_self_referencing(uint64_t free_list_end);
-void map_memory_range(uint64_t start, uint64_t end, int ind);
+void map_memory_range(uint64_t start, uint64_t end, uint64_t ind);
 #endif

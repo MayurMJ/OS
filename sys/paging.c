@@ -37,7 +37,6 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 
     free_list = (pg_desc_t *)free_list_begin;
 
-
     uint64_t free_list_end;
     if (((free_list_begin + (num_pages * sizeof(pg_desc_t))) & 0x0000000000000fff) == 0)
         free_list_end = (free_list_begin + (num_pages * sizeof(pg_desc_t)));
@@ -150,24 +149,33 @@ void init_self_referencing(uint64_t free_list_end) {
   }
 }
 
-void map_memory_range(uint64_t start, uint64_t end, int map_index) {
-  uint64_t *PTE = (uint64_t *)get_physical_free_page();
-  PML4[map_index] = (uint64_t)PTE;
-  PML4[map_index] = PML4[map_index] | 3;
+void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
   temp_addr = temp_addr >> 12;
   uint64_t temp = 0x1ff;
   uint64_t ind = temp & temp_addr;
-  for(int i = 0; i < ind; ++i) {
-    PTE[i] = 0;
-  } 
-  for(uint64_t x = (uint64_t)start; x < (uint64_t) end; x += 4096) {
-    PTE[ind] = x | 3;
-    ind++;
+  while(1) {
+    //uint64_t offset = map_index * 512;
+    //uint64_t *PTE = (uint64_t *)PML4 + offset;
+    //PML4[map_index] = (uint64_t)PTE;
+    //PML4[map_index] = PML4[map_index] | 3;
+    uint64_t *PTE = (uint64_t *) PML4[map_index];
+    for(int i = 0; i < ind; ++i) {
+      PTE[i] = 0;
+    }  
+    for(int i = ind; i < 512; i++) {
+    //for(uint64_t x = (uint64_t)start; x < (uint64_t) end; x += 4096) { 
+      PTE[ind] = (uint64_t)((uint64_t)start) | 3;
+      ind++;
+      start += 4096;
+      if(start == end) return;
+    }
+    for(int i = ind; i < 512; i++) {
+      PTE[i] = 0;
+    }
+      ind = 0;
+      map_index++;
   }
-  for(int i = ind; i < 512; i++) {
-    PTE[i] = 0;
-  } 
 }
 uint64_t get_free_page() {
   uint64_t phy_addr = get_physical_free_page();
