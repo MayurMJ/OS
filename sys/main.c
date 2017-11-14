@@ -170,9 +170,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
  // switch_user_mode((uint64_t)&user_mode);
-  set_tss_rsp((void *)(uint64_t)get_free_page);
+  //set_tss_rsp((void *)(uint64_t)get_free_page);
   //kprintf("Trying multitasking from main\n");
-  switch_user_mode((uint64_t)&user_mode);
+  //switch_user_mode((uint64_t)&user_mode);
   //yield();
   //kprintf("back in main the first time after multitasking\n");
   //yield();
