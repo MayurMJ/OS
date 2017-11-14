@@ -145,11 +145,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
-  uint64_t t1 = (uint64_t)free_list_head;
+//  uint64_t t1 = (uint64_t)free_list_head;
+ // uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
+  //free_list_head = (pg_desc_t *) temp;
+  uint64_t t1 = (uint64_t)PML4;
   uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  free_list_head = (pg_desc_t *) temp;
-  t1 = (uint64_t)PML4;
-  temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   PML4 = (uint64_t *) temp;
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
