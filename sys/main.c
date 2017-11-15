@@ -127,7 +127,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
-  init_self_referencing(free_list_end);
+  uint64_t virt_addr = (uint64_t) 0xffffffff80000000 + (uint64_t)physbase;
+  uint64_t PDEframe = (virt_addr >> 21) & (uint64_t) 0x1ff;  
+  init_self_referencing(free_list_end, PDEframe);
 //  int i = 0;
  
 // for(i=0;i<510;i++) {
@@ -135,9 +137,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //    PML4[i] = (uint64_t) PTE;
    //PML4[i] = PML4[i]; 
  // }
-  map_memory_range(0xa0000, 0x100000, 0);
-
-  map_memory_range((uint64_t)physbase, free_list_end + (520*4096), 1);
+  map_memory_range(0xa0000, 0x100000, 0); 
+  map_memory_range((uint64_t)physbase, free_list_end + (520*4096), PDEframe);
 
 //  for(i=0;i<510;i++) {
 //    PML4[i] = PML4[i] | 3; 
@@ -157,7 +158,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   PML4 = (uint64_t *) temp;
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
-  get_free_page(3);
+  //get_free_page(3);
   //init_idt();
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);

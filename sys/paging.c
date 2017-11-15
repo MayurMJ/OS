@@ -139,7 +139,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
     return free_list_end;
 }
 
-void init_self_referencing(uint64_t free_list_end) {
+void init_self_referencing(uint64_t free_list_end, uint64_t index) {
   PML4 =(uint64_t *) ((uint64_t)free_list_end);
   *PML4 = 0;
   PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)4096);
@@ -151,7 +151,7 @@ void init_self_referencing(uint64_t free_list_end) {
     PML4[i] = 0;
   }
   PDE[0] = (uint64_t)PTE1;
-  PDE[1] = (uint64_t)PTE2;
+  PDE[index] = (uint64_t)PTE2;
 
 }
 
