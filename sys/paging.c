@@ -142,16 +142,22 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 void init_self_referencing(uint64_t free_list_end) {
   PML4 =(uint64_t *) ((uint64_t)free_list_end);
   *PML4 = 0;
+  PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)4096);
+  uint64_t * PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
+  uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
   PML4[511] = ((uint64_t)free_list_end) | 3;
-  PML4[510] = ((uint64_t)free_list_end) | 3; 
-  for(int i = 2; i < 510; i++) {
+  PML4[510] = ((uint64_t)PDE) | 3; 
+  for(int i = 0; i < 510; i++) {
     PML4[i] = 0;
   }
+  PDE[0] = (uint64_t)PTE1;
+  PDE[1] = (uint64_t)PTE2;
+
 }
 
 void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
   //uint64_t offset = (uint64_t) (map_index *512);
-  uint64_t *PTE = (uint64_t *)PML4[map_index];
+  uint64_t *PTE = (uint64_t *)PDE[map_index];
   //PML4[map_index] = (uint64_t)PTE;
   //PML4[map_index] = PML4[map_index] | 3;
   uint64_t temp_addr = (uint64_t)(0xffffffff80000000 + start);
