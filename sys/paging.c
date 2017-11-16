@@ -143,7 +143,7 @@ void init_self_referencing(uint64_t free_list_end, uint64_t index) {
   PML4 =(uint64_t *) ((uint64_t)free_list_end);
   *PML4 = 0;
   PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)4096);
-  uint64_t * PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
+  PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
   uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
   PML4[511] = ((uint64_t)free_list_end) | 3;
   PML4[510] = ((uint64_t)PDE) | 3; 
@@ -175,14 +175,51 @@ void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
     PTE[i] = 0;
   }
 }
-uint64_t get_free_page(uint8_t flags) {
+uint64_t get_free_page(uint64_t flags) {
   uint64_t phy_addr = get_physical_free_page();
-  uint64_t virt_addr = 0xffffffff80000000 + phy_addr;
-  uint64_t PMLframe = (virt_addr >> 21) & (uint64_t) 0x1ff;
+//  uint64_t virt_addr = 0xffffffff80000000 + phy_addr;
+  uint64_t virt_addr;
+   if(flags == 7)
+	virt_addr= 4096 + phy_addr;
+   else
+	virt_addr = 0xffffffff80000000 + phy_addr;
+
+  uint64_t *VA = (uint64_t*)(0xffffffff80000000 + 0xa0000);
+  uint64_t PMLframe = (virt_addr >> 38) & (uint64_t) 0x1ff;
+  uint64_t PDPTEindex = (virt_addr >> 29) & (uint64_t) 0x1ff;
+  uint64_t PDEindex = (virt_addr >> 20) & (uint64_t) 0x1ff;
+  uint64_t PTEindex = (virt_addr >> 11) & (uint64_t) 0x1ff;
   if(PML4[PMLframe] == 0) {
+    uint64_t *PDPTE = (uint64_t *)get_physical_free_page();
+    uint64_t *PDE = (uint64_t *)get_physical_free_page();
     uint64_t *PTE = (uint64_t *)get_physical_free_page();
-    PML4[PMLframe] = (uint64_t)PTE;
-    PML4[PMLframe] = PML4[PMLframe] | flags;
+    PML4[PMLframe] = (uint64_t) PDPTE | 3;
+
+    PTE1[160] = 0;
+    PTE1[160] = (uint64_t) PDPTE | 3;
+    for(int i = 0; i < 512; i++) {
+     VA[i] = 0;
+    }
+    VA[PDPTEindex] = (uint64_t) PDE ;
+    VA[PDPTEindex] = (uint64_t) VA[PDPTEindex] |(uint64_t) flags;
+    
+    
+    PTE1[160] = 0;
+    PTE1[160] = (uint64_t) PDE | 7;
+    for(int i = 0; i < 512; i++) {
+     VA[i] = 0;
+    }
+    VA[PDEindex] = (uint64_t) PTE;
+    VA[PDEindex] = (uint64_t)VA[PDPTEindex] |(uint64_t) flags;
+
+    PTE1[160] = 0;
+    PTE1[160] = (uint64_t) PTE | 7;
+    for(int i = 0; i < 512; i++) {
+     VA[i] = 0;
+    }
+    VA[PTEindex] = (uint64_t) phy_addr;
+    VA[PTEindex] = (uint64_t)VA[PDPTEindex] |(uint64_t) flags;
+    return virt_addr;
   }
   uint64_t x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
   x = x & 0xfffffffffffffffc; 
