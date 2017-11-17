@@ -160,26 +160,27 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //get_free_page(7);
   temp1[0] = 777;
   kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
-  //init_idt();
+  // ------------------------------------------------
+  // switch to user mode
+  /*init_idt();
+  program_pic();
+  set_tss_rsp((void *)(uint64_t)get_free_page(3));
+  // find a page and copy the function to it
+  uint64_t user_user_mode = get_free_page(7);
+  uint64_t kernel_user_mode =(uint64_t)&user_mode;
+  
+  // now switch to new page
+  switch_user_mode(user_user_mode);*/
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);
-  //set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
- // switch_user_mode((uint64_t)&user_mode);
-  //set_tss_rsp((void *)(uint64_t)get_free_page);
-  //kprintf("Trying multitasking from main\n");
-  //switch_user_mode((uint64_t)&user_mode);
   //yield();
   //kprintf("back in main the first time after multitasking\n");
   //yield();
   //kprintf("back in main for the last time\n");
   // ------------------------------------------------
- // init_idt();
- // program_pic();  
- //__asm__ __volatile("sti");
- 
+  //__asm__ __volatile("sti");
   //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
-  
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");
   while(1);
