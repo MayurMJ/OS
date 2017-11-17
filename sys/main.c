@@ -143,8 +143,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //  for(i=0;i<510;i++) {
 //    PML4[i] = PML4[i] | 3; 
 //  }
-  PDE[0] = PDE[0] | 3;
-  PDE[1] = PDE[1] | 3;
+  PDE[0] = PDE[0] | 7;
+  PDE[1] = PDE[1] | 7;
 
   uint64_t cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
@@ -163,13 +163,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // ------------------------------------------------
   // switch to user mode
   init_idt();
-  program_pic();
-  set_tss_rsp((void *)(uint64_t)get_free_page(3));
+  //program_pic();
+  set_tss_rsp((void *)((uint64_t)get_free_page(7)+4096));
   // find a page and copy the function to it
   //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
   //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
   // now switch to new page
-  //switch_user_mode((uint64_t)user_user_mode);
+  switch_user_mode((uint64_t)user_mode);
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);
   //kprintf("Trying multitasking from main\n");
@@ -178,7 +178,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //yield();
   //kprintf("back in main for the last time\n");
   // ------------------------------------------------
-  __asm__ __volatile("sti");
+  //__asm__ __volatile("sti");
   //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");

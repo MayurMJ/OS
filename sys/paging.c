@@ -146,8 +146,8 @@ void init_self_referencing(uint64_t free_list_end, uint64_t index) {
   PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
   PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
   uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)16384);
-  PML4[511] = ((uint64_t)PDTP) | 3;
-  PDTP[510] = ((uint64_t)PDE) | 3; 
+  PML4[511] = ((uint64_t)PDTP) | 7;
+  PDTP[510] = ((uint64_t)PDE) | 7; 
   for(int i = 0; i < 510; i++) {
     PML4[i] = 0;
   }
@@ -169,7 +169,7 @@ void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
     PTE[i] = 0;
   }
   for(uint64_t x = (uint64_t)start; x < (uint64_t) end; x += 4096) {
-    PTE[ind] = x | 3;
+    PTE[ind] = x | 7;
     ind++;
   }
   for(int i = ind; i < 512; i++) {
@@ -194,9 +194,9 @@ uint64_t get_free_page(uint64_t flags) {
   uint64_t *PDPTE;
   if(PML4[PMLframe] == 0) {
     PDPTE = (uint64_t *)get_physical_free_page();
-    PML4[PMLframe] = (uint64_t) PDPTE | 3;
+    PML4[PMLframe] = (uint64_t) PDPTE | 7;
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
-    x = x & 0xfffffffffffffffc;
+    x = x & 0xfffffffffffff000;
     PDPTE = (uint64_t *) x;
     for(int i = 0; i < 512; i++) {
       PDPTE[i] = 0;
@@ -204,7 +204,7 @@ uint64_t get_free_page(uint64_t flags) {
   }
   else { 
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
-    x = x & 0xfffffffffffffffc; 
+    x = x & 0xfffffffffffff000; 
     PDPTE = (uint64_t *) x;
   }
 
@@ -213,9 +213,9 @@ uint64_t get_free_page(uint64_t flags) {
   uint64_t *PDE;
   if(PDPTE[PDPTEindex] == 0) {
     PDE = (uint64_t *)get_physical_free_page();
-    PDPTE[PDPTEindex] = (uint64_t) PDE | 3;
+    PDPTE[PDPTEindex] = (uint64_t) PDE | 7;
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
-    x = x & 0xfffffffffffffffc; 
+    x = x & 0xfffffffffffff000; 
     PDE = (uint64_t *) x;
     for(int i = 0; i < 512; i++) {
       PDE[i] = 0;
@@ -223,7 +223,7 @@ uint64_t get_free_page(uint64_t flags) {
   }
   else {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
-    x = x & 0xfffffffffffffffc; 
+    x = x & 0xfffffffffffff000; 
     PDE = (uint64_t *) x;
   }
 
@@ -232,9 +232,9 @@ uint64_t get_free_page(uint64_t flags) {
   uint64_t *PTE;
   if(PDE[PDEindex] == 0) {
     PTE = (uint64_t *)get_physical_free_page();
-    PDE[PDEindex] = (uint64_t) PTE | 3;
+    PDE[PDEindex] = (uint64_t) PTE | 7;
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
-    x = x & 0xfffffffffffffffc; 
+    x = x & 0xfffffffffffff000; 
     PTE = (uint64_t *) x;
     for(int i = 0; i < 512; i++) {
       PTE[i] = 0;
@@ -243,7 +243,7 @@ uint64_t get_free_page(uint64_t flags) {
   
   else {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
-    x = x & 0xfffffffffffffffc; 
+    x = x & 0xfffffffffffff000; 
     PTE = (uint64_t *) (PDE[PDEindex] + (uint64_t)0xffffffff80000000);
   }
 
