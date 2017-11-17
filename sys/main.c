@@ -24,6 +24,7 @@ Task *mainTask;
 Task *otherTask;
 void user_mode() {
 	__asm__("int $0x80\n\t");
+	//kprintf("hi\n");
 	while(1);
 }
 void switch_user_mode(uint64_t symbol) {
@@ -40,7 +41,7 @@ void switch_user_mode(uint64_t symbol) {
 			"popq %%rax\n\t"
                         "orq $0x200, %%rax\n\t"
                         "pushq %%rax\n\t"
-                        "pushq $0x1B\n\t"
+                        "pushq $0x2B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
         		::"b"(symbol)
@@ -164,12 +165,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // switch to user mode
   init_idt();
   //program_pic();
-  set_tss_rsp((void *)((uint64_t)get_free_page(7)+4096));
+  set_tss_rsp((void *)((uint64_t)kstack));
   // find a page and copy the function to it
   //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
   //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
   // now switch to new page
-  switch_user_mode((uint64_t)user_mode);
+  switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);
   //kprintf("Trying multitasking from main\n");

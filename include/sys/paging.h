@@ -21,7 +21,7 @@ uint64_t *PDE;
 uint64_t *PTE1;
 extern pg_desc_t *free_list_head;
 
-
+uint64_t *kstack;
 
 uint64_t get_physical_free_page ();
 void free_physical_page( pg_desc_t *page);
