@@ -137,7 +137,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //    PML4[i] = (uint64_t) PTE;
    //PML4[i] = PML4[i]; 
  // }
-  map_memory_range(0xa0000, 0x100000, 0); 
+  map_memory_range(0x00000, 0x100000, 0); 
   map_memory_range((uint64_t)physbase, free_list_end + (520*4096), PDEframe);
 
 //  for(i=0;i<510;i++) {
@@ -150,18 +150,14 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
-//  uint64_t t1 = (uint64_t)free_list_head;
- // uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  //free_list_head = (pg_desc_t *) temp;
+  kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t t1 = (uint64_t)PML4;
   uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   PML4 = (uint64_t *) temp;
-  t1 = (uint64_t)PTE1;
-  temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  PTE1 = (uint64_t *) temp;
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t * temp1 = (uint64_t *)  get_free_page(7);
+  //get_free_page(7);
   temp1[0] = 777;
   kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
   //init_idt();

@@ -16,6 +16,7 @@ typedef struct pg_desc {
 
 pg_desc_t *free_list;
 uint64_t *PML4;
+uint64_t *PDTP;
 uint64_t *PDE;
 uint64_t *PTE1;
 extern pg_desc_t *free_list_head;
