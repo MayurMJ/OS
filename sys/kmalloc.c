@@ -152,4 +152,23 @@ void* kmalloc(size_t size) {
 
   return alloc_obj(cache,slab);
 }
+
+void kfree(uint64_t *virt_addr) {
+  slab_t *slab = virt_to_page((void*) virt_addr);
+  
+  // If slab is in the full list move it to the end of partial list 
+  // TODO remove it from the full list
+  if(slab->free == BUFCTL_END) {
+    slab_t *temp = slab->curr_cache->slabs_partial;
+    while(temp->next != NULL) {
+      temp = temp->next;
+    }
+    temp->next = slab;
+    slab->next = NULL;
+  }
+  kmem_bufctl_t index = ((uint64_t)virt_addr - (uint64_t) slab->s_mem) /  slab->curr_cache->objsize;
+  kmem_bufctl_t temp = slab_bufctl(slab)[index];
+  slab_bufctl(slab)[index] = slab->free; 
+  slab->free = temp;
+}
    

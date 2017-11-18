@@ -33,4 +33,5 @@ void init_kmalloc();
 slab_t * alloc_slab(kmem_cache_t * cache);
 uint32_t objs_in_slab(unsigned int objsize);
 void* kmalloc(size_t size);
+void  kfree(uint64_t *);
 #endif
