@@ -79,7 +79,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 
 
   // kernel + free list area
-  for (x=begin ; x < free_list_end+(520*4096); x+=4096) {
+  for (x=begin ; x < free_list_end + (520 *4096); x+=4096) {
         free_list[x/4096].is_avail = 0; // it is not free
         if ((x/4096) == (num_pages-1)) {
                 free_list[(x/4096)-1].next = NULL;
@@ -144,16 +144,19 @@ void init_self_referencing(uint64_t free_list_end, uint64_t index) {
   *PML4 = 0;
   PDTP = (uint64_t *)((uint64_t)free_list_end+(uint64_t)4096);
   PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
-  PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
-  uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)16384);
+  uint64_t temp = (uint64_t)free_list_end+(uint64_t)12288;
+  //PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
+  //uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)16384);
   PML4[511] = ((uint64_t)PDTP) | 7;
   PDTP[510] = ((uint64_t)PDE) | 7; 
   for(int i = 0; i < 510; i++) {
     PML4[i] = 0;
   }
-  PDE[0] = (uint64_t)PTE1;
-  PDE[index] = (uint64_t)PTE2;
-
+  //PDE[0] = (uint64_t)PTE1;
+  //PDE[index] = (uint64_t)PTE2;
+  for(int i = 0; i < 512; ++i) {
+      PDE[i] = (uint64_t) temp + (uint64_t)(i * 4096);
+  }
 }
 
 void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {

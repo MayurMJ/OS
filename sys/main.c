@@ -131,21 +131,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t virt_addr = (uint64_t) 0xffffffff80000000 + (uint64_t)physbase;
   uint64_t PDEframe = (virt_addr >> 21) & (uint64_t) 0x1ff;  
   init_self_referencing(free_list_end, PDEframe);
-//  int i = 0;
- 
-// for(i=0;i<510;i++) {
-//    uint64_t PTE = (uint64_t) free_list_end + (uint64_t)(4096*(i+1));
-//    PML4[i] = (uint64_t) PTE;
-   //PML4[i] = PML4[i]; 
- // }
-  map_memory_range(0x00000, 0x100000, 0); 
-  map_memory_range((uint64_t)physbase, free_list_end + (520*4096), PDEframe);
+  
+  map_memory_range(0x00000, (uint64_t)physbase, 0); 
+  map_memory_range((uint64_t)physbase, free_list_end + (512*511*4096), PDEframe);
 
-//  for(i=0;i<510;i++) {
-//    PML4[i] = PML4[i] | 3; 
-//  }
-  PDE[0] = PDE[0] | 7;
-  PDE[1] = PDE[1] | 7;
+  for(int i = 0; i < 512; i++) {
+    PDE[i] = PDE[i] | 7;
+  }
 
   uint64_t cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
