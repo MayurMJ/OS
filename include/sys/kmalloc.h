@@ -3,7 +3,7 @@
 
 #include <sys/defs.h>
 #define slab_bufctl(slabp)  ((kmem_bufctl_t *)(((slab_t*)slabp)+1))
-#define NUM_CACHES 7
+#define NUM_CACHES 8
 typedef unsigned int kmem_bufctl_t; 
 typedef struct slab_s { 
     struct kmem_cache_t * curr_cache;
@@ -25,5 +25,6 @@ kmem_cache_t * cache_cache;
 void * virt_to_page(void *objp);
 void * alloc_obj(kmem_cache_t *cachep, slab_t *slabp);
 void free_obj(void *objp);
+void init_kmalloc();
 
 #endif

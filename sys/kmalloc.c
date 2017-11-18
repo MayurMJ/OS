@@ -1,5 +1,6 @@
 #include <sys/kmalloc.h>
 #include <sys/paging.h>
+#include <sys/kprintf.h>
 
 void * virt_to_page(void *objp) {
   uint64_t addr = (uint64_t)objp;
@@ -45,10 +46,10 @@ uint64_t pow(uint64_t num, uint64_t power) {
 void init_kmalloc() {
   void * kmem_cache = (void *)get_free_page(3);
   cache_cache = (kmem_cache_t *) kmem_cache;
-  for(int i = 3; i<NUM_CACHES+3; i++) {
-    cache_cache[i].slabs_full = NULL;
-    cache_cache[i].slabs_partial = NULL;
-    cache_cache[i].objsize = pow(2,i);
-    cache_cache[i].num = 0; //to be updated
+  for(int i = 0; i<NUM_CACHES; i++) {
+    (cache_cache+i)->slabs_full = NULL;
+    (cache_cache+i)->slabs_partial = NULL;
+    (cache_cache+i)->objsize = pow(2,i+3);
+    (cache_cache+i)->num = 0; //to be updated
   }
 }

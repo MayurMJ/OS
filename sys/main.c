@@ -6,6 +6,7 @@
 #include <sys/idt.h>
 #include <sys/pic.h>
 #include <sys/kernel_threads.h>
+#include <sys/kmalloc.h>
 /*
 deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
@@ -153,6 +154,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //get_free_page(7);
   temp1[0] = 777;
   kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
+
+  //-------------k malloc init----------------------
+  init_kmalloc(); 
+
+  for(int i=0;i<NUM_CACHES;i++) 
+    kprintf("i = %d, cache_cache[i] = %x objsize = %d\n",i,(cache_cache+i),(cache_cache+i)->objsize);
+
   // ------------------------------------------------
   // switch to user mode
   init_idt();
