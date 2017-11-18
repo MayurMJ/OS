@@ -17,17 +17,23 @@ void * alloc_obj(kmem_cache_t *cache, slab_t *slabp) {
   /*check now to see if the current slab is full i.e. new slabp->free points to BUFCTL_END. In that case, move this slab to full slabs and maybe allocate a new slab new to point it to partial slab list */
   if(slabp->free == BUFCTL_END) {
       //move this slab to cache->slabs_full 
-      //----- TBD ------
-      
+      //----- TBD ------    
       if(slabp->next == NULL)
         cache->slabs_partial = alloc_slab(cache);
       else
         cache->slabs_partial = slabp->next;
+
+      slab_t *temp = cache->slabs_full; 
+      while(temp->next != NULL)  {
+	temp = temp->next;
+      }
+      temp->next = slabp;
+      slabp->next = NULL;
   }
 
   return objp;
 }
-
+//TODO: recheck this
 void free_obj(void *objp) {
 
   slab_t *slabp = (slab_t *) virt_to_page(objp);
