@@ -107,6 +107,12 @@ slab_t * alloc_slab(kmem_cache_t * cache) {
     slab->inuse = 0;   // 0 used objects in the slab
     slab->free = 0;    //index of first free object 
     uint32_t num_objs = objs_in_slab(cache->objsize); //number of objs that will fit in this slab
+    
+    //init the array list to point to next element
+    for(int i = 0;i<num_objs-1;i++)
+        slab_bufctl(slab)[i]=i+1;
+    slab_bufctl(slab)[num_objs-1] = BUFCTL_END; //last element
+
     slab->s_mem = (void *) ( ((uint64_t)slab) + sizeof(slab_t) + (num_objs*sizeof(kmem_bufctl_t)) );
     return slab;
 }
