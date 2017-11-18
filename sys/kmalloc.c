@@ -1,4 +1,5 @@
 #include <sys/kmalloc.h>
+#include <sys/paging.h>
 
 void * virt_to_page(void *objp) {
   uint64_t addr = (uint64_t)objp;
@@ -30,4 +31,24 @@ void free_obj(void *objp) {
  
   /*maybe check this slab's number of objs allocated and if the counts gets to zero, free this page/slab*/
 
+}
+
+uint64_t pow(uint64_t num, uint64_t power) {
+  if(num==0||num==1)
+    return num;
+  uint64_t res = 1;
+  for(int i=0;i<power;i++)
+    res = res * num;
+  return res;
+}
+
+void init_kmalloc() {
+  void * kmem_cache = (void *)get_free_page(3);
+  cache_cache = (kmem_cache_t *) kmem_cache;
+  for(int i = 3; i<NUM_CACHES+3; i++) {
+    cache_cache[i].slabs_full = NULL;
+    cache_cache[i].slabs_partial = NULL;
+    cache_cache[i].objsize = pow(2,i);
+    cache_cache[i].num = 0; //to be updated
+  }
 }
