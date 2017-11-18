@@ -166,6 +166,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   *addr_ptr = 10;
   kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
   kfree(addr_ptr);
+  kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
   // ------------------------------------------------
   // switch to user mode
   init_idt();

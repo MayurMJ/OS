@@ -1,6 +1,7 @@
 #include <sys/kmalloc.h>
 #include <sys/paging.h>
 #include <sys/kprintf.h>
+#include <sys/kmemcpy.h>
 
 void * virt_to_page(void *objp) {
   uint64_t addr = (uint64_t)objp;
@@ -158,11 +159,13 @@ void kfree(uint64_t *virt_addr) {
   
   // If slab is in the full list move it to the end of partial list 
   // TODO may be make it more efficient with a doubly linked list
-  slab_t *temp1 = slab->curr_cache->slabs_full;
-  while(temp1->next != slab) {
-    temp1 = temp1->next;
+  if(slab->free == BUFCTL_END) {
+    slab_t *temp1 = slab->curr_cache->slabs_full;
+    while(temp1->next != slab) {
+      temp1 = temp1->next;
+    }
+    temp1->next = temp1->next->next;
   }
-  temp1->next = temp1->next->next;
 
   if(slab->free == BUFCTL_END) {
     slab_t *temp = slab->curr_cache->slabs_partial;
@@ -172,6 +175,9 @@ void kfree(uint64_t *virt_addr) {
     temp->next = slab;
     slab->next = NULL;
   }
+  // memset obj to 0  
+  memset((char *)virt_addr,0,slab->curr_cache->objsize); 
+ 
   kmem_bufctl_t index = ((uint64_t)virt_addr - (uint64_t) slab->s_mem) /  slab->curr_cache->objsize;
   kmem_bufctl_t temp = slab_bufctl(slab)[index];
   slab_bufctl(slab)[index] = slab->free; 
