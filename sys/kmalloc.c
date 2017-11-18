@@ -157,7 +157,13 @@ void kfree(uint64_t *virt_addr) {
   slab_t *slab = virt_to_page((void*) virt_addr);
   
   // If slab is in the full list move it to the end of partial list 
-  // TODO remove it from the full list
+  // TODO may be make it more efficient with a doubly linked list
+  slab_t *temp = slab->curr_cache->slabs_full;
+  while(temp->next != slab) {
+    temp = temp->next;
+  }
+  temp->next = temp->next->next;
+
   if(slab->free == BUFCTL_END) {
     slab_t *temp = slab->curr_cache->slabs_partial;
     while(temp->next != NULL) {
