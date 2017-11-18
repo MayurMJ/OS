@@ -44,7 +44,7 @@ void kyb_irqhandler(void) {
 		}
 	}
 	if (display == 1) {
-		char * videomem = (char*)0xb8f6c;
+		char * videomem = (char*)(0xffffffff80000000 + 0xb8f6c);
 		*videomem = c;
 		videomem-=2;
 		*videomem = ' ';

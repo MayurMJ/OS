@@ -23,7 +23,8 @@ Task *runningTask;
 Task *mainTask;
 Task *otherTask;
 void user_mode() {
-	kprintf("in user mode\n");
+	__asm__("int $0x80\n\t");
+	//kprintf("hi\n");
 	while(1);
 }
 void switch_user_mode(uint64_t symbol) {
@@ -40,7 +41,7 @@ void switch_user_mode(uint64_t symbol) {
 			"popq %%rax\n\t"
                         "orq $0x200, %%rax\n\t"
                         "pushq %%rax\n\t"
-                        "pushq $0x1B\n\t"
+                        "pushq $0x2B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
         		::"b"(symbol)
@@ -130,60 +131,48 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t virt_addr = (uint64_t) 0xffffffff80000000 + (uint64_t)physbase;
   uint64_t PDEframe = (virt_addr >> 21) & (uint64_t) 0x1ff;  
   init_self_referencing(free_list_end, PDEframe);
-//  int i = 0;
- 
-// for(i=0;i<510;i++) {
-//    uint64_t PTE = (uint64_t) free_list_end + (uint64_t)(4096*(i+1));
-//    PML4[i] = (uint64_t) PTE;
-   //PML4[i] = PML4[i]; 
- // }
-  map_memory_range(0xa0000, 0x100000, 0); 
-  map_memory_range((uint64_t)physbase, free_list_end + (520*4096), PDEframe);
+  
+  map_memory_range(0x00000, (uint64_t)physbase, 0); 
+  map_memory_range((uint64_t)physbase, free_list_end + (512*511*4096), PDEframe);
 
-//  for(i=0;i<510;i++) {
-//    PML4[i] = PML4[i] | 3; 
-//  }
-  PDE[0] = PDE[0] | 3;
-  PDE[1] = PDE[1] | 3;
+  for(int i = 0; i < 512; i++) {
+    PDE[i] = PDE[i] | 7;
+  }
 
   uint64_t cr3val = free_list_end;
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
-//  uint64_t t1 = (uint64_t)free_list_head;
- // uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  //free_list_head = (pg_desc_t *) temp;
+  kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t t1 = (uint64_t)PML4;
   uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   PML4 = (uint64_t *) temp;
-  t1 = (uint64_t)PTE1;
-  temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  PTE1 = (uint64_t *) temp;
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t * temp1 = (uint64_t *)  get_free_page(7);
+  //get_free_page(7);
   temp1[0] = 777;
   kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
-  //init_idt();
+  // ------------------------------------------------
+  // switch to user mode
+  init_idt();
+  //program_pic();
+  set_tss_rsp((void *)((uint64_t)kstack));
+  // find a page and copy the function to it
+  //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
+  //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
+  // now switch to new page
+  switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
   //initTasking(mainTask, otherTask);
-  //set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
   //kprintf("Trying multitasking from main\n");
- // switch_user_mode((uint64_t)&user_mode);
-//  set_tss_rsp((void *)(uint64_t)(otherTask->kstack));
-  //kprintf("Trying multitasking from main\n");
-  //switch_user_mode((uint64_t)&user_mode);
   //yield();
   //kprintf("back in main the first time after multitasking\n");
   //yield();
   //kprintf("back in main for the last time\n");
   // ------------------------------------------------
- // init_idt();
- // program_pic();  
- //__asm__ __volatile("sti");
- 
+  //__asm__ __volatile("sti");
   //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
-  
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");
   while(1);

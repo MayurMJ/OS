@@ -1,7 +1,7 @@
-.globl   generic_isr_noerr
+.globl   write_monitor
 .align   4
  
-generic_isr_noerr:
+write_monitor:
     cli
     pushq    %rax
     pushq    %rbx
@@ -18,7 +18,7 @@ generic_isr_noerr:
     pushq    %rdi
     pushq    %rsi
     pushq    %rbp
-    call    generic_irqhandler
+    call    write_monitor_irqhandler
     popq    %rbp
     popq    %rsi
     popq    %rdi
