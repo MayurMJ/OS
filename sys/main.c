@@ -159,7 +159,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   init_kmalloc(); 
 
   for(int i=0;i<NUM_CACHES;i++) 
-    kprintf("i = %d, cache_cache[i] = %x objsize = %d\n",i,(cache_cache+i),(cache_cache+i)->objsize);
+    kprintf("i = %d, cache_cache[i] = %x objsize = %d num = %d\n",i,(cache_cache+i),cache_cache[i].objsize,cache_cache[i].num);
+
+  kprintf("slab_t size %d\n",sizeof(slab_t));
+  uint64_t * addr_ptr = kmalloc(8);
+  *addr_ptr = 10;
+  kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
 
   // ------------------------------------------------
   // switch to user mode

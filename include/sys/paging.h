@@ -1,6 +1,9 @@
 #ifndef _PAGING_H
 #define _PAGING_H
 #include <sys/defs.h>
+
+#define PAGE_SIZE	4096
+
 typedef struct {
 	uint64_t starting_addr;
 	uint64_t last_addr;
