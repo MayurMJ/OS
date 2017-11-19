@@ -170,9 +170,7 @@ void kfree(uint64_t *virt_addr) {
     slab->next = temp;
     slab->curr_cache->slabs_partial = slab;
   }
-  // add to partial list
-  if(slab->free == BUFCTL_END) {
-  }
+  /*
   slab->inuse--;
   if(slab->inuse == 0) {
     //release page back into free list and return
@@ -182,6 +180,7 @@ void kfree(uint64_t *virt_addr) {
 	// free page and adjust partial list
     return;
   }
+  */
   // memset obj to 0  
   memset((char *)virt_addr,0,slab->curr_cache->objsize); 
   // modify free list in the beginning
