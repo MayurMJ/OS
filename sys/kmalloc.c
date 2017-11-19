@@ -163,13 +163,15 @@ void kfree(uint64_t *virt_addr) {
     while(temp1->next != slab) {
       temp1 = temp1->next;
     }
-    temp1->next = temp1->next->next;
-  }
-  // add to partial list
-  if(slab->free == BUFCTL_END) {
+    temp1->next = temp1->next->next; // delete current slab from full list
+
+    //add curr slab to partial slab
     slab_t *temp = slab->curr_cache->slabs_partial;
     slab->next = temp;
     slab->curr_cache->slabs_partial = slab;
+  }
+  // add to partial list
+  if(slab->free == BUFCTL_END) {
   }
   slab->inuse--;
   if(slab->inuse == 0) {
