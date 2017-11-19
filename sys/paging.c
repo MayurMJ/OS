@@ -16,6 +16,7 @@ uint64_t get_physical_free_page () {
   temp->next = NULL;
   temp->prev = NULL;
   temp->is_avail = 0;
+  temp->count = 0;
   return addr;
 }
 
@@ -43,10 +44,6 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
     else
         free_list_end = (((free_list_begin + (num_pages * sizeof(pg_desc_t)))+4096)>>12)<<12;
     
-   // mainTask = (Task *)(free_list_end + 0xffffffff80000000);
-   // free_list_end += 4096;
-   // otherTask = (Task *)(free_list_end + 0xffffffff80000000);
-   // free_list_end += 4096;
     free_list_end += 4096; // since stack grows downward
     kstack = (uint64_t *)(free_list_end  + 0xffffffff80000000);
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
@@ -228,10 +225,10 @@ uint64_t get_free_page(uint64_t flags) {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
     x = x & 0xfffffffffffff000; 
     PDE = (uint64_t *) x;
+    free_list[((PML4[PMLframe] >> 12) << 12)/ 4096].count++;
   }
 
 //PDE
-
   uint64_t *PTE;
   if(PDE[PDEindex] == 0) {
     PTE = (uint64_t *)get_physical_free_page();
@@ -248,36 +245,54 @@ uint64_t get_free_page(uint64_t flags) {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
     x = x & 0xfffffffffffff000; 
     PTE = (uint64_t *) x;
+    free_list[((PDPTE[PDPTEindex] >> 12) << 12) / 4096].count++;
   }
 
 //PTE
   
   PTE[PTEindex] = (uint64_t) phy_addr | (uint64_t) flags; 
+  free_list[((PDE[PDEindex] >> 12) << 12) / 4096].count++;
  
   return virt_addr;
+}
 
-   /* PTE1[160] = 0;
-    PTE1[160] = (uint64_t) PDPTE | 3;
-    for(int i = 0; i < 512; i++) {
-     VA[i] = 0;
-    }
-    VA[PDPTEindex] = (uint64_t) PDE ;
-    VA[PDPTEindex] = (uint64_t) VA[PDPTEindex] |(uint64_t) flags;
-    
-    
-    PTE1[160] = 0;
-    PTE1[160] = (uint64_t) PDE | 7;
-    for(int i = 0; i < 512; i++) {
-     VA[i] = 0;
-    }
-    VA[PDEindex] = (uint64_t) PTE;
-    VA[PDEindex] = (uint64_t)VA[PDPTEindex] |(uint64_t) flags;
+void free_page(void *addr) {
+  uint64_t virt_addr = (uint64_t) addr; 
+  uint64_t PMLframe = (virt_addr >> 39) & (uint64_t) 0x1ff;
+  uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
+  uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
+  uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
+  uint64_t *PDPTE, *PDE, *PTE;
+  uint64_t x;
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
+  x = x & 0xfffffffffffff000;
+  PDPTE = (uint64_t *) x;
+  
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
+  x = x & 0xfffffffffffff000;
+  PDE = (uint64_t *) x;
+  
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
+  x = x & 0xfffffffffffff000;
+  PTE = (uint64_t *) x;
+  
+  free_physical_page((pg_desc_t*)((PTE[PTEindex] >> 12) <<12)); 
+  PTE[PTEindex] = 0;
+   
+  pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
+  page.count--;
 
-    PTE1[160] = 0;
-    PTE1[160] = (uint64_t) PTE | 7;
-    for(int i = 0; i < 512; i++) {
-     VA[i] = 0;
+  if(page.count == 0) {
+    free_physical_page(&page);
+    page = free_list[((PDPTE[PDPTEindex] >> 12) << 12) / 4096];
+    page.count--;
+    if(page.count == 0) {
+      free_physical_page(&page);
+       page = free_list[((PML4[PMLframe] >> 12) << 12) / 4096];
+       page.count--;
+       if(page.count == 0) {
+         free_physical_page(&page);
+       }
     }
-    VA[PTEindex] = (uint64_t) phy_addr;
-    VA[PTEindex] = (uint64_t)VA[PDPTEindex] |(uint64_t) flags;*/
+  }
 }
