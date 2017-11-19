@@ -162,11 +162,17 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     kprintf("i = %d, cache_cache[i] = %x objsize = %d num = %d\n",i,(cache_cache+i),cache_cache[i].objsize,cache_cache[i].num);
 
   kprintf("slab_t size %d\n",sizeof(slab_t));
-  uint64_t * addr_ptr = kmalloc(8);
-  *addr_ptr = 10;
-  kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
-  kfree(addr_ptr);
-  kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
+  int i;
+  for(i=0;i<340;i++) {
+    uint64_t *addr_ptr = kmalloc(8);
+    *addr_ptr = 10;
+    if (i> 332)
+	kprintf("%d %x %x %x\n",i,cache_cache[0].slabs_partial,cache_cache[0].slabs_full,addr_ptr); 
+  }
+  //kprintf("after moving %x %x\n",cache_cache[0].slabs_partial,cache_cache[0].slabs_full);
+  //kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
+  //kfree(addr_ptr);
+  //kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
   // ------------------------------------------------
   // switch to user mode
   init_idt();

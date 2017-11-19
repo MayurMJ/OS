@@ -156,6 +156,8 @@ void kfree(uint64_t *virt_addr) {
   
   // If slab is in the full list move it to the end of partial list 
   // TODO may be make it more efficient with a doubly linked list
+
+  // remove from slabs_full
   if(slab->free == BUFCTL_END) {
     slab_t *temp1 = slab->curr_cache->slabs_full;
     while(temp1->next != slab) {
@@ -163,31 +165,25 @@ void kfree(uint64_t *virt_addr) {
     }
     temp1->next = temp1->next->next;
   }
-
+  // add to partial list
   if(slab->free == BUFCTL_END) {
     slab_t *temp = slab->curr_cache->slabs_partial;
-    /*
-    while(temp->next != NULL) {
-      temp = temp->next;
-    }
-    temp->next = slab;
-    slab->next = NULL;
-    */
     slab->next = temp;
     slab->curr_cache->slabs_partial = slab;
   }
-  // memset obj to 0  
-  memset((char *)virt_addr,0,slab->curr_cache->objsize); 
-  /* 
-  kmem_bufctl_t index = ((uint64_t)virt_addr - (uint64_t) slab->s_mem) /  slab->curr_cache->objsize;
-  kmem_bufctl_t temp = slab_bufctl(slab)[index];
-  slab_bufctl(slab)[index] = slab->free; 
-  slab->free = temp;
-  */
-  free_obj((void *)virt_addr);
   slab->inuse--;
   if(slab->inuse == 0) {
-    //release page back into free list
+    //release page back into free list and return
+    // if it is at the head of slabs_partial then dont free it
+    if (slab->curr_cache->slabs_partial == slab) return; 
+    //else
+	// free page and adjust partial list
+    return;
   }
+  // memset obj to 0  
+  memset((char *)virt_addr,0,slab->curr_cache->objsize); 
+  // modify free list in the beginning
+  free_obj((void *)virt_addr);
+  
 }
    
