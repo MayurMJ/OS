@@ -185,6 +185,7 @@ void kfree(uint64_t *virt_addr) {
   slab->free = temp;
   */
   free_obj((void *)virt_addr);
+  slab->inuse--;
   if(slab->inuse == 0) {
     //release page back into free list
   }
