@@ -42,7 +42,7 @@ void free_obj(void *objp) {
   unsigned int obj_index = (objp-slabp->s_mem)/cachep->objsize;
   slab_bufctl(slabp)[obj_index] = slabp->free;
   slabp->free = obj_index;
- 
+  
   /*maybe check this slab's number of objs allocated and if the counts gets to zero, free this page/slab*/
 
 }
@@ -174,17 +174,21 @@ void kfree(uint64_t *virt_addr) {
     slab->next = temp;
     slab->curr_cache->slabs_partial = slab;
   }
-  /*
+  
   slab->inuse--;
   if(slab->inuse == 0) {
     //release page back into free list and return
     // if it is at the head of slabs_partial then dont free it
     if (slab->curr_cache->slabs_partial == slab) return; 
-    //else
-	// free page and adjust partial list
+    else {
+      slab_t* temp = slab->curr_cache->slabs_partial;
+      while(temp->next != slab) temp = temp->next;
+      temp->next = slab->next;
+      free_page((void *)slab);
+    }
     return;
   }
-  */
+
   // memset obj to 0  
   memset((char *)virt_addr,0,slab->curr_cache->objsize); 
   // modify free list in the beginning
