@@ -21,7 +21,7 @@ uint64_t get_physical_free_page () {
 }
 
 void free_physical_page( pg_desc_t *pg){
-  pg_desc_t* page = (pg_desc_t *) ((uint64_t)0xfffffffffffff000 + (uint64_t) pg);
+  pg_desc_t* page = (pg_desc_t *) ((uint64_t)0xffffffff80000000 + (uint64_t) pg);
   page->next=free_list_head;
   page->prev = NULL;
   page->is_avail = 1;
@@ -224,13 +224,14 @@ uint64_t get_free_page(uint64_t flags) {
     for(int i = 0; i < 512; i++) {
       PDE[i] = 0;
     }
+    int freeInd = ((PML4[PMLframe] >> 12) << 12) / 4096;
+    pg_desc_t page = free_list[freeInd];
+    page.count = page.count + 1;
   }
   else {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
     x = x & 0xfffffffffffff000; 
     PDE = (uint64_t *) x;
-    pg_desc_t page = free_list[((PML4[PMLframe] >> 12) << 12)/ 4096];
-    page.count++;
   }
 
 //PDE
@@ -244,20 +245,20 @@ uint64_t get_free_page(uint64_t flags) {
     for(int i = 0; i < 512; i++) {
       PTE[i] = 0;
     }
+    pg_desc_t page = free_list[((PDPTE[PDPTEindex] >> 12) << 12) / 4096];
+    page.count++;
   }
   
   else {
     x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
     x = x & 0xfffffffffffff000; 
     PTE = (uint64_t *) x;
-    pg_desc_t page = free_list[((PDPTE[PDPTEindex] >> 12) << 12) / 4096];
-    page.count++;
   }
 
 //PTE
   
-  pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
   PTE[PTEindex] = (uint64_t) phy_addr | (uint64_t) flags;
+  pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
   page.count++; 
   //free_list[((PDE[PDEindex] >> 12) << 12) / 4096].count++;
  
@@ -284,7 +285,7 @@ void free_page(void *addr) {
   x = x & 0xfffffffffffff000;
   PTE = (uint64_t *) x;
   
-  //free_physical_page((pg_desc_t*)((PTE[PTEindex] >> 12) <<12)); 
+  free_physical_page((pg_desc_t*)((PTE[PTEindex] >> 12) <<12)); 
   PTE[PTEindex] = 0;
    
   pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];

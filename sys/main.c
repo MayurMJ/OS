@@ -154,10 +154,12 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t * temp1 = (uint64_t *)  get_free_page(7);
-  //get_free_page(7);
   temp1[0] = 777;
   kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
   free_page(temp1);
+  temp1 = (uint64_t *)  get_free_page(7);
+  temp1[0] = 7877;
+  kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
   //-------------k malloc init----------------------
   init_kmalloc(); 
 
