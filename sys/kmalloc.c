@@ -160,11 +160,15 @@ void kfree(uint64_t *virt_addr) {
   // remove from slabs_full
   if(slab->free == BUFCTL_END) {
     slab_t *temp1 = slab->curr_cache->slabs_full;
-    while(temp1->next != slab) {
-      temp1 = temp1->next;
+    if (temp1 == slab) {
+	slab->curr_cache->slabs_full = slab->next;
     }
-    temp1->next = temp1->next->next; // delete current slab from full list
-
+    else {
+      while(temp1->next != slab) {
+      	temp1 = temp1->next;
+      }
+      temp1->next = temp1->next->next; // delete current slab from full list
+    }
     //add curr slab to partial slab
     slab_t *temp = slab->curr_cache->slabs_partial;
     slab->next = temp;
