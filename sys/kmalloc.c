@@ -11,7 +11,7 @@ void * virt_to_page(void *objp) {
 
 void * alloc_obj(kmem_cache_t *cache, slab_t *slabp) {
   void * objp;
-  
+  slabp->inuse++;
   objp = slabp->s_mem + slabp->free*cache->objsize;
   slabp->free=slab_bufctl(slabp)[slabp->free];
 
@@ -25,11 +25,8 @@ void * alloc_obj(kmem_cache_t *cache, slab_t *slabp) {
         cache->slabs_partial = slabp->next;
 
       slab_t *temp = cache->slabs_full; 
-      while(temp->next != NULL)  {
-	temp = temp->next;
-      }
-      temp->next = slabp;
-      slabp->next = NULL;
+      cache->slabs_full = slabp;
+      slabp->next = temp;
   }
 
   return objp;
@@ -169,18 +166,27 @@ void kfree(uint64_t *virt_addr) {
 
   if(slab->free == BUFCTL_END) {
     slab_t *temp = slab->curr_cache->slabs_partial;
+    /*
     while(temp->next != NULL) {
       temp = temp->next;
     }
     temp->next = slab;
     slab->next = NULL;
+    */
+    slab->next = temp;
+    slab->curr_cache->slabs_partial = slab;
   }
   // memset obj to 0  
   memset((char *)virt_addr,0,slab->curr_cache->objsize); 
- 
+  /* 
   kmem_bufctl_t index = ((uint64_t)virt_addr - (uint64_t) slab->s_mem) /  slab->curr_cache->objsize;
   kmem_bufctl_t temp = slab_bufctl(slab)[index];
   slab_bufctl(slab)[index] = slab->free; 
   slab->free = temp;
+  */
+  free_obj((void *)virt_addr);
+  if(slab->inuse == 0) {
+    //release page back into free list
+  }
 }
    
