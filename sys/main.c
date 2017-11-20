@@ -23,6 +23,17 @@ extern char kernmem, physbase;
 Task *runningTask;
 Task *mainTask;
 Task *otherTask;
+uint64_t stoi(char *s) // the message and then the line #
+{
+    uint64_t i;
+    i = 0;
+    while(*s >= '0' && *s <= '9')
+    {
+        i = i * 10 + (*s - '0');
+        s++;
+    }
+    return i;
+}
 void user_mode() {
 	__asm__("int $0x80\n\t");
 	//kprintf("hi\n");
