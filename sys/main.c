@@ -22,6 +22,17 @@ extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
 Task *runningTask;
+// TODO: change this copied function
+uint64_t octalToDecimal(uint64_t octal)
+{
+    uint64_t decimal = 0, i=0;
+    while(octal!=0){
+        decimal = decimal + (octal % 10) * power(8,i++);
+        octal = octal/10;
+    }
+    return decimal;
+}
+// TODO: change this copied function
 uint64_t stoi(char *s) // the message and then the line #
 {
     uint64_t i;
@@ -95,7 +106,6 @@ void f1() {
     }  
   }  
   yield();
-  yield();	
 }
 
 void createTask(Task *task, void (*main)(), Task *otherTask) {
