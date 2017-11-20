@@ -20,7 +20,7 @@ uint8_t initial_stack[INITIAL_STACK_SIZE]__attribute__((aligned(16)));
 uint32_t* loader_stack;
 extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
-
+// TODO: change this function
 uint64_t power (uint64_t x, int e) {
 
     if (e == 0) return 1;
@@ -32,7 +32,7 @@ uint64_t power (uint64_t x, int e) {
 }
 
 Task *runningTask;
-// TODO: change this copied function
+// TODO: change this function
 uint64_t octalToDecimal(uint64_t octal)
 {
     uint64_t decimal = 0, i=0;
@@ -42,7 +42,7 @@ uint64_t octalToDecimal(uint64_t octal)
     }
     return decimal;
 }
-// TODO: change this copied function
+// TODO: change this function
 uint64_t stoi(char *s) // the message and then the line #
 {
     uint64_t i;
