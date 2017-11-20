@@ -91,7 +91,7 @@ void f1() {
       kprintf(" elf hdr  %s\n",elfhdr->e_ident);
  
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
-      header = (struct posix_header_ustar *) ((uint64_t)(header) + size);
+      header = (struct posix_header_ustar *) ((uint64_t)(header + size));
     }  
   }  
   yield();
