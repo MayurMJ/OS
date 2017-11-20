@@ -21,6 +21,16 @@ uint32_t* loader_stack;
 extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
+uint64_t power (uint64_t x, int e) {
+
+    if (e == 0) return 1;
+
+
+
+    return x * power(x, e-1);
+
+}
+
 Task *runningTask;
 // TODO: change this copied function
 uint64_t octalToDecimal(uint64_t octal)
@@ -94,7 +104,7 @@ void f1() {
   kprintf("size of header %d",sizeof(struct posix_header_ustar));
   while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
     kprintf(" name %s size %s \n",header->name,header->size);
-    uint64_t size = stoi(header->size);
+    uint64_t size = octalToDecimal(stoi(header->size));
     if (size == 0)
       header++;
     else {
@@ -102,9 +112,10 @@ void f1() {
       kprintf(" elf hdr  %s\n",elfhdr->e_ident);
  
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
-      header = (struct posix_header_ustar *) ((uint64_t)(header + size));
+      header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
     }  
   }  
+  yield();
   yield();
 }
 
