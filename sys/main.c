@@ -137,7 +137,15 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
       smap_copy_index++;
     }
   }
+   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
+  struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
+  kprintf("size of header %d",sizeof(struct posix_header_ustar));
+  while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
+  kprintf(" name %s size %s %s %s %s %s\n",header->name,header->size, header->uid, header->gid, header->linkname,header->uname);
+  header++;
+  }  
 
+  kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   uint64_t virt_addr = (uint64_t) 0xffffffff80000000 + (uint64_t)physbase;
@@ -155,29 +163,21 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
-  kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t t1 = (uint64_t)PML4;
   uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   PML4 = (uint64_t *) temp;
   t1 = (uint64_t)free_list;
   temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   free_list = (pg_desc_t *) temp;
-  kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
-  kprintf("\nTest Print after reclocation of CR3\n");
   uint64_t * temp1 = (uint64_t *)  get_free_page(7);
   temp1[0] = 777;
-  kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
   free_page(temp1);
   temp1 = (uint64_t *)  get_free_page(7);
   temp1[0] = 7877;
-  kprintf("temp1 = %x, temp1[0] = %d\n ", temp1,temp1[0]);
   //-------------k malloc init----------------------
   init_kmalloc(); 
 
-  for(int i=0;i<NUM_CACHES;i++) 
-    kprintf("i = %d, cache_cache[i] = %x objsize = %d num = %d\n",i,(cache_cache+i),cache_cache[i].objsize,cache_cache[i].num);
 
-  kprintf("slab_t size %d\n",sizeof(slab_t));
   /*int i;
   uint64_t *test_free1=NULL;
   uint64_t *test_free2=NULL;
@@ -198,7 +198,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   uint64_t *addr_ptr = kmalloc(8);
   kprintf("%x %x %x %x\n",cache_cache[0].slabs_partial,cache_cache[0].slabs_full,addr_ptr,cache_cache[0].slabs_partial->next);
   */
-  uint64_t * addr =kmalloc(1024);
+/*  uint64_t * addr =kmalloc(1024);
   uint64_t * add1 =kmalloc(1024);
   uint64_t * add2 =kmalloc(1024);
   uint64_t * add3 =kmalloc(1024);
@@ -207,7 +207,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   kprintf("%d %d %d %d\n",cache_cache[7].slabs_partial,cache_cache[7].slabs_full,addr,cache_cache[7].slabs_partial->next);
   kfree(add3);
   kprintf("%d %d %d %d\n",cache_cache[7].slabs_partial,cache_cache[7].slabs_full,add1,cache_cache[7].slabs_partial->next);
- 
+ */
   //kprintf("after moving %x %x\n",cache_cache[0].slabs_partial,cache_cache[0].slabs_full);
   //kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
   //kfree(addr_ptr);
