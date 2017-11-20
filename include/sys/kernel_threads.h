@@ -1,5 +1,6 @@
 #ifndef _KERN_THD
 #define _KERN_THD
+#include <sys/defs.h>
 
 typedef struct {
     uint64_t rax, rbx, rcx, rdx, rsi, rdi, rsp, rbp, rip;
