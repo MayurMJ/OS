@@ -22,8 +22,6 @@ extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
 Task *runningTask;
-Task *mainTask;
-Task *otherTask;
 uint64_t stoi(char *s) // the message and then the line #
 {
     uint64_t i;
@@ -35,6 +33,16 @@ uint64_t stoi(char *s) // the message and then the line #
     }
     return i;
 }
+
+uint64_t createTable() {
+  uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
+  uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
+  for(int i = 0; i < 512; i++) {
+    temp[i] = PML4[i];
+  }
+  return (uint64_t) newPML4;
+}
+
 void user_mode() {
 	__asm__("int $0x80\n\t");
 	//kprintf("hi\n");
@@ -70,15 +78,13 @@ void yield() {
 
 void f1() {
         //kprintf("f1 1\n");
-	//switch_user_mode((uint64_t)&user_mode);
-	
-        kprintf("f1 1\n");
-        kprintf("f1 2\n");
-	yield();
-        kprintf("f1 3\n");
-	kprintf("f1 4\n");
-        yield();
-	
+	//switch_user_mode((uint64_t)&user_mode); 
+  kprintf("f1 1\n");
+  kprintf("f1 2\n");
+  yield();
+  kprintf("f1 3\n");
+  kprintf("f1 4\n");
+  yield();	
 }
 
 void createTask(Task *task, void (*main)(), Task *otherTask) {
@@ -90,7 +96,7 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
     task->regs.rip = (uint64_t) f1;
-    task->regs.cr3 = (uint64_t) otherTask->regs.cr3;
+    task->regs.cr3 = createTable();
     task->regs.r8 = 0;
     task->regs.r9 = 0;
     task->regs.r10 = 0;
@@ -99,10 +105,10 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t)task->kstack; // since it grows downward
+    task->regs.rsp = (uint64_t)kstack; // since it grows downward
 }
 
-void initTasking() {
+void initTasking(Task *mainTask, Task *otherTask) {
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
                     	     :"=a"(mainTask->regs.cr3));
 	__asm__ __volatile__("PUSHFQ \n\t"
@@ -226,19 +232,22 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // switch to user mode
   init_idt();
   //program_pic();
-  set_tss_rsp((void *)((uint64_t)kstack));
+  //set_tss_rsp((void *)((uint64_t)kstack));
   // find a page and copy the function to it
   //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
   //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
   // now switch to new page
-  switch_user_mode((uint64_t)&user_mode);
+  //switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
-  //initTasking(mainTask, otherTask);
-  //kprintf("Trying multitasking from main\n");
-  //yield();
-  //kprintf("back in main the first time after multitasking\n");
-  //yield();
-  //kprintf("back in main for the last time\n");
+  
+  Task *mainTask = (Task*) kmalloc(sizeof(Task));
+  Task *otherTask = (Task*) kmalloc(sizeof(Task));
+  initTasking(mainTask, otherTask);
+  kprintf("Trying multitasking from main\n");
+  yield();
+  kprintf("back in main the first time after multitasking\n");
+  yield();
+  kprintf("back in main for the last time\n");
   // ------------------------------------------------
   //__asm__ __volatile("sti");
   //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
