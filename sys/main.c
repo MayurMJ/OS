@@ -79,11 +79,22 @@ void yield() {
 void f1() {
         //kprintf("f1 1\n");
 	//switch_user_mode((uint64_t)&user_mode); 
-  kprintf("f1 1\n");
-  kprintf("f1 2\n");
+  struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
+  kprintf("size of header %d",sizeof(struct posix_header_ustar));
+  while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
+    kprintf(" name %s size %s \n",header->name,header->size);
+    uint64_t size = stoi(header->size);
+    if (size == 0)
+      header++;
+    else {
+      Elf64_Ehdr * elfhdr = (Elf64_Ehdr *) (header+1);
+      kprintf(" elf hdr  %s\n",elfhdr->e_ident);
+ 
+      size = (size%512==0) ? size +512: size + 512 + (512-size%512);
+      header = (struct posix_header_ustar *) ((uint64_t)(header) + size);
+    }  
+  }  
   yield();
-  kprintf("f1 3\n");
-  kprintf("f1 4\n");
   yield();	
 }
 
@@ -144,22 +155,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
       smap_copy_index++;
     }
   }
-   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
-  struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
-  kprintf("size of header %d",sizeof(struct posix_header_ustar));
-  while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
-  kprintf(" name %s size %s \n",header->name,header->size);
-  uint64_t size = stoi(header->size);
-  if (size == 0)
-    header++;
-  else {
-    Elf64_Ehdr * elfhdr = (Elf64_Ehdr *) (header+1);
-    kprintf(" elf hdr  %s\n",elfhdr->e_ident);
- 
-    size = (size%512==0) ? size +512: size + 512 + (512-size%512);
-    header = (struct posix_header_ustar *) ((uint64_t)(header) + size);
-  }  
-  }  
+  kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
