@@ -7,6 +7,7 @@
 #include <sys/pic.h>
 #include <sys/kernel_threads.h>
 #include <sys/kmalloc.h>
+#include <sys/elf64.h>
 /*
 deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
@@ -141,8 +142,17 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
   kprintf("size of header %d",sizeof(struct posix_header_ustar));
   while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
-  kprintf(" name %s size %s %s %s %s %s\n",header->name,header->size, header->uid, header->gid, header->linkname,header->uname);
-  header++;
+  kprintf(" name %s size %s \n",header->name,header->size);
+  uint64_t size = stoi(header->size);
+  if (size == 0)
+    header++;
+  else {
+    Elf64_Ehdr * elfhdr = (Elf64_Ehdr *) (header+1);
+    kprintf(" elf hdr  %s\n",elfhdr->e_ident);
+ 
+    size = (size%512==0) ? size +512: size + 512 + (512-size%512);
+    header = (struct posix_header_ustar *) ((uint64_t)(header) + size);
+  }  
   }  
 
   kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
