@@ -193,41 +193,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //-------------k malloc init----------------------
   init_kmalloc(); 
 
-
-  /*int i;
-  uint64_t *test_free1=NULL;
-  uint64_t *test_free2=NULL;
-  for(i=0;i<340;i++) {
-    uint64_t *addr_ptr = kmalloc(8);
-    *addr_ptr = 10;
-    if (i==330)
-	test_free1 = addr_ptr;
-    if (i==331)
-	test_free2 = addr_ptr;
-
-    if (i> 332) {
-	kprintf("%d %x %x %x\n",i,cache_cache[0].slabs_partial,cache_cache[0].slabs_full,addr_ptr);
-    }
-  }
-  kfree(test_free1);
-  kfree(test_free2);
-  uint64_t *addr_ptr = kmalloc(8);
-  kprintf("%x %x %x %x\n",cache_cache[0].slabs_partial,cache_cache[0].slabs_full,addr_ptr,cache_cache[0].slabs_partial->next);
-  */
-/*  uint64_t * addr =kmalloc(1024);
-  uint64_t * add1 =kmalloc(1024);
-  uint64_t * add2 =kmalloc(1024);
-  uint64_t * add3 =kmalloc(1024);
-  kprintf("%d %d %d %d\n",cache_cache[7].slabs_partial,cache_cache[7].slabs_full,addr,cache_cache[7].slabs_partial->next);
-  kfree(add2);
-  kprintf("%d %d %d %d\n",cache_cache[7].slabs_partial,cache_cache[7].slabs_full,addr,cache_cache[7].slabs_partial->next);
-  kfree(add3);
-  kprintf("%d %d %d %d\n",cache_cache[7].slabs_partial,cache_cache[7].slabs_full,add1,cache_cache[7].slabs_partial->next);
- */
-  //kprintf("after moving %x %x\n",cache_cache[0].slabs_partial,cache_cache[0].slabs_full);
-  //kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
-  //kfree(addr_ptr);
-  //kprintf("*addr_ptr = %d addr_ptr = %x \n", *addr_ptr, addr_ptr);
   // ------------------------------------------------
   // switch to user mode
   init_idt();
