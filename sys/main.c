@@ -119,9 +119,9 @@ void kern_thd() {
 	(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,"bin/sbush"))) {
          //kprintf("this is my executable\n");
 	 //found, now load into memory
-	 /*
 	 uint8_t *data = (uint8_t *)(header+1);
 	 Elf64_Phdr *proghdr = (Elf64_Phdr *)&data[elfhdr->e_phoff];
+	 /*
 	 int i;
 	 for(i=0;i<elfhdr->e_phnum;i++) {
 	 	if(proghdr[i].p_type == ELF_PT_LOAD) kprintf("need to load this\n");
@@ -129,7 +129,11 @@ void kern_thd() {
 	 */
 	 //just jump to e_entry value is 4000b0
 	 //kprintf("entry %x\n",elfhdr->e_entry);
-	 switch_user_mode(0xffffffff80000000 + elfhdr->e_entry);
+	 get_physical_free_page();
+	 //kprintf("%x\n",proghdr->p_memsz);
+	 memcpy(proghdr->p_vaddr,&data[proghdr->p_offset],proghdr->p_memsz*2);
+	 //kprintf("%x %x %x %x\n",proghdr->p_vaddr,proghdr->p_paddr,proghdr->p_filesz,proghdr->p_memsz);
+	 switch_user_mode(elfhdr->e_entry);
       }
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
       header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
