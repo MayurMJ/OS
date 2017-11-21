@@ -54,7 +54,15 @@ uint64_t stoi(char *s) // the message and then the line #
     }
     return i;
 }
-
+// TODO: change this function
+int strcmp(const char *p, const char *q) {
+    while (*p || *q) {
+        if (*p != *q)
+            return -1;
+        p++, q++;
+    }
+    return 0;
+}
 uint64_t createTable() {
   uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
   uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
@@ -97,25 +105,36 @@ void yield() {
     switchTask(&last->regs, &runningTask->regs);
 }
 
-void f1() {
-        //kprintf("f1 1\n");
-	//switch_user_mode((uint64_t)&user_mode); 
+void kern_thd() {
   struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
   kprintf("size of header %d",sizeof(struct posix_header_ustar));
   while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
-    kprintf(" name %s size %s \n",header->name,header->size);
     uint64_t size = octalToDecimal(stoi(header->size));
+    kprintf(" name %s size %x \n",header->name,size);
     if (size == 0)
       header++;
     else {
       Elf64_Ehdr * elfhdr = (Elf64_Ehdr *) (header+1);
-      kprintf(" elf hdr  %s\n",elfhdr->e_ident);
- 
+      if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
+	(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,"bin/sbush"))) {
+         //kprintf("this is my executable\n");
+	 //found, now load into memory
+	 /*
+	 uint8_t *data = (uint8_t *)(header+1);
+	 Elf64_Phdr *proghdr = (Elf64_Phdr *)&data[elfhdr->e_phoff];
+	 int i;
+	 for(i=0;i<elfhdr->e_phnum;i++) {
+	 	if(proghdr[i].p_type == ELF_PT_LOAD) kprintf("need to load this\n");
+	 }
+	 */
+	 //just jump to e_entry value is 4000b0
+	 //kprintf("entry %x\n",elfhdr->e_entry);
+	 switch_user_mode(0xffffffff80000000 + elfhdr->e_entry);
+      }
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
       header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
     }  
   }  
-  yield();
   yield();
 }
 
@@ -127,7 +146,7 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rsi = 0;
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
-    task->regs.rip = (uint64_t) f1;
+    task->regs.rip = (uint64_t) kern_thd;
     task->regs.cr3 = createTable();
     task->regs.r8 = 0;
     task->regs.r9 = 0;
@@ -149,7 +168,7 @@ void initTasking(Task *mainTask, Task *otherTask) {
 			     "POPFQ\n\t"
 			     :"=m"(mainTask->regs.rflags)::"%rax");
 	
-	createTask(otherTask, f1, mainTask);
+	createTask(otherTask, kern_thd, mainTask);
     	mainTask->next = otherTask;
     	otherTask->next = mainTask;
  
@@ -214,7 +233,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // switch to user mode
   init_idt();
   //program_pic();
-  //set_tss_rsp((void *)((uint64_t)kstack));
+  set_tss_rsp((void *)((uint64_t)kstack));
   // find a page and copy the function to it
   //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
   //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
@@ -226,8 +245,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   Task *otherTask = (Task*) kmalloc(sizeof(Task));
   initTasking(mainTask, otherTask);
   kprintf("Trying multitasking from main\n");
-  yield();
-  kprintf("back in main the first time after multitasking\n");
   yield();
   kprintf("back in main for the last time\n");
   // ------------------------------------------------

@@ -2,6 +2,8 @@
 #define _ELF64_H
 
 #define EI_NIDENT 16
+#define ELF_TYPE_EXECUTABLE 2
+#define ELF_PT_LOAD 1
 
 typedef uint64_t Elf64_Addr;
 typedef uint16_t Elf64_Half;
