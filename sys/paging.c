@@ -308,3 +308,88 @@ void free_page(void *addr) {
     }
   }
 }
+uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
+  uint64_t phy_addr = get_physical_free_page();
+  //uint64_t virt_addr;
+  uint64_t x;
+   /*if(flags == 7)
+	virt_addr= 4096 + phy_addr;
+   else
+	virt_addr = 0xffffffff80000000 + phy_addr;
+*/
+  uint64_t PMLframe = (virt_addr >> 39) & (uint64_t) 0x1ff;
+  uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
+  uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
+  uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
+
+  PML4 = (uint64_t *)cr3val + 0xffffffff80000000;
+//PML4
+  uint64_t *PDPTE;
+  if(PML4[PMLframe] == 0) {
+    PDPTE = (uint64_t *)get_physical_free_page();
+    PML4[PMLframe] = (uint64_t) PDPTE | (uint64_t) 7;
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
+    x = x & 0xfffffffffffff000;
+    PDPTE = (uint64_t *) x;
+    for(int i = 0; i < 512; i++) {
+      PDPTE[i] = 0;
+    }
+  }
+  else { 
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
+    x = x & 0xfffffffffffff000; 
+    PDPTE = (uint64_t *) x;
+  }
+
+
+///PDTP
+  uint64_t *PDE;
+  if(PDPTE[PDPTEindex] == 0) {
+    PDE = (uint64_t *)get_physical_free_page();
+    PDPTE[PDPTEindex] = (uint64_t) PDE | (uint64_t) 7;
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
+    x = x & 0xfffffffffffff000; 
+    PDE = (uint64_t *) x;
+    for(int i = 0; i < 512; i++) {
+      PDE[i] = 0;
+    }
+    int freeInd = ((PML4[PMLframe] >> 12) << 12) / 4096;
+    pg_desc_t page = free_list[freeInd];
+    page.count = page.count + 1;
+  }
+  else {
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
+    x = x & 0xfffffffffffff000; 
+    PDE = (uint64_t *) x;
+  }
+
+//PDE
+  uint64_t *PTE;
+  if(PDE[PDEindex] == 0) {
+    PTE = (uint64_t *)get_physical_free_page();
+    PDE[PDEindex] = (uint64_t) PTE | (uint64_t) 7;
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
+    x = x & 0xfffffffffffff000; 
+    PTE = (uint64_t *) x;
+    for(int i = 0; i < 512; i++) {
+      PTE[i] = 0;
+    }
+    pg_desc_t page = free_list[((PDPTE[PDPTEindex] >> 12) << 12) / 4096];
+    page.count++;
+  }
+  
+  else {
+    x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
+    x = x & 0xfffffffffffff000; 
+    PTE = (uint64_t *) x;
+  }
+
+//PTE
+  
+  PTE[PTEindex] = (uint64_t) phy_addr | (uint64_t) flags;
+  pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
+  page.count++; 
+  //free_list[((PDE[PDEindex] >> 12) << 12) / 4096].count++;
+ 
+  return virt_addr;
+}
