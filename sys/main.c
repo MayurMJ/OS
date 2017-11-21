@@ -129,9 +129,12 @@ void kern_thd() {
 	 */
 	 //just jump to e_entry value is 4000b0
 	 //kprintf("entry %x\n",elfhdr->e_entry);
-	 get_physical_free_page();
+	 uint64_t cr3val;
+	 __asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(cr3val));
+	 put_page_mapping(7,proghdr->p_vaddr,cr3val);
 	 //kprintf("%x\n",proghdr->p_memsz);
-	 memcpy(proghdr->p_vaddr,&data[proghdr->p_offset],proghdr->p_memsz*2);
+	 memcpy((char *)proghdr->p_vaddr,(char *)&data[proghdr->p_offset],proghdr->p_memsz*2);
 	 //kprintf("%x %x %x %x\n",proghdr->p_vaddr,proghdr->p_paddr,proghdr->p_filesz,proghdr->p_memsz);
 	 switch_user_mode(elfhdr->e_entry);
       }
