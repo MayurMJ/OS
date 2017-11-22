@@ -322,7 +322,7 @@ uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
   uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
   uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
 
-  PML4 = (uint64_t *)cr3val + 0xffffffff80000000;
+  PML4 = (uint64_t *)((uint64_t)cr3val +(uint64_t) 0xffffffff80000000);
 //PML4
   uint64_t *PDPTE;
   if(PML4[PMLframe] == 0) {
