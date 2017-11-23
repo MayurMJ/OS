@@ -33,16 +33,14 @@ void generic_irqhandler_err13(void)
 
 void generic_irqhandler_err14(void)
 {
-    kprintf("Generic interrupt occured with error code 14\n");
     uint64_t cr2val;
     uint64_t cr3val;
     __asm__ __volatile__("movq %%cr2, %0\n\t"
                              :"=a"(cr2val)); 
     __asm__ __volatile__("movq %%cr3, %0\n\t"
                              :"=a"(cr3val)); 
-    kprintf("page fault while accessing address %x", cr2val);
-    kprintf("cr3 %x", cr3val);
+    kprintf("page fault while accessing address %x\n", cr2val);
+    //kprintf("cr3 %x", cr3val);
 //    put_page_mapping(3, cr2val, cr3val);
-    while(1);
 
 }
