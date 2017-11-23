@@ -150,7 +150,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // now switch to new page
   //switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
-  
+  run_queue = NULL;
+  last_assn_pid = 0;
+ 
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
   Task *otherTask = (Task*) kmalloc(sizeof(Task));
   initTasking(mainTask, otherTask);

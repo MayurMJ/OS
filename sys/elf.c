@@ -69,6 +69,16 @@ void loadElf(char *fileName) {
         (elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {
 
         Task *t = (Task*) kmalloc(sizeof(Task));
+	if (run_queue == NULL) run_queue = t;
+	else {
+	    t->next = run_queue;
+	    run_queue = t;
+	}
+	// TODO: setting CURRENT_TASK here for now but need to set in schedule
+	CURRENT_TASK = t;	
+	// TODO: hard coding pid for now, remove later
+	t->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = t->pid;
         t->mm = (struct mm_struct *) kmalloc((sizeof(struct mm_struct)));
         t->mm->vm_begin = NULL;
         uint8_t *data = (uint8_t *)(header+1);
@@ -95,8 +105,6 @@ void loadElf(char *fileName) {
              for(iter = t->mm->vm_begin; iter->vma_next != NULL; iter = iter->vma_next);
              iter->vma_next = vm;
             } 
-          //kmemcpy((char *)proghdr->p_vaddr,(char *)&data[proghdr->p_offset],proghdr->p_memsz);
-	 //kprintf("%x %x %x %x\n",proghdr->p_vaddr,proghdr->p_paddr,proghdr->p_filesz,proghdr->p_memsz);
           }
         }
         end_addr += 4096;

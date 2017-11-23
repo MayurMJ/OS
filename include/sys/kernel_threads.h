@@ -1,6 +1,8 @@
 #ifndef _KERN_THD
 #define _KERN_THD
 #include <sys/defs.h>
+// TODO: change this random value assigned for now
+#define MAX_PROC 1000
 
 typedef struct {
     uint64_t rax, rbx, rcx, rdx, rsi, rdi, rsp, rbp, rip;
@@ -27,6 +29,8 @@ struct vma {
 };
 
 typedef struct TASK {
+   int pid;
+   int ppid;
    uint64_t *kstack;
    enum { RUNNING, SLEEPING, ZOMBIE } state;
    Registers regs;
@@ -34,5 +38,8 @@ typedef struct TASK {
    struct mm_struct *mm;
 } Task ;
 
+Task *CURRENT_TASK;
+uint64_t last_assn_pid;
+Task *run_queue;;
 extern void switchTask(Registers *oldregs, Registers *newregs); 
 #endif
