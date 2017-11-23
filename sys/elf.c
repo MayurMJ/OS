@@ -33,8 +33,9 @@ uint64_t stoi(char *s) // the message and then the line #
     }
     return i;
 }
-void switch_user_mode(uint64_t symbol) {
+void switch_user_mode(uint64_t symbol, uint64_t rsp) {
         __asm__ __volatile__ ( "cli\n\t"
+                        "movq %1, %%rsp\n\t" 
                         "movw $0x23, %%ax\n\t"
                         "movw %%ax, %%ds\n\t"
                         "movw %%ax, %%es\n\t"
@@ -50,7 +51,7 @@ void switch_user_mode(uint64_t symbol) {
                         "pushq $0x2B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
-        		::"b"(symbol)
+        		::"b"(symbol), "c"(rsp)
 	);
 }
 
@@ -79,10 +80,6 @@ void loadElf(char *fileName) {
 
           if(proghdr[i].p_type == ELF_PT_LOAD) {
             kprintf("need to load this\n");
-            uint64_t cr3val;
-            __asm__ __volatile__("movq %%cr3, %0\n\t"
-                             :"=a"(cr3val));
-            put_page_mapping(7,proghdr->p_vaddr,cr3val);
             struct vma *vm = (struct vma*) kmalloc(sizeof(struct vma));
             vm->vma_start = (uint64_t *)proghdr->p_vaddr;
             if((proghdr->p_vaddr + proghdr->p_memsz) > end_addr) {
@@ -101,9 +98,26 @@ void loadElf(char *fileName) {
           //kmemcpy((char *)proghdr->p_vaddr,(char *)&data[proghdr->p_offset],proghdr->p_memsz);
 	 //kprintf("%x %x %x %x\n",proghdr->p_vaddr,proghdr->p_paddr,proghdr->p_filesz,proghdr->p_memsz);
           }
-	 //switch_user_mode(elfhdr->e_entry);
         }
-        
+        end_addr += 4096;
+        end_addr = (end_addr >> 12) << 12;
+        for(iter = t->mm->vm_begin; iter->vma_next != NULL; iter = iter->vma_next);
+        struct vma *vm = (struct vma*) kmalloc(sizeof(struct vma));
+        vm->vma_start = (uint64_t *) end_addr;
+        vm->vma_end = (uint64_t *) end_addr;
+        vm->vma_next = NULL;
+        iter->vma_next = vm;
+        struct vma *vm_stack = (struct vma*) kmalloc(sizeof(struct vma));
+        vm_stack->vma_start = (uint64_t *) 0xc0000000 - 0x10000000;
+        vm_stack->vma_end = (uint64_t *) 0xc0000000;
+        vm_stack->vma_next = NULL;
+        vm->vma_next = vm_stack;
+        uint64_t cr3val;
+        __asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(cr3val));
+        put_page_mapping(7,0xc0000000,cr3val);
+        t->regs.rsp = (uint64_t) (0xc00000000 + 4096);
+	switch_user_mode(elfhdr->e_entry, t->regs.rsp); 
       }
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
       header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
