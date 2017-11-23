@@ -134,7 +134,7 @@ void kern_thd() {
                              :"=a"(cr3val));
 	 put_page_mapping(7,proghdr->p_vaddr,cr3val);
 	 //kprintf("%x\n",proghdr->p_memsz);
-	 memcpy((char *)proghdr->p_vaddr,(char *)&data[proghdr->p_offset],proghdr->p_memsz*2);
+	 kmemcpy((char *)proghdr->p_vaddr,(char *)&data[proghdr->p_offset],proghdr->p_memsz*2);
 	 //kprintf("%x %x %x %x\n",proghdr->p_vaddr,proghdr->p_paddr,proghdr->p_filesz,proghdr->p_memsz);
 	 switch_user_mode(elfhdr->e_entry);
       }
