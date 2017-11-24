@@ -7,6 +7,14 @@
 #include <sys/paging.h>
 #include <sys/kmemcpy.h>
 #include <sys/string.h>
+uint64_t createTable() {
+  uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
+  uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
+  for(int i = 0; i < 512; i++) {
+    temp[i] = PML4[i];
+  }
+  return (uint64_t) newPML4;
+}
 // TODO: change this function
 uint64_t power (uint64_t x, int e) {
     if (e == 0) return 1;
@@ -122,13 +130,19 @@ Task *loadElf(char *fileName) {
         vm_stack->vma_end = (uint64_t *) 0xc0000000;
         vm_stack->vma_next = NULL;
         vm->vma_next = vm_stack;
-        uint64_t cr3val;
+        uint64_t newcr3 = createTable();
+        uint64_t oldcr3;
         __asm__ __volatile__("movq %%cr3, %0\n\t"
-                             :"=a"(cr3val));
-	t->mm->pg_pml4=cr3val;
-        //put_page_mapping(7,0xc0000000, cr3val);
-        put_page_mapping(7,0xc0000000 - 4096, cr3val);
-        t->regs.rsp = (uint64_t) (0xc00000000);
+                             :"=a"(oldcr3));
+        __asm__ __volatile__("movq %0, %%cr3\n\t"
+                             ::"a"(newcr3));
+	t->mm->pg_pml4=newcr3;
+        t->regs.cr3 = newcr3;
+        put_page_mapping(7,0xc0000000, newcr3);
+        put_page_mapping(7,0xc0000000 - 4096, newcr3);
+        t->mm->stack_begin = (uint64_t) (0xc00000000);
+        __asm__ __volatile__("movq %0, %%cr3\n\t"
+                             ::"a"(oldcr3));        
         t->mm->e_entry = elfhdr->e_entry;
         return t;
 	//switch_user_mode(elfhdr->e_entry, t->regs.rsp);

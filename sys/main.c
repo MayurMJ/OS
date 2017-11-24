@@ -22,14 +22,6 @@ extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
 Task *runningTask;
-uint64_t createTable() {
-  uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
-  uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
-  for(int i = 0; i < 512; i++) {
-    temp[i] = PML4[i];
-  }
-  return (uint64_t) newPML4;
-}
 
 void user_mode() {
 	__asm__("int $0x80\n\t");
@@ -43,7 +35,12 @@ void yield() {
     switchTask(&last->regs, &runningTask->regs);
 }
 void switch_user_mode(uint64_t symbol) {
+        uint64_t oldcr3;
+        __asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(oldcr3));
+        kprintf("\n%xcr3val: ", oldcr3 ); 
         __asm__ __volatile__ ( "cli\n\t"
+                        "movq %1, %%rsp\n\t"
                         "movw $0x23, %%ax\n\t"
                         "movw %%ax, %%ds\n\t"
                         "movw %%ax, %%es\n\t"
@@ -59,7 +56,7 @@ void switch_user_mode(uint64_t symbol) {
                         "pushq $0x2B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
-                        ::"b"(symbol)
+                        ::"b"(symbol), "c"(runningTask->mm->stack_begin)
         );
 }
 
@@ -78,7 +75,7 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
     task->regs.rip = (uint64_t) kern_thd;
-    task->regs.cr3 = createTable();
+    //task->regs.cr3 = createTable();
     task->regs.r8 = 0;
     task->regs.r9 = 0;
     task->regs.r10 = 0;

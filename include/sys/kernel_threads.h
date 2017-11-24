@@ -12,6 +12,7 @@ typedef struct {
 
 struct mm_struct {
     //uint64_t code_begin, code_end, data_begin, data_end, stack_begin, brk_start;
+    uint64_t stack_begin;
     struct vma *vm_begin;
     uint64_t pg_pml4;
     uint64_t e_entry; 	
