@@ -33,31 +33,8 @@ uint64_t stoi(char *s) // the message and then the line #
     }
     return i;
 }
-/*
-void switch_user_mode(uint64_t symbol, uint64_t rsp) {
-        __asm__ __volatile__ ( "cli\n\t"
-                        "movq %1, %%rsp\n\t" 
-                        "movw $0x23, %%ax\n\t"
-                        "movw %%ax, %%ds\n\t"
-                        "movw %%ax, %%es\n\t"
-                        "movw %%ax, %%fs\n\t"
-                        "movw %%ax, %%gs\n\t"
-                        "movq %%rsp, %%rax\n\t"
-                        "pushq $0x23\n\t"
-                        "pushq %%rax\n\t"
-                        "pushfq\n\t"
-			"popq %%rax\n\t"
-                        "orq $0x200, %%rax\n\t"
-                        "pushq %%rax\n\t"
-                        "pushq $0x2B\n\t"
-                        "push %0\n\t"
-                        "iretq\n\t"
-        		::"b"(symbol), "c"(rsp)
-	);
-}
-*/
 // GSAHA: added to test page fault handler
-void switch_user_mode(uint64_t symbol) {
+/*void switch_user_mode(uint64_t symbol) {
         __asm__ __volatile__ ( "cli\n\t"
                         "movw $0x23, %%ax\n\t"
                         "movw %%ax, %%ds\n\t"
@@ -76,8 +53,8 @@ void switch_user_mode(uint64_t symbol) {
                         "iretq\n\t"
                         ::"b"(symbol)
         );
-}
-void loadElf(char *fileName) { 
+}*/
+Task *loadElf(char *fileName) { 
   
   struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
   kprintf("size of header %d",sizeof(struct posix_header_ustar));
@@ -113,17 +90,17 @@ void loadElf(char *fileName) {
           if(proghdr[i].p_type == ELF_PT_LOAD) {
             kprintf("need to load this\n");
             struct vma *vm = (struct vma*) kmalloc(sizeof(struct vma));
-            vm->vma_start = (uint64_t *)proghdr->p_vaddr;
-            if((proghdr->p_vaddr + proghdr->p_memsz) > end_addr) {
-              end_addr = (proghdr->p_vaddr + proghdr->p_memsz);
+            vm->vma_start = (uint64_t *)proghdr[i].p_vaddr;
+            if((proghdr[i].p_vaddr + proghdr[i].p_memsz) > end_addr) {
+              end_addr = (proghdr[i].p_vaddr + proghdr[i].p_memsz);
             }
-            vm->vma_end = (uint64_t *)(proghdr->p_vaddr + proghdr->p_memsz);
-            vm->vma_file_ptr = (uint64_t *)(&data[proghdr->p_offset]); 
+            vm->vma_end = (uint64_t *)(proghdr[i].p_vaddr + proghdr[i].p_memsz);
+            vm->vma_file_ptr = (uint64_t *)(&data[proghdr[i].p_offset]); 
 	    // GSAHA: added to test page fault handler
 	    vm->vma_file_offset = 0;
 
-            vm->vma_size = proghdr->p_filesz;
-            vm->vma_flags = proghdr->p_flags;
+            vm->vma_size = proghdr[i].p_filesz;
+            vm->vma_flags = proghdr[i].p_flags;
             vm->vma_next = NULL;
             if(t->mm->vm_begin == NULL) t->mm->vm_begin = vm;
             else {
@@ -149,15 +126,19 @@ void loadElf(char *fileName) {
         __asm__ __volatile__("movq %%cr3, %0\n\t"
                              :"=a"(cr3val));
 	t->mm->pg_pml4=cr3val;
-        put_page_mapping(7,0xc0000000,cr3val);
-        t->regs.rsp = (uint64_t) (0xc00000000 + 4096);
+        //put_page_mapping(7,0xc0000000, cr3val);
+        put_page_mapping(7,0xc0000000 - 4096, cr3val);
+        t->regs.rsp = (uint64_t) (0xc00000000);
+        t->mm->e_entry = elfhdr->e_entry;
+        return t;
 	//switch_user_mode(elfhdr->e_entry, t->regs.rsp);
 	// GSAHA: added to test page fault handler 
-	switch_user_mode(elfhdr->e_entry);
+	//switch_user_mode(elfhdr->e_entry);
 
       }
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
       header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
     }  
-  }  
+  } 
+return NULL; 
 }

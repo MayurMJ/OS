@@ -2,6 +2,7 @@
 #define _ELF64_H
 
 #include <sys/defs.h>
+#include <sys/kernel_threads.h>
 #define EI_NIDENT 16
 #define ELF_TYPE_EXECUTABLE 2
 #define ELF_PT_LOAD 1
@@ -42,5 +43,5 @@ typedef struct {
   Elf64_Xword   p_memsz;
   Elf64_Xword   p_align;
 } Elf64_Phdr;
-void loadElf(char *fileName);
+Task* loadElf(char *fileName);
 #endif

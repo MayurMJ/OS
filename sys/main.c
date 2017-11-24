@@ -42,9 +42,30 @@ void yield() {
     runningTask = runningTask->next;
     switchTask(&last->regs, &runningTask->regs);
 }
+void switch_user_mode(uint64_t symbol) {
+        __asm__ __volatile__ ( "cli\n\t"
+                        "movw $0x23, %%ax\n\t"
+                        "movw %%ax, %%ds\n\t"
+                        "movw %%ax, %%es\n\t"
+                        "movw %%ax, %%fs\n\t"
+                        "movw %%ax, %%gs\n\t"
+                        "movq %%rsp, %%rax\n\t"
+                        "pushq $0x23\n\t"
+                        "pushq %%rax\n\t"
+                        "pushfq\n\t"
+                        "popq %%rax\n\t"
+                        "orq $0x200, %%rax\n\t"
+                        "pushq %%rax\n\t"
+                        "pushq $0x2B\n\t"
+                        "push %0\n\t"
+                        "iretq\n\t"
+                        ::"b"(symbol)
+        );
+}
 
 void kern_thd() {
-  loadElf("bin/sbush"); 
+  //loadElf("bin/sbush"); 
+  switch_user_mode(runningTask->mm->e_entry);
   yield();
 }
 
@@ -154,7 +175,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   last_assn_pid = 0;
  
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
-  Task *otherTask = (Task*) kmalloc(sizeof(Task));
+  Task *otherTask = loadElf("bin/sbush");
   initTasking(mainTask, otherTask);
   kprintf("Trying multitasking from main\n");
   yield();
