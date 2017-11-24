@@ -140,7 +140,7 @@ Task *loadElf(char *fileName) {
         t->regs.cr3 = newcr3;
         put_page_mapping(7,0xc0000000, newcr3);
         put_page_mapping(7,0xc0000000 - 4096, newcr3);
-        t->mm->stack_begin = (uint64_t) (0xc00000000);
+        t->mm->stack_begin = (uint64_t) (0xc0000000);
         __asm__ __volatile__("movq %0, %%cr3\n\t"
                              ::"a"(oldcr3));        
         t->mm->e_entry = elfhdr->e_entry;
