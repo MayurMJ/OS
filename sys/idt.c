@@ -10,7 +10,7 @@ extern uint64_t generic_isr_err11;
 extern uint64_t generic_isr_err12;
 extern uint64_t generic_isr_err13;
 extern uint64_t generic_isr_err14;
-extern uint64_t write_monitor;
+extern uint64_t syscall;
 
 void init_idt() {
 	int i = 0;
@@ -60,9 +60,9 @@ void init_idt() {
         set_idt(&idt[33], offset1, 8, 0, 0x8e, offset2, offset3);
 	
 
-	offset1=(uint16_t)((uint64_t)&write_monitor & 0x000000000000FFFF);
-        offset2=(uint16_t)(((uint64_t)&write_monitor >> 16) & 0x000000000000FFFF);
-        offset3=(uint32_t)(((uint64_t)&write_monitor >> 32) & 0xFFFFFFFF);
+	offset1=(uint16_t)((uint64_t)&syscall & 0x000000000000FFFF);
+        offset2=(uint16_t)(((uint64_t)&syscall >> 16) & 0x000000000000FFFF);
+        offset3=(uint32_t)(((uint64_t)&syscall >> 32) & 0xFFFFFFFF);
         set_idt(&idt[128], offset1, 8, 0, 0xee, offset2, offset3);
 
 	idt_ptr.limit = 4095;

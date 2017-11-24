@@ -1,7 +1,7 @@
-.globl   write_monitor
+.globl   syscall
 .align   4
  
-write_monitor:
+syscall:
     cli
     pushq    %rax
     pushq    %rbx
@@ -18,7 +18,7 @@ write_monitor:
     pushq    %rdi
     pushq    %rsi
     pushq    %rbp
-    call    write_monitor_irqhandler
+    call    syscall_handler
     popq    %rbp
     popq    %rsi
     popq    %rdi
