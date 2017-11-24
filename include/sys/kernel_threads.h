@@ -34,7 +34,7 @@ typedef struct TASK {
    int pid;
    int ppid;
    uint64_t *kstack;
-   enum { RUNNING, SLEEPING, ZOMBIE } state;
+   enum { RUNNING, WAITING, SLEEPING, ZOMBIE } state;
    Registers regs;
    struct TASK *next;
    struct mm_struct *mm;
