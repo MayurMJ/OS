@@ -38,7 +38,7 @@ void switch_user_mode(uint64_t symbol) {
         uint64_t oldcr3;
         __asm__ __volatile__("movq %%cr3, %0\n\t"
                              :"=a"(oldcr3));
-        kprintf("\n%xcr3val: ", oldcr3 ); 
+        kprintf("\ncr3val:%x\n ", oldcr3 ); 
         __asm__ __volatile__ ( "cli\n\t"
                         "movq %1, %%rsp\n\t"
                         "movw $0x23, %%ax\n\t"
@@ -66,7 +66,7 @@ void kern_thd() {
   yield();
 }
 
-void createTask(Task *task, void (*main)(), Task *otherTask) {
+void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rax = 0;
     task->regs.rbx = 0;
     task->regs.rcx = 0;
@@ -84,10 +84,10 @@ void createTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t)kstack; // since it grows downward
+    task->regs.rsp = (uint64_t) (4088 + get_free_page(7)); // since it grows downward
 }
 
-void initTasking(Task *mainTask, Task *otherTask) {
+void initTasking(Task *mainTask, Task *loadedTask) {
 	__asm__ __volatile__("movq %%cr3, %0\n\t"
                     	     :"=a"(mainTask->regs.cr3));
 	__asm__ __volatile__("PUSHFQ \n\t"
@@ -96,9 +96,9 @@ void initTasking(Task *mainTask, Task *otherTask) {
 			     "POPFQ\n\t"
 			     :"=m"(mainTask->regs.rflags)::"%rax");
 	
-	createTask(otherTask, kern_thd, mainTask);
-    	mainTask->next = otherTask;
-    	otherTask->next = mainTask;
+	setupTask(loadedTask, kern_thd, mainTask);
+    	mainTask->next = loadedTask;
+    	loadedTask->next = mainTask;
  
     	runningTask = mainTask;
 }
@@ -172,8 +172,8 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   last_assn_pid = 0;
  
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
-  Task *otherTask = loadElf("bin/sbush");
-  initTasking(mainTask, otherTask);
+  Task *loadedTask = loadElf("bin/sbush");
+  initTasking(mainTask, loadedTask);
   kprintf("Trying multitasking from main\n");
   yield();
   kprintf("back in main for the last time\n");
