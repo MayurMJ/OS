@@ -18,6 +18,7 @@ generic_isr_err\index:
     pushq    %rdi
     pushq    %rsi
     pushq    %rbp
+    movq     120(%rsp),%rdi
     call    generic_irqhandler_err\index
     popq    %rbp
     popq    %rsi

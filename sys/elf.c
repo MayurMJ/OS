@@ -33,6 +33,7 @@ uint64_t stoi(char *s) // the message and then the line #
     }
     return i;
 }
+/*
 void switch_user_mode(uint64_t symbol, uint64_t rsp) {
         __asm__ __volatile__ ( "cli\n\t"
                         "movq %1, %%rsp\n\t" 
@@ -54,7 +55,28 @@ void switch_user_mode(uint64_t symbol, uint64_t rsp) {
         		::"b"(symbol), "c"(rsp)
 	);
 }
-
+*/
+// GSAHA: added to test page fault handler
+void switch_user_mode(uint64_t symbol) {
+        __asm__ __volatile__ ( "cli\n\t"
+                        "movw $0x23, %%ax\n\t"
+                        "movw %%ax, %%ds\n\t"
+                        "movw %%ax, %%es\n\t"
+                        "movw %%ax, %%fs\n\t"
+                        "movw %%ax, %%gs\n\t"
+                        "movq %%rsp, %%rax\n\t"
+                        "pushq $0x23\n\t"
+                        "pushq %%rax\n\t"
+                        "pushfq\n\t"
+                        "popq %%rax\n\t"
+                        "orq $0x200, %%rax\n\t"
+                        "pushq %%rax\n\t"
+                        "pushq $0x2B\n\t"
+                        "push %0\n\t"
+                        "iretq\n\t"
+                        ::"b"(symbol)
+        );
+}
 void loadElf(char *fileName) { 
   
   struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
@@ -97,6 +119,9 @@ void loadElf(char *fileName) {
             }
             vm->vma_end = (uint64_t *)(proghdr->p_vaddr + proghdr->p_memsz);
             vm->vma_file_ptr = (uint64_t *)(&data[proghdr->p_offset]); 
+	    // GSAHA: added to test page fault handler
+	    vm->vma_file_offset = 0;
+
             vm->vma_size = proghdr->p_filesz;
             vm->vma_flags = proghdr->p_flags;
             vm->vma_next = NULL;
@@ -123,9 +148,13 @@ void loadElf(char *fileName) {
         uint64_t cr3val;
         __asm__ __volatile__("movq %%cr3, %0\n\t"
                              :"=a"(cr3val));
+	t->mm->pg_pml4=cr3val;
         put_page_mapping(7,0xc0000000,cr3val);
         t->regs.rsp = (uint64_t) (0xc00000000 + 4096);
-	switch_user_mode(elfhdr->e_entry, t->regs.rsp); 
+	//switch_user_mode(elfhdr->e_entry, t->regs.rsp);
+	// GSAHA: added to test page fault handler 
+	switch_user_mode(elfhdr->e_entry);
+
       }
       size = (size%512==0) ? size +512: size + 512 + (512-size%512);
       header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
