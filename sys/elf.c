@@ -7,14 +7,7 @@
 #include <sys/paging.h>
 #include <sys/kmemcpy.h>
 #include <sys/string.h>
-uint64_t createTable() {
-  uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
-  uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
-  for(int i = 0; i < 512; i++) {
-    temp[i] = PML4[i];
-  }
-  return (uint64_t) newPML4;
-}
+#include <sys/copy_tables.h>
 // TODO: change this function
 uint64_t power (uint64_t x, int e) {
     if (e == 0) return 1;
@@ -135,7 +128,7 @@ Task *loadElf(char *fileName) {
 				vm_stack->vma_next = NULL;
 				vm->vma_next = vm_stack;
 				// Allocate 1 page for stack for now and add it to the new cr3 page mapping
-				uint64_t newcr3 = createTable();
+				uint64_t newcr3 = create_table();
 				uint64_t oldcr3;
 				__asm__ __volatile__("movq %%cr3, %0\n\t"
 						    :"=a"(oldcr3));
