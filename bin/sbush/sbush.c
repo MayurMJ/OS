@@ -3,9 +3,14 @@
 int main(int argc, char *argv[], char *envp[]) {
         int result; 
 	int n = 57; 
+	int yield = 24;
         __asm__ __volatile__("int $0x80\n\t"
 			     :"=a" (result)
 			     : "0"(n));
+
+        __asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(yield));
 
         __asm__ __volatile__("int $0x80\n\t"
                              :"=a" (n)

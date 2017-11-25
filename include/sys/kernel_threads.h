@@ -45,5 +45,6 @@ Task *CURRENT_TASK;
 uint64_t last_assn_pid;
 Task *run_queue;;
 extern void switchTask(Registers *oldregs, Registers *newregs); 
+extern void switchTaskUser(Registers *oldregs, Registers *newregs); 
 extern void saveState(Registers *oldregs, uint64_t rsp); 
 #endif

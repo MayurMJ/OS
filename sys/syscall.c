@@ -12,7 +12,12 @@ void * syscall_tbl[NUM_SYSCALLS] =
 	opendir,
 }
 */
-
+uint64_t yyield() {
+    Task *last = CURRENT_TASK;
+    CURRENT_TASK = CURRENT_TASK->next;
+    switchTaskUser(&last->regs, &CURRENT_TASK->regs);
+    return CURRENT_TASK->pid;
+}
 void deep_copy_vma(struct vma *parent, struct vma *child) {
 
     child->vma_start = parent->vma_start;
@@ -49,7 +54,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
     child_task->pid = 10 ;//TODO assigning random numner as of now, implement get_new_pid();
-    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(7) + 4088);
+    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(7) + 4080);
     child_task->state = WAITING;
     
     //copy mm_struct
@@ -57,7 +62,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->mm->stack_begin = parent_task->mm->stack_begin;
     child_task->mm->e_entry = parent_task->mm->e_entry;
     child_task->mm->pg_pml4 = copy_on_write();
-
+    child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
 
     child_task->next = parent_task;
@@ -82,8 +87,10 @@ uint64_t syscall_handler(uint64_t rsp)
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
                         :);
-    kprintf("Printing happening %d\n",syscall_number);
+    kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
+	case 24:
+	        return	yyield();
 	case 57:;
                 Registers *reg = (Registers*) kmalloc(sizeof(Registers));
 	        saveState(reg, rsp);
