@@ -393,3 +393,28 @@ uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
  
   return virt_addr;
 }
+
+uint64_t walk_pml4_get_address(uint64_t virt_addr, uint64_t cr3val) {
+
+  uint64_t *PML4 = (uint64_t*)((uint64_t)0xffffffff80000000 + cr3val);
+  uint64_t PMLframe = (virt_addr >> 39) & (uint64_t) 0x1ff;
+  uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
+  uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
+  uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
+  uint64_t x;
+  uint64_t *PDPTE, *PDE, *PTE;
+
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
+  x = x & 0xfffffffffffff000;
+  PDPTE = (uint64_t *) x;   
+
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PDPTE[PDPTEindex];
+  x = x & 0xfffffffffffff000;
+  PDE = (uint64_t *) x;   
+
+  x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
+  x = x & 0xfffffffffffff000;
+  PTE = (uint64_t *) x;   
+  
+  return PTE[PTEindex];
+}

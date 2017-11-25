@@ -59,11 +59,23 @@ void generic_irqhandler_err14(uint64_t errcode)
 	// kmemcpy to the right location
 	// put page mapping
 	// advance file offset- doubt: do we need to always map using offset? i dont think so
-	uint64_t cr3val = (uint64_t)(curr_mm->pg_pml4);
-	uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
-	put_page_mapping(7,aligned_page_fault_addr,cr3val);
-	uint64_t source = (uint64_t)(target_vma->vma_file_ptr)+target_vma->vma_file_offset;
-	kmemcpy((char *)aligned_page_fault_addr,(char *)source,4096);
-	target_vma->vma_file_offset = target_vma->vma_file_offset + 4096;
+		uint64_t cr3val = (uint64_t)(curr_mm->pg_pml4);
+		uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
+		if(errcode & (uint64_t)0x2) {
+			// walk PML4 get the physical adress
+			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
+			// put_page_mapping
+			uint64_t dest = put_page_mapping(7, aligned_page_fault_addr,cr3val);
+			source = source + (uint64_t)0xffffffff80000000; 
+			source = (source >> 12) << 12;
+			// memcpy data from both pages
+			kmemcpy((char*)dest, (char*)source, 4096);
+		}
+		else {	
+			put_page_mapping(7,aligned_page_fault_addr,cr3val);
+			uint64_t source = (uint64_t)(target_vma->vma_file_ptr)+target_vma->vma_file_offset;
+			kmemcpy((char *)aligned_page_fault_addr,(char *)source,4096);
+			target_vma->vma_file_offset = target_vma->vma_file_offset + 4096;
+		}
     }
 }
