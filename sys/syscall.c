@@ -75,13 +75,8 @@ void fork_handler() {
     //TODO To be continued ....
 
 }    
-void syscall_handler(void)
+void syscall_handler(uint64_t rsp)
 {
-    uint64_t rsp = 0; 
-    __asm__ __volatile__("movq %%rsp, %0\n\t"
-			:"=b" (rsp)
-                        :);
-    rsp = rsp - 16; 
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
