@@ -8,6 +8,7 @@ typedef struct {
     uint64_t rax, rbx, rcx, rdx, rsi, rdi, rsp, rbp, rip;
     uint64_t r8, r9, r10, r11, r12, r13, r14, r15;
     uint64_t rflags, cr3;
+    uint64_t cs,ds,es,fs,gs,ss;
 } Registers;
 
 struct mm_struct {
