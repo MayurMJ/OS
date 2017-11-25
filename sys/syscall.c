@@ -77,13 +77,20 @@ void fork_handler() {
 }    
 void syscall_handler(void)
 {
+    uint64_t rsp = 0; 
+    __asm__ __volatile__("movq %%rsp, %0\n\t"
+			:"=b" (rsp)
+                        :);
+    rsp = rsp - 16; 
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
                         :);
     switch(syscall_number) {
-	case 57:
-		fork_handler();
+	case 57:;
+                Registers reg;
+	        saveState(&reg, rsp); 	
+		//fork_handler();
 		break;
 	default:
 		kprintf("Syscall not found \n");
