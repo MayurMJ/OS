@@ -83,8 +83,21 @@ void syscall_handler(uint64_t rsp)
                         :);
     switch(syscall_number) {
 	case 57:;
-                Registers reg;
-	        saveState(&reg, rsp); 	
+                Registers *reg = (Registers*) kmalloc(sizeof(Registers));
+	        saveState(reg, rsp);
+                __asm__ __volatile__("movq %%ds, %0\n\t"
+                      		    :"=a" (reg->ds)
+                        	    :);
+                __asm__ __volatile__("movq %%es, %0\n\t"
+                      		    :"=a" (reg->es)
+                        	    :);
+                __asm__ __volatile__("movq %%fs, %0\n\t"
+                      		    :"=a" (reg->fs)
+                        	    :);
+                __asm__ __volatile__("movq %%gs, %0\n\t"
+                      		    :"=a" (reg->gs)
+                        	    :);
+ 	
 		//fork_handler();
 		break;
 	default:
