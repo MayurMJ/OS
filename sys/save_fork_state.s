@@ -47,7 +47,7 @@ saveState:
 	movq	%rax, 8(%rbx)  #rbx
 	
 	movq	112(%rcx), %rax
-	movq	%rax, (%rbx)  #rax
+	movq	$0, (%rbx)  #rax hard code rax to 0 as child fork returns 0
 	
 	movq	120(%rcx), %rax
 	movq	%rax, 64(%rbx)  #rip

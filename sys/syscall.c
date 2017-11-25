@@ -66,21 +66,23 @@ void copy_to_child(Task *parent_task, Task *child_task) {
 }
 
 //#include <sys/ahci.h>
-void fork_handler() {
+uint64_t fork_handler(Registers *reg) {
     Task * child_task = (Task *) kmalloc(sizeof(Task));
     Task * parent_task = CURRENT_TASK;
 
+    child_task->regs = *reg;
     copy_to_child(parent_task,child_task);
-
+    return child_task->pid;
     //TODO To be continued ....
 
 }    
-void syscall_handler(uint64_t rsp)
+uint64_t syscall_handler(uint64_t rsp)
 {
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
                         :);
+    kprintf("Printing happening %d\n",syscall_number);
     switch(syscall_number) {
 	case 57:;
                 Registers *reg = (Registers*) kmalloc(sizeof(Registers));
@@ -98,11 +100,10 @@ void syscall_handler(uint64_t rsp)
                       		    :"=a" (reg->gs)
                         	    :);
  	
-		//fork_handler();
+		return fork_handler(reg);
 		break;
 	default:
 		kprintf("Syscall not found \n");
     }
-    kprintf("Printing happening %d\n",syscall_number);
-	
+	return 57;
 }
