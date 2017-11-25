@@ -15,15 +15,15 @@ uint64_t copy_on_write() {
 	uint64_t newcr3 = create_table();
 	uint64_t *PML4_old = (uint64_t *)((uint64_t) oldcr3 + (uint64_t)0xffffffff80000000 );
 	uint64_t *PML4_new = (uint64_t *)((uint64_t) newcr3 + (uint64_t)0xffffffff80000000 );
-	for(int i = 0; i < 512; i++) {
+	for(int i = 0; i < 511; i++) {
 		PML4_new[i] = PML4_old[i];
-		if(PML4_old[i] != 0 && i != 512) {
+		if(PML4_old[i] != 0) {
 			PML4_new[i] = get_physical_free_page();
 			uint64_t *PDTP_old = (uint64_t *)((uint64_t) PML4_old[i] + (uint64_t)0xffffffff80000000 );
 			uint64_t *PDTP_new = (uint64_t *)((uint64_t) PML4_new[i] + (uint64_t)0xffffffff80000000 );
 			for(int j = 0; j < 512; j++) {
 				PDTP_new[j] = PDTP_old[j];
-				if(PDTP_old[j] !=0 && i != 512 && j !=511 ) {
+				if(PDTP_old[j] != 0) {
 					PDTP_new[j] = get_physical_free_page();			
 					uint64_t *PDE_old = (uint64_t *)((uint64_t) PDTP_old[j] + (uint64_t)0xffffffff80000000 );
 					uint64_t *PDE_new = (uint64_t *)((uint64_t) PDTP_new[j] + (uint64_t)0xffffffff80000000 );
