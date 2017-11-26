@@ -8,6 +8,7 @@
 #include <sys/kernel_threads.h>
 #include <sys/kmalloc.h>
 #include <sys/elf64.h>
+#include <sys/scheduler.h>
 /*
 deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
@@ -21,18 +22,18 @@ uint32_t* loader_stack;
 extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
-Task *runningTask;
-
+//Task *runningTask;
+/*
 void user_mode() {
 	__asm__("int $0x80\n\t");
 	//kprintf("hi\n");
 	while(1);
 }
-
+*/
 void yield() {
-    Task *last = runningTask;
-    runningTask = runningTask->next;
-    switchTask(&last->regs, &runningTask->regs);
+    Task *last = CURRENT_TASK;
+    CURRENT_TASK = CURRENT_TASK->next;
+    switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 void switch_user_mode(uint64_t symbol) {
         uint64_t oldcr3;
@@ -56,14 +57,14 @@ void switch_user_mode(uint64_t symbol) {
                         "pushq $0x2B\n\t"
                         "push %0\n\t"
                         "iretq\n\t"
-                        ::"b"(symbol), "c"(runningTask->mm->stack_begin)
+                        ::"b"(symbol), "c"(CURRENT_TASK->mm->stack_begin)
         );
 }
 
-void kern_thd() {
+void first_kern_thd() {
   //loadElf("bin/sbush"); 
-  switch_user_mode(runningTask->mm->e_entry);
-  yield();
+  switch_user_mode(CURRENT_TASK->mm->e_entry);
+  //yield();
 }
 
 void setupTask(Task *task, void (*main)(), Task *otherTask) {
@@ -74,7 +75,7 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rsi = 0;
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
-    task->regs.rip = (uint64_t) kern_thd;
+    task->regs.rip = (uint64_t) first_kern_thd;
     //task->regs.cr3 = createTable();
     task->regs.r8 = 0;
     task->regs.r9 = 0;
@@ -96,11 +97,11 @@ void initTasking(Task *mainTask, Task *loadedTask) {
 			     "POPFQ\n\t"
 			     :"=m"(mainTask->regs.rflags)::"%rax");
 	
-	setupTask(loadedTask, kern_thd, mainTask);
+	setupTask(loadedTask, first_kern_thd, mainTask);
     	mainTask->next = loadedTask;
-    	loadedTask->next = mainTask;
- 
-    	runningTask = mainTask;
+    	//loadedTask->next = mainTask;
+ 	// need to not keep main task in the running
+    	// CURRENT_TASK = mainTask;
 }
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
@@ -149,6 +150,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   t1 = (uint64_t)free_list;
   temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   free_list = (pg_desc_t *) temp;
+  // just testing
   uint64_t * temp1 = (uint64_t *)  get_free_page(7);
   temp1[0] = 777;
   free_page(temp1);
@@ -172,7 +174,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   last_assn_pid = 0;
  
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
-  Task *loadedTask = loadElf("bin/sbush");
+  Task *loadedTask = loadElf("bin/init");
+  // put in run queue, give it a pid
+  put_in_run_queue(loadedTask);
+  CURRENT_TASK = mainTask;
+
   initTasking(mainTask, loadedTask);
   kprintf("Trying multitasking from main\n");
   yield();
@@ -182,7 +188,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
   //hba_port_t* port = enumerate_pci();
   //if (port == NULL) kprintf("nothing found\n");
-  while(1);
+  //while(1); // if start ever return we should find out
 }
 
 void boot(void)

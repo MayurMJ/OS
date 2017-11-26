@@ -8,6 +8,7 @@
 #include <sys/kmemcpy.h>
 #include <sys/string.h>
 #include <sys/copy_tables.h>
+#include <sys/scheduler.h>
 // TODO: change this function
 uint64_t power (uint64_t x, int e) {
     if (e == 0) return 1;
@@ -136,6 +137,7 @@ Task *loadElf(char *fileName) {
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(newcr3));
 				new_task->mm->pg_pml4=newcr3;
+				new_task->next = NULL;
 				new_task->regs.cr3 = newcr3;
 				put_page_mapping(7,0xc0000000, newcr3);
 				put_page_mapping(7,0xc0000000 - 4096, newcr3);
@@ -155,15 +157,3 @@ Task *loadElf(char *fileName) {
 }
 
 
-uint64_t execve(char *binary, char *argv[], char *envp[]) {
-	// returns a new task struct with newcr3
-	Task *newtask = loadElf(binary);
-	uint64_t oldcr3;
-	__asm__ __volatile__("movq %%cr3, %0\n\t"
-                             :"=a"(oldcr3));
-	// switch to new cr3
-	__asm__ __volatile__("movq %0, %%cr3\n\t"
-                             ::"a"(new_task->regs.cr3));
-	// free all old pages
-	free_old_page_tables(oldcr3+0xffffffff80000000);
-}

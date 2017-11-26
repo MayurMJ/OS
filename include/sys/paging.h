@@ -34,4 +34,5 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 void init_self_referencing(uint64_t free_list_end, uint64_t index);
 void map_memory_range(uint64_t start, uint64_t end, uint64_t ind);
 uint64_t walk_pml4_get_address(uint64_t virt_addr, uint64_t cr3val);
+void free_old_page_tables(uint64_t addr);
 #endif

@@ -1,7 +1,7 @@
-#include <sys/defs.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-
-
+/*
 pid_t fork() {
     uint64_t syscallno = 57;
     uint64_t result = 1;
@@ -19,6 +19,7 @@ pid_t yield() {
                              : "0"(syscallno));
     return result;
 }
+
 uint64_t getsysid() {
     uint64_t syscallno = 3;
     uint64_t result = 8;
@@ -26,9 +27,10 @@ uint64_t getsysid() {
     return result;
     
 }
-
-        int i = 0;
+*/
+//        int i = 0;
 int main(int argc, char *argv[], char *envp[]) {
+	/*
         int result=1; 
 	int n = 57; 
 	int yield =24;
@@ -54,5 +56,6 @@ int main(int argc, char *argv[], char *envp[]) {
                              : "0"(yield));
 	}
         while(1);
-  return 0;
+	*/
+	return 0;
 }

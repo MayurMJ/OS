@@ -116,6 +116,10 @@ uint64_t syscall_handler(uint64_t rsp)
  	
 		return fork_handler(reg);
 		break;
+	case 59: /* execve */
+		break;
+	case 60: /* exit */
+		break;
 	default:
 		kprintf("Syscall not found \n");
     }

@@ -418,3 +418,7 @@ uint64_t walk_pml4_get_address(uint64_t virt_addr, uint64_t cr3val) {
   
   return PTE[PTEindex];
 }
+
+
+void free_old_page_tables(uint64_t addr) {
+}
