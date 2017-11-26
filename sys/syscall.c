@@ -89,8 +89,15 @@ uint64_t syscall_handler(uint64_t rsp)
                         :);
     kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
+	case 10:
+    	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
+		break;
+	case 11:
+    	        kprintf("I'm in child process %d\n",CURRENT_TASK->pid);
+		break;
 	case 24:
 	        return	yyield();
+		break;
 	case 57:;
                 Registers *reg = (Registers*) kmalloc(sizeof(Registers));
 	        saveState(reg, rsp);
