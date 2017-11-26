@@ -81,8 +81,12 @@ uint64_t fork_handler(Registers *reg) {
     //TODO To be continued ....
 
 }    
-uint64_t syscall_handler(uint64_t rsp)
+uint64_t syscall_handler(void)
 {
+    uint64_t rsp;
+    __asm__ __volatile__("movq %%rcx, %0\n\t"
+                        :"=c" (rsp)
+                        :);
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
@@ -99,6 +103,7 @@ uint64_t syscall_handler(uint64_t rsp)
 	        return	yyield();
 		break;
 	case 57:;
+		//kprintf("rsp value %x\n",rsp);
                 Registers *reg = (Registers*) kmalloc(sizeof(Registers));
 	        saveState(reg, rsp);
                 __asm__ __volatile__("movq %%ds, %0\n\t"
@@ -114,11 +119,13 @@ uint64_t syscall_handler(uint64_t rsp)
                       		    :"=a" (reg->gs)
                         	    :);
  	
-		return fork_handler(reg);
+		uint64_t ret = fork_handler(reg);
+		kprintf("rsp value %x\n",rsp);
+		return ret;
 		break;
-	case 59: /* execve */
+	case 59: /* execve- rdi-binary name,rsi-argv,rdx-envp*/
 		break;
-	case 60: /* exit */
+	case 60: /* exit- rdi-return value of main*/
 		break;
 	default:
 		kprintf("Syscall not found \n");
