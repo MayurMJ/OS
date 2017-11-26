@@ -56,7 +56,6 @@ uint64_t stoi(char *s) // the message and then the line #
         );
 }*/
 Task *loadElf(char *fileName) { 
-  
 	struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
 	kprintf("size of header %d",sizeof(struct posix_header_ustar));
 	while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
@@ -69,6 +68,8 @@ Task *loadElf(char *fileName) {
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
 			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {
 				Task *new_task = (Task*) kmalloc(sizeof(Task));
+				// TODO: insert into run queue in scheduler
+				/*
 				if (run_queue == NULL) {
 					run_queue = new_task;
 				}
@@ -76,11 +77,11 @@ Task *loadElf(char *fileName) {
 					new_task->next = run_queue;
 					run_queue = new_task;
 				}
-				// TODO: setting CURRENT_TASK here for now but need to set in schedule
-				CURRENT_TASK = new_task;	
-				// TODO: hard coding pid for now, remove later
-				new_task->pid = (last_assn_pid+1)%MAX_PROC;
-				last_assn_pid = new_task->pid;
+				*/
+				// TODO: need to set CURRENT_TASK and pid in the scheduler
+				// CURRENT_TASK = new_task;	
+				//new_task->pid = (last_assn_pid+1)%MAX_PROC;
+				//last_assn_pid = new_task->pid;
 				new_task->mm = (struct mm_struct *) kmalloc((sizeof(struct mm_struct)));
 				new_task->mm->vm_begin = NULL;
 				uint8_t *data = (uint8_t *)(header+1);
@@ -141,6 +142,8 @@ Task *loadElf(char *fileName) {
 				new_task->mm->stack_begin = (uint64_t) (0xc0000000);
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(oldcr3));        
+
+				// might need to change the part above
 				new_task->mm->e_entry = elfhdr->e_entry;
 				return new_task;
 			}
@@ -149,4 +152,18 @@ Task *loadElf(char *fileName) {
 		}
 	}
 	return NULL; 
+}
+
+
+uint64_t execve(char *binary, char *argv[], char *envp[]) {
+	// returns a new task struct with newcr3
+	Task *newtask = loadElf(binary);
+	uint64_t oldcr3;
+	__asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(oldcr3));
+	// switch to new cr3
+	__asm__ __volatile__("movq %0, %%cr3\n\t"
+                             ::"a"(new_task->regs.cr3));
+	// free all old pages
+	free_old_page_tables(oldcr3+0xffffffff80000000);
 }
