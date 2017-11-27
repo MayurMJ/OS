@@ -4,6 +4,7 @@ pg_desc_t *free_list_head;
 extern char kernmem, physbase;
 
 uint64_t get_physical_free_page () {
+  kprintf("Freeing Page\n");
   if(free_list_head == NULL)
     return 0;
   if(free_list_head->is_avail==0) {

@@ -180,6 +180,7 @@ uint64_t syscall_handler(void)
 		replacement_task->next->prev = replacement_task;
 		
 		CURRENT_TASK->next = replacement_task;
+		delete_page_tables(CURRENT_TASK->regs.cr3);
 		yyield();	
 		return -1; // if execve returns its an error
 		break;
