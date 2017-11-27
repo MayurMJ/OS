@@ -2,9 +2,10 @@
 uint64_t create_table() {
 	uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
 	uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
- 	for(int i = 0; i < 512; i++) {
-		temp[i] = PML4[i];
+ 	for(int i = 0; i < 511; i++) {
+		temp[i] = 0;
 	}
+	temp[511] = PML4[511];
 	return (uint64_t) newPML4;
 }
 

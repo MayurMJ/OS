@@ -43,7 +43,11 @@ int main(int argc, char *argv[], char *envp[]) {
 */
 	int result  = fork();
 //	fork();
+	int n;
 	if (result == 0) {
+	                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
+                              :"=a" (n)
+                              : "0"(11));
 		char *binary = "bin/sbush";
 		execve(binary, NULL, NULL);
 	}

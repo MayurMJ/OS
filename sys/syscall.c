@@ -164,7 +164,13 @@ uint64_t syscall_handler(void)
     		replacement_task->regs.r13 = 0;
     		replacement_task->regs.r14 = 0;
     		replacement_task->regs.r15 = 0;
-    		replacement_task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY));
+    		replacement_task->regs.rsp = replacement_task->mm->stack_begin;
+    		replacement_task->regs.ds = CURRENT_TASK->regs.ds;
+		replacement_task->regs.es = CURRENT_TASK->regs.es;
+		replacement_task->regs.fs = CURRENT_TASK->regs.fs;
+		replacement_task->regs.gs = CURRENT_TASK->regs.gs;
+		replacement_task->regs.ss = CURRENT_TASK->regs.ss;
+		replacement_task->regs.cs = CURRENT_TASK->regs.cs;
 		// put in run queue and give it the same pid
 		replacement_task->pid = CURRENT_TASK->pid;
 		// TODO: remove this circular list
@@ -182,5 +188,5 @@ uint64_t syscall_handler(void)
 	default:
 		kprintf("Syscall not found \n");
     }
-	return 57;
+	return 1;
 }
