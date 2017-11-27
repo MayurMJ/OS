@@ -28,9 +28,12 @@ void generic_irqhandler_err12(void)
 
 }
 
-void generic_irqhandler_err13(void)
+void generic_irqhandler_err13(uint64_t errcode)
 {
-    kprintf("Generic interrupt occured with error code 13\n");
+    uint64_t page_fault_addr;
+    __asm__ __volatile__("movq %%cr2, %0\n\t"
+                             :"=a"(page_fault_addr)); 
+    kprintf("Generic interrupt occured with error code 13 %x\n", page_fault_addr);
 
 }
 
@@ -64,12 +67,17 @@ void generic_irqhandler_err14(uint64_t errcode)
 		if(errcode & (uint64_t)0x2) {
 			// walk PML4 get the physical adress
 			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
+			uint64_t temp = source;
 			// put_page_mapping
 			uint64_t dest = put_page_mapping(7, aligned_page_fault_addr,cr3val);
 			source = source + (uint64_t)0xffffffff80000000; 
 			source = (source >> 12) << 12;
 			// memcpy data from both pages
 			kmemcpy((char*)dest, (char*)source, 4096);
+			free_list[temp / 4096].ref_count--;
+			if(free_list[temp / 4096].ref_count == 0) {
+				free_physical_page((pg_desc_t*)((temp >> 12) <<12));
+			}
 		}
 		else {	
 			put_page_mapping(7,aligned_page_fault_addr,cr3val);

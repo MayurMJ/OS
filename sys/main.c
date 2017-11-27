@@ -150,12 +150,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   t1 = (uint64_t)free_list;
   temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   free_list = (pg_desc_t *) temp;
-  // just testing
-  uint64_t * temp1 = (uint64_t *)  get_free_page(7);
-  temp1[0] = 777;
-  free_page(temp1);
-  temp1 = (uint64_t *)  get_free_page(7);
-  temp1[0] = 7877;
   //-------------k malloc init----------------------
   init_kmalloc(); 
 

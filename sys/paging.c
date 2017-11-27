@@ -17,6 +17,7 @@ uint64_t get_physical_free_page () {
   temp->prev = NULL;
   temp->is_avail = 0;
   temp->count = 0;
+  temp->ref_count = 1;
   return addr;
 }
 
@@ -53,6 +54,7 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
   free_list[0].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[1]));
   free_list[0].index = 0;
   free_list[0].count = 0;
+  free_list[0].ref_count = 0;
   int i=0;
   for (i=1; i < (num_pages-1) ; i++) {
         free_list[i].is_avail = 1;
@@ -60,12 +62,14 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
         free_list[i].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i+1]));
         free_list[i].index = i;
         free_list[i].count = 0;
+        free_list[i].ref_count = 0;
   }
   free_list[num_pages - 1].is_avail = 1;
   free_list[num_pages - 1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[num_pages - 2]);
   free_list[num_pages - 1].next = NULL;
   free_list[num_pages - 1].index = num_pages - 1;
   free_list[num_pages-1].count = 0;
+  free_list[num_pages-1].ref_count = 0;
 
   free_list_head = (&free_list[1]);
 
