@@ -55,5 +55,5 @@ uint64_t copy_on_write() {
 			
 		}
 	}
-	return count;	
+	return newcr3;	
 }
