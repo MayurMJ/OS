@@ -57,7 +57,7 @@ uint64_t pow(uint64_t num, uint64_t power) {
 }
 
 void init_kmalloc() {
-  void * kmem_cache = (void *)get_free_page(7);
+  void * kmem_cache = (void *)get_free_page(SUPERVISOR_ONLY);
   cache_cache = (kmem_cache_t *) kmem_cache;
   for(int i = 0; i<NUM_CACHES; i++) {
     (cache_cache+i)->slabs_full = NULL;
@@ -103,7 +103,7 @@ uint32_t objs_in_slab(unsigned int objsize) {
 // allocate a new slab for the current cache
 slab_t * alloc_slab(kmem_cache_t * cache) {
 
-    slab_t * slab = (slab_t *) get_free_page(3);
+    slab_t * slab = (slab_t *) get_free_page(SUPERVISOR_ONLY);
     if(!slab) return NULL;
 
     slab->curr_cache = cache;
@@ -140,7 +140,7 @@ slab_t * get_partial_slab(kmem_cache_t * cache) {
 void* kmalloc(size_t size) {
 
   if(!size) return NULL;
-  if(size>1024) return (void*)get_free_page(3);
+  if(size>1024) return (void*)get_free_page(SUPERVISOR_ONLY);
  
   kmem_cache_t * cache = get_fit_cache(size);
   if (!cache) return NULL;

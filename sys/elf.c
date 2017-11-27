@@ -139,8 +139,8 @@ Task *loadElf(char *fileName) {
 				new_task->mm->pg_pml4=newcr3;
 				new_task->next = NULL;
 				new_task->regs.cr3 = newcr3;
-				put_page_mapping(7,0xc0000000, newcr3);
-				put_page_mapping(7,0xc0000000 - 4096, newcr3);
+				put_page_mapping(USER_ACCESSIBLE,0xc0000000, newcr3);
+				put_page_mapping(USER_ACCESSIBLE,0xc0000000 - 4096, newcr3);
 				new_task->mm->stack_begin = (uint64_t) (0xc0000000);
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(oldcr3));        

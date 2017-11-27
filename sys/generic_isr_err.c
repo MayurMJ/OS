@@ -69,7 +69,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
 			uint64_t temp = source;
 			// put_page_mapping
-			uint64_t dest = put_page_mapping(7, aligned_page_fault_addr,cr3val);
+			uint64_t dest = put_page_mapping(USER_ACCESSIBLE, aligned_page_fault_addr,cr3val);
 			source = source + (uint64_t)0xffffffff80000000; 
 			source = (source >> 12) << 12;
 			// memcpy data from both pages
@@ -80,7 +80,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 			}
 		}
 		else {	
-			put_page_mapping(7,aligned_page_fault_addr,cr3val);
+			put_page_mapping(USER_ACCESSIBLE,aligned_page_fault_addr,cr3val);
 			uint64_t source = (uint64_t)(target_vma->vma_file_ptr)+target_vma->vma_file_offset;
 			kmemcpy((char *)aligned_page_fault_addr,(char *)source,4096);
 			target_vma->vma_file_offset = target_vma->vma_file_offset + 4096;

@@ -3,6 +3,8 @@
 #include <sys/defs.h>
 
 #define PAGE_SIZE	4096
+#define USER_ACCESSIBLE		7
+#define SUPERVISOR_ONLY		3
 uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val);
 typedef struct {
 	uint64_t starting_addr;

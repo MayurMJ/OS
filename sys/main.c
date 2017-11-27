@@ -85,7 +85,7 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t) (4088 + get_free_page(7)); // since it grows downward
+    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY)); // since it grows downward
 }
 
 void initTasking(Task *mainTask, Task *loadedTask) {

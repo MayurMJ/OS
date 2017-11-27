@@ -54,7 +54,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
     child_task->pid = 10 ;//TODO assigning random numner as of now, implement get_new_pid();
-    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(7) + 4080);
+    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(SUPERVISOR_ONLY) + 4080);
     child_task->state = WAITING;
     
     //copy mm_struct
