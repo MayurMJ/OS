@@ -1,6 +1,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+int getsysid() {
+	int a = 3;
+	int b = 8;
+	b = b*a;
+	return b;
+}
+
 int main(int argc, char *argv[], char *envp[]) {
 	int result  = 1;
 	int yield = 24;
@@ -18,11 +25,14 @@ int main(int argc, char *argv[], char *envp[]) {
                                :"=a" (result)
                                : "0"(yield));
 	} 
-	                        __asm__ __volatile__("int $0x80\n\t"
-                               :"=a" (result)
-                               : "0"(yield));
+	else {
+// 		yield = getsysid();
 		                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                               :"=a" (n)
                               : "0"(10));
+	                        __asm__ __volatile__("int $0x80\n\t"
+                               :"=a" (result)
+                               : "0"(yield));
+	}
 	while(1); //no need to return from bin/init
 }
