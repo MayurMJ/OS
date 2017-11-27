@@ -57,7 +57,7 @@ uint64_t pow(uint64_t num, uint64_t power) {
 }
 
 void init_kmalloc() {
-  void * kmem_cache = (void *)get_free_page(3);
+  void * kmem_cache = (void *)get_free_page(7);
   cache_cache = (kmem_cache_t *) kmem_cache;
   for(int i = 0; i<NUM_CACHES; i++) {
     (cache_cache+i)->slabs_full = NULL;
