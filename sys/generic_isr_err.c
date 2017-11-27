@@ -40,6 +40,7 @@ void generic_irqhandler_err13(uint64_t errcode)
 void generic_irqhandler_err14(uint64_t errcode)
 {
     // TODO: pass registers to it later on
+    kprintf("\nin page handler %d", errcode);
     uint64_t page_fault_addr;
     __asm__ __volatile__("movq %%cr2, %0\n\t"
                              :"=a"(page_fault_addr)); 
@@ -65,6 +66,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 		uint64_t cr3val = (uint64_t)(curr_mm->pg_pml4);
 		uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
 		if(errcode & (uint64_t)0x2) {
+    			kprintf("\nin Pid: %d", CURRENT_TASK->pid);
 			// walk PML4 get the physical adress
 			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
 			uint64_t temp = source;

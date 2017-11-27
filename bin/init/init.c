@@ -10,23 +10,27 @@ int getsysid() {
 
 int main(int argc, char *argv[], char *envp[]) {
 	int result  = 1;
-	int yield = 24;
 	int n;
 	//fork();
 	result = fork();
 	if (result == 0) {
 		//execve("bin/sbush", NULL, NULL);
 		
+	int yield;
+	yield = 24;
+	for(int i =0; i <5; i++) {
  	        __asm__ __volatile__("int $0x80\n\t"	//a sycall that simply prints I'm in child
                               :"=a" (n)
                               : "0"(11));
- //		yield = getsysid();
+ 		yield = getsysid();
  		        __asm__ __volatile__("int $0x80\n\t"
                                :"=a" (result)
                                : "0"(yield));
+	}
 	} 
 	else {
-// 		yield = getsysid();
+		int yield;
+		yield = 24;
 		                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                               :"=a" (n)
                               : "0"(10));

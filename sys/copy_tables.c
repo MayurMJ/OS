@@ -42,7 +42,7 @@ uint64_t copy_on_write() {
 								PTE_new[l] = PTE_old[l];
 								if(PTE_old[l] != 0) {
 									PTE_new[l] = (PTE_new[l] >> 12) << 12;
-									PTE_new[l] |= (uint64_t) 0x7;
+									PTE_new[l] |= (uint64_t) 0x805;
 									PTE_old[l] &= (uint64_t) 0xfffffffffffffffd;
 									PTE_old[l] |= (uint64_t) 0x800;
 									free_list[(((PTE_old[l]) >> 12 ) << 12) / 4096].ref_count++;
