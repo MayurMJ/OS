@@ -148,6 +148,23 @@ uint64_t syscall_handler(void)
 		//kprintf("%d %d\n",arg2, arg3);	
 		//kprintf("%s\n",arg1);
 		Task *replacement_task = loadElf((char *)arg1);
+		replacement_task->regs.rax = 0;
+    		replacement_task->regs.rbx = 0;
+    		replacement_task->regs.rcx = 0;
+    		replacement_task->regs.rdx = 0;
+    		replacement_task->regs.rsi = 0;
+    		replacement_task->regs.rdi = 0;
+    		replacement_task->regs.rflags = CURRENT_TASK->regs.rflags;
+    		replacement_task->regs.rip = replacement_task->mm->e_entry;
+   		replacement_task->regs.r8 = 0;
+    		replacement_task->regs.r9 = 0;
+    		replacement_task->regs.r10 = 0;
+    		replacement_task->regs.r11 = 0;
+    		replacement_task->regs.r12 = 0;
+    		replacement_task->regs.r13 = 0;
+    		replacement_task->regs.r14 = 0;
+    		replacement_task->regs.r15 = 0;
+    		replacement_task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY));
 		// put in run queue and give it the same pid
 		replacement_task->pid = CURRENT_TASK->pid;
 		// TODO: remove this circular list

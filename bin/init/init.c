@@ -47,5 +47,10 @@ int main(int argc, char *argv[], char *envp[]) {
 		char *binary = "bin/sbush";
 		execve(binary, NULL, NULL);
 	}
+	uint64_t yieldsyscall = 24;
+	uint64_t ret;
+	__asm__ __volatile__("int $0x80\n\t"
+			     :"=a" (ret)
+			     : "0"(yieldsyscall));
 	while(1); //no need to return from bin/init
 }
