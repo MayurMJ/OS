@@ -57,3 +57,35 @@ uint64_t copy_on_write() {
 	}
 	return newcr3;	
 }
+
+void delete_page_tables(uint64_t cr3) {
+	uint64_t *PML4 = (uint64_t*) ((uint64_t) 0xffffffff80000000 + cr3);
+	for(int i = 0; i < 511; i++) {
+		if(PML4[i] != 0) {
+			uint64_t *PDPTE = (uint64_t *)((((uint64_t) PML4[i] + (uint64_t)0xffffffff80000000) >> 12) <<12 );
+			for(int j = 0; j < 512; j++ ) {
+				if(PDPTE[j] != 0) {
+					uint64_t *PDE = (uint64_t *)((((uint64_t) PDPTE[j] + (uint64_t)0xffffffff80000000) >> 12) << 12 );
+					for(int k = 0; k < 512; k++) {
+						if(PDE[k] != 0) {
+							uint64_t *PTE = (uint64_t *)((((uint64_t) PDE[k] + (uint64_t)0xffffffff80000000) >> 12) << 12 );
+							for(int l = 0; l < 512; l++) {
+								if(PTE[l] != 0) {
+									uint64_t temp = (PTE[l] >> 12) <<12;
+									free_list[temp / 4096].ref_count--;
+						                        if(free_list[temp / 4096].ref_count == 0) {
+                                						free_physical_page((pg_desc_t*)((temp >> 12) <<12));
+                       							 }	
+								}
+							}
+							free_physical_page((pg_desc_t*)((PDE[k] >> 12) <<12));	
+						}		
+					}
+					free_physical_page((pg_desc_t*)((PDPTE[j] >> 12) <<12));
+				}
+			}
+			free_physical_page((pg_desc_t*)((PML4[i] >> 12) <<12));
+		}
+	//free_physical_page((pg_desc_t*)((cr3 >> 12) <<12));
+	}
+}
