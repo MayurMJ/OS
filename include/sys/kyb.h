@@ -1,5 +1,13 @@
 #ifndef _KYB_H_
 #define _KYB_H_
+
+#define SHIFTDOWN       0x2a
+#define SHIFTUP         0xaa
+#define CONTROLDOWN     0x1d
+#define CONTROLUP       0x9d
+#define BCKSPCUP	0x8e
+#define BCKSPCDWN	0x0e
+
 unsigned char kyb_map[128]=
 {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8',     /* 9 */

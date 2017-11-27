@@ -18,3 +18,13 @@ int execve(const char *file, char *const argv[], char *const envp[]) {
 		       :"memory");
     return retval;
 }
+
+ssize_t read(int fd, void *buf, size_t count) {
+    ssize_t retval;
+    uint64_t code = 0;
+    uint64_t buffer = (uint64_t)(char *)buf;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code),"D"(fd),"S"(buffer),"d"(count));
+    return (ssize_t)retval;
+}

@@ -51,14 +51,19 @@ void copy_vma_list(struct vma *parent,struct mm_struct *child) {
 	curr_par_vma = curr_par_vma->vma_next;
     }
 }
-
+void duplicate_fds(Task *parent, Task *child) {
+    int i;
+    for (i=0; i<MAX_FDS; i++)
+	child->file_desc[i] = parent->file_desc[i];
+    return;
+}
 void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
     child_task->pid =  (last_assn_pid+1)%MAX_PROC ;
     last_assn_pid++;
     child_task->state = WAITING;
-    
+    duplicate_fds(parent_task, child_task); 
     //copy mm_struct
     child_task->mm = (struct mm_struct *)kmalloc(sizeof(struct mm_struct));
     child_task->mm->stack_begin = parent_task->mm->stack_begin;
@@ -87,6 +92,34 @@ uint64_t fork_handler(Registers *reg) {
 
 }    
 
+ssize_t read_handler(int fd, char *buf, size_t count) {
+    // TODO: not checking bounds on buf
+    if (fd == 0) { // special treatment for stdin
+	// if no chars are available just return 0 right away
+	if (TERM_BUF_OFFSET == 0)
+		return 0;
+	int x, chars_read =0; // whats the use of file offset in this case??
+	// if lesser num of bytes are available than count then read only available number of chars
+	if (TERM_BUF_OFFSET < count)
+		count = TERM_BUF_OFFSET; 
+	
+	for (x=0; x < count;x++) {
+		char c = *(char *)(TERMINAL_BUFFER+TERM_BUF_OFFSET);
+		if (c == '\n') {
+			chars_read++;
+			*buf = c;
+			return chars_read;
+		}
+		*buf = c;
+		buf++;
+		chars_read++;
+	}
+	return -1;
+    }
+    else { // read regular files
+    }
+    return -1;
+}
 
 uint64_t syscall_handler(void)
 {
@@ -112,6 +145,35 @@ uint64_t syscall_handler(void)
                         :);
     kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
+	case 0:; /* read syscall-arg1-file desc, arg2-buffer to copy to, arg3-number of chars to copy or till \n*/
+		if (fd == 0) {
+			while (1) {
+				if (FG_TASK != NULL) {
+					// save state and schedule another task
+				}
+				else
+					break;
+			}
+			FG_TASK = CURRENT_TASK;
+			int fd = arg1;
+			char *buffer = (char *)arg2;
+			int count = arg3;
+			ssize_t chars_read = read_handler(fd, buffer, count);
+			if (chars_read == -1) { //input is not ready yet, should I take it at 0 available?
+				FG_TASK->state = WAITING;
+				// save state and schedule next task	
+			}
+			// adjust terminal buffer and offset and unset fg task
+			// TODO: what would be a better startegy? - should i just empty buffer here or keep the buffer content?
+			int x;
+			for (x= chars_read; x <4096; x++) {
+				*(char *)(TERMINAL_BUFFER + x - chars_read) = *(char *)(TERMINAL_BUFFER + x);
+			}
+			TERM_BUF_OFFSET -= chars_read;
+			FG_TASK = NULL;
+			return chars_read;
+		}
+		break;
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
 		break;

@@ -3,6 +3,10 @@
 #include <sys/defs.h>
 // TODO: change this random value assigned for now
 #define MAX_PROC 1000
+#define FNAMELEN 100
+#define MAX_FDS 10
+#define USER_STACK 0xc0000000
+#define USER_STACK_SIZE 0x10000000
 
 uint64_t last_assn_pid;
 typedef struct {
@@ -32,21 +36,33 @@ struct vma {
     struct vma *vma_next;
 };
 
+struct FILE_OBJ {
+    char file_name[FNAMELEN];
+    uint64_t file_begin;
+    uint64_t file_end;
+    uint64_t file_offset; //file will read from this offset
+};
+
 typedef struct TASK {
    int pid;
    int ppid;
    uint64_t *kstack;
-   enum { RUNNING, WAITING, SLEEPING, ZOMBIE, FINISHED } state;
+   enum { READY, WAITING, ZOMBIE } state;
    Registers regs;
    struct TASK *prev;
    struct TASK *next;
    struct TASK *children;
    struct TASK *sibling;
    struct mm_struct *mm;
+   struct FILE_OBJ *file_desc[MAX_FDS];  
 } Task ;
 
 Task *CURRENT_TASK;
 extern void switchTask(Registers *oldregs, Registers *newregs); 
 extern void switchTaskUser(Registers *oldregs, Registers *newregs); 
 extern void saveState(Registers *oldregs, uint64_t rsp); 
+Task *FG_TASK;
+
+uint64_t TERMINAL_BUFFER;
+uint64_t TERM_BUF_OFFSET;
 #endif

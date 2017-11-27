@@ -110,8 +110,8 @@ Task *loadElf(char *fileName) {
 				iter->vma_next = vm;
 				// Add vma entry for stack
 				struct vma *vm_stack = (struct vma*) kmalloc(sizeof(struct vma));
-				vm_stack->vma_start = (uint64_t *) 0xc0000000 - 0x10000000;
-				vm_stack->vma_end = (uint64_t *) 0xc0000000;
+				vm_stack->vma_start = (uint64_t *) USER_STACK - USER_STACK_SIZE;
+				vm_stack->vma_end = (uint64_t *) USER_STACK;
 				vm_stack->vma_next = NULL;
 				vm->vma_next = vm_stack;
 				// Allocate 1 page for stack for now and add it to the new cr3 page mapping
@@ -127,13 +127,24 @@ Task *loadElf(char *fileName) {
 				new_task->children = NULL;
 				new_task->sibling = NULL;
 				new_task->regs.cr3 = newcr3;
-				put_page_mapping(USER_ACCESSIBLE,0xc0000000, newcr3);
-				put_page_mapping(USER_ACCESSIBLE,0xc0000000 - 4096, newcr3);
-				new_task->mm->stack_begin = (uint64_t) (0xc0000000);
+				put_page_mapping(USER_ACCESSIBLE,USER_STACK, newcr3);
+				put_page_mapping(USER_ACCESSIBLE,USER_STACK - 4096, newcr3);
+				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
+				// Allocating a dummy file obj for stdin so its not null
+				new_task->file_desc[0] = kmalloc(sizeof(struct FILE_OBJ));
+				/*
+				new_task->file_desc[0]->file_begin = USER_READ_BUFFER;
+				new_task->file_desc[0]->file_end = USER_READ_BUFFER+4095;
+				new_task->file_desc[0]->file_offset = 0;
+				*/
+				int x;
+				for(x=1; x< MAX_FDS;x++)
+					new_task->file_desc[x] = NULL;
+                                // may move above part
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(oldcr3));        
-
 				// might need to change the part above
+				
 				new_task->mm->e_entry = elfhdr->e_entry;
 				return new_task;
 			}
