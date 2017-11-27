@@ -13,6 +13,7 @@ void put_in_run_queue(Task *newtask) {
 		run_queue = newtask;
 	else {
 		newtask->next = run_queue;
+		run_queue->prev = newtask;
                 run_queue = newtask;
 	}
 	newtask->pid = (last_assn_pid+1)%MAX_PROC;

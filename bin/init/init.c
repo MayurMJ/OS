@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/defs.h>
 
 int getsysid() {
 	int a = 3;
@@ -9,7 +10,8 @@ int getsysid() {
 }
 
 int main(int argc, char *argv[], char *envp[]) {
-	int result  = 1;
+/*	int result  = 1;
+	int yield = 24;
 	int n;
 	//fork();
 	result = fork();
@@ -37,6 +39,13 @@ int main(int argc, char *argv[], char *envp[]) {
 	                        __asm__ __volatile__("int $0x80\n\t"
                                :"=a" (result)
                                : "0"(yield));
+	}
+*/
+	int result  = fork();
+//	fork();
+	if (result == 0) {
+		char *binary = "bin/sbush";
+		execve(binary, NULL, NULL);
 	}
 	while(1); //no need to return from bin/init
 }

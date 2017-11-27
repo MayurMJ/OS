@@ -69,20 +69,6 @@ Task *loadElf(char *fileName) {
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
 			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {
 				Task *new_task = (Task*) kmalloc(sizeof(Task));
-				// TODO: insert into run queue in scheduler
-				/*
-				if (run_queue == NULL) {
-					run_queue = new_task;
-				}
-				else {
-					new_task->next = run_queue;
-					run_queue = new_task;
-				}
-				*/
-				// TODO: need to set CURRENT_TASK and pid in the scheduler
-				// CURRENT_TASK = new_task;	
-				//new_task->pid = (last_assn_pid+1)%MAX_PROC;
-				//last_assn_pid = new_task->pid;
 				new_task->mm = (struct mm_struct *) kmalloc((sizeof(struct mm_struct)));
 				new_task->mm->vm_begin = NULL;
 				uint8_t *data = (uint8_t *)(header+1);
@@ -101,7 +87,6 @@ Task *loadElf(char *fileName) {
 						vm->vma_file_ptr = (uint64_t *)(&data[proghdr[i].p_offset]); 
 						// GSAHA: added to test page fault handle
 						vm->vma_file_offset = 0;
-
 						vm->vma_size = proghdr[i].p_filesz;
 						vm->vma_flags = proghdr[i].p_flags;
 						vm->vma_next = NULL;
@@ -130,7 +115,7 @@ Task *loadElf(char *fileName) {
 				vm_stack->vma_next = NULL;
 				vm->vma_next = vm_stack;
 				// Allocate 1 page for stack for now and add it to the new cr3 page mapping
-				uint64_t newcr3 = create_table();
+				uint64_t newcr3 = create_table(); //preps the PMl4 table only
 				uint64_t oldcr3;
 				__asm__ __volatile__("movq %%cr3, %0\n\t"
 						    :"=a"(oldcr3));
@@ -138,6 +123,7 @@ Task *loadElf(char *fileName) {
 						    ::"a"(newcr3));
 				new_task->mm->pg_pml4=newcr3;
 				new_task->next = NULL;
+				new_task->prev = NULL;
 				new_task->regs.cr3 = newcr3;
 				put_page_mapping(USER_ACCESSIBLE,0xc0000000, newcr3);
 				put_page_mapping(USER_ACCESSIBLE,0xc0000000 - 4096, newcr3);

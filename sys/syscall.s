@@ -18,7 +18,7 @@ syscall:
     pushq    %rdi
     pushq    %rsi
     pushq    %rbp
-    movq     %rsp, %rcx
+    movq     %rsp, %rbx
     call    syscall_handler
     popq    %rbp
     popq    %rsi

@@ -4,6 +4,7 @@
 #include <sys/paging.h>
 #include <sys/kernel_threads.h>
 #include <sys/copy_tables.h>
+#include <sys/elf64.h>
 
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
@@ -53,8 +54,9 @@ void copy_vma_list(struct vma *parent,struct mm_struct *child) {
 void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
-    child_task->pid = 10 ;//TODO assigning random numner as of now, implement get_new_pid();
     child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(SUPERVISOR_ONLY) + 4080);
+    child_task->pid =  (last_assn_pid+1)%MAX_PROC ;
+    last_assn_pid++;
     child_task->state = WAITING;
     
     //copy mm_struct
@@ -64,9 +66,11 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->mm->pg_pml4 = copy_on_write();
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
-
+    // TODO: need to change this circular mapping
     child_task->next = parent_task;
+    child_task->prev = parent_task;
     parent_task->next = child_task;
+    parent_task->prev = child_task;
 
 }
 
@@ -81,11 +85,25 @@ uint64_t fork_handler(Registers *reg) {
     //TODO To be continued ....
 
 }    
+
+
 uint64_t syscall_handler(void)
 {
+    // don't put anything before this!!!
+    uint64_t arg1,arg2,arg3,arg4;
+    __asm__ __volatile__("movq %%rdi, %0\n\t"
+			 "movq %%rsi, %1\n\t"
+			 "movq %%rdx, %2\n\t"
+			 "movq %%rcx, %3\n\t"
+			 :"=D"(arg1),"=S"(arg2),"=d"(arg3),"=c"(arg4));
+    /*
+    uint64_t *binaryname=NULL;
+    __asm__ __volatile__("movq %%rdi, %0\n\t"
+                         :"=D" (binaryname) :);
+     */
     uint64_t rsp;
-    __asm__ __volatile__("movq %%rcx, %0\n\t"
-                        :"=c" (rsp)
+    __asm__ __volatile__("movq %%rbx, %0\n\t"
+                        :"=b" (rsp)
                         :);
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
@@ -95,6 +113,9 @@ uint64_t syscall_handler(void)
     switch(syscall_number) {
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
+		break;
+	case 9:
+		kprintf("Hi from sbush\n");
 		break;
 	case 11:
     	        kprintf("I'm in child process %d\n",CURRENT_TASK->pid);
@@ -123,7 +144,21 @@ uint64_t syscall_handler(void)
 		kprintf("rsp value %x\n",rsp);
 		return ret;
 		break;
-	case 59: /* execve- rdi-binary name,rsi-argv,rdx-envp*/
+	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
+		//kprintf("%d %d\n",arg2, arg3);	
+		//kprintf("%s\n",arg1);
+		Task *replacement_task = loadElf((char *)arg1);
+		// put in run queue and give it the same pid
+		replacement_task->pid = CURRENT_TASK->pid;
+		// TODO: remove this circular list
+		replacement_task->next = CURRENT_TASK->next;
+		replacement_task->prev = CURRENT_TASK->prev;
+		replacement_task->next->next = replacement_task;
+		replacement_task->next->prev = replacement_task;
+		
+		CURRENT_TASK->next = replacement_task;
+		yyield();	
+		return -1; // if execve returns its an error
 		break;
 	case 60: /* exit- rdi-return value of main*/
 		break;

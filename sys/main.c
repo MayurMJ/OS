@@ -99,6 +99,7 @@ void initTasking(Task *mainTask, Task *loadedTask) {
 	
 	setupTask(loadedTask, first_kern_thd, mainTask);
     	mainTask->next = loadedTask;
+	loadedTask->prev = mainTask;
     	//loadedTask->next = mainTask;
  	// need to not keep main task in the running
     	// CURRENT_TASK = mainTask;

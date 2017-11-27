@@ -37,6 +37,7 @@ typedef struct TASK {
    uint64_t *kstack;
    enum { RUNNING, WAITING, SLEEPING, ZOMBIE } state;
    Registers regs;
+   struct TASK *prev;
    struct TASK *next;
    struct mm_struct *mm;
 } Task ;

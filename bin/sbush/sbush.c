@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
-
+#include <sys/defs.h>
 /*
 pid_t fork() {
     uint64_t syscallno = 57;
@@ -30,6 +30,11 @@ uint64_t getsysid() {
 */
 //        int i = 0;
 int main(int argc, char *argv[], char *envp[]) {
+	uint64_t syscallno = 9;
+    	uint64_t result = 1;
+    	__asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(syscallno));
 	/*
         int result=1; 
 	int n = 57; 
@@ -57,5 +62,6 @@ int main(int argc, char *argv[], char *envp[]) {
 	}
         while(1);
 	*/
+	while(1);
 	return 0;
 }
