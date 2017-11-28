@@ -21,7 +21,8 @@ typedef struct pg_desc {
 }__attribute__((__packed__)) pg_desc_t;
 
 pg_desc_t *free_list;
-uint64_t *PML4;
+uint64_t *PML4_kern;
+uint64_t *PML4_debug;
 uint64_t *PDTP;
 uint64_t *PDE;
 uint64_t *PTE1;
@@ -31,8 +32,8 @@ uint64_t *kstack;
 
 uint64_t get_physical_free_page ();
 void free_physical_page( pg_desc_t *page);
-void free_page(void *addr);
-uint64_t get_free_page(uint64_t);
+void free_page(void *addr, uint64_t cr3);
+uint64_t get_free_page(uint64_t, uint64_t cr3);
 uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, int index);
 void init_self_referencing(uint64_t free_list_end, uint64_t index);
 void map_memory_range(uint64_t start, uint64_t end, uint64_t ind);

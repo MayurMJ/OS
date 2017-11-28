@@ -57,7 +57,10 @@ uint64_t pow(uint64_t num, uint64_t power) {
 }
 
 void init_kmalloc() {
-  void * kmem_cache = (void *)get_free_page(SUPERVISOR_ONLY);
+  uint64_t cr3;
+  __asm__ __volatile__("movq %%cr3, %0\n\t"
+                       :"=a"(cr3));
+  void * kmem_cache = (void *)get_free_page(SUPERVISOR_ONLY, cr3);
   cache_cache = (kmem_cache_t *) kmem_cache;
   for(int i = 0; i<NUM_CACHES; i++) {
     (cache_cache+i)->slabs_full = NULL;
@@ -102,8 +105,10 @@ uint32_t objs_in_slab(unsigned int objsize) {
 
 // allocate a new slab for the current cache
 slab_t * alloc_slab(kmem_cache_t * cache) {
-
-    slab_t * slab = (slab_t *) get_free_page(SUPERVISOR_ONLY);
+    uint64_t cr3;
+    __asm__ __volatile__("movq %%cr3, %0\n\t"
+                        :"=a"(cr3));
+    slab_t * slab = (slab_t *) get_free_page(SUPERVISOR_ONLY, cr3);
     if(!slab) return NULL;
 
     slab->curr_cache = cache;
@@ -138,9 +143,11 @@ slab_t * get_partial_slab(kmem_cache_t * cache) {
 }
 
 void* kmalloc(size_t size) {
-
+  uint64_t cr3;
+  __asm__ __volatile__("movq %%cr3, %0\n\t"
+                      :"=a"(cr3)); 
   if(!size) return NULL;
-  if(size>1024) return (void*)get_free_page(SUPERVISOR_ONLY);
+  if(size>1024) return (void*)get_free_page(SUPERVISOR_ONLY, cr3);
  
   kmem_cache_t * cache = get_fit_cache(size);
   if (!cache) return NULL;
@@ -153,7 +160,10 @@ void* kmalloc(size_t size) {
 
 void kfree(uint64_t *virt_addr) {
   slab_t *slab = virt_to_page((void*) virt_addr);
-  
+  uint64_t cr3;
+  __asm__ __volatile__("movq %%cr3, %0\n\t"
+                       :"=a"(cr3));
+
   // If slab is in the full list move it to the end of partial list 
   // TODO may be make it more efficient with a doubly linked list
 
@@ -184,7 +194,7 @@ void kfree(uint64_t *virt_addr) {
       slab_t* temp = slab->curr_cache->slabs_partial;
       while(temp->next != slab) temp = temp->next;
       temp->next = slab->next;
-      free_page((void *)slab);
+      free_page((void *)slab,cr3);
     }
     return;
   }

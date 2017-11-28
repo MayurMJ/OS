@@ -85,7 +85,7 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY)); // since it grows downward
+    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY, task->regs.cr3)); // since it grows downward
 }
 
 void initTasking(Task *mainTask, Task *loadedTask) {
@@ -127,7 +127,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   }
   kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 
-  kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
+  //kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
   /*remap the 640K-1M region with direct one to one mapping from virtual to physical*/
   uint64_t virt_addr = (uint64_t) 0xffffffff80000000 + (uint64_t)physbase;
@@ -145,9 +145,9 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   __asm __volatile("movq %0, %%cr3\n\t"
                     :
                     :"a"(cr3val));
-  uint64_t t1 = (uint64_t)PML4;
+  uint64_t t1 = (uint64_t)PML4_kern;
   uint64_t temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
-  PML4 = (uint64_t *) temp;
+  PML4_debug = (uint64_t *) temp;
   t1 = (uint64_t)free_list;
   temp = (uint64_t)t1 + (uint64_t)0xffffffff80000000;
   free_list = (pg_desc_t *) temp;

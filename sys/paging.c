@@ -4,7 +4,7 @@ pg_desc_t *free_list_head;
 extern char kernmem, physbase;
 
 uint64_t get_physical_free_page () {
-  kprintf("Freeing Page\n");
+  //kprintf("Freeing Page\n");
   if(free_list_head == NULL)
     return 0;
   if(free_list_head->is_avail==0) {
@@ -146,17 +146,17 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
 }
 
 void init_self_referencing(uint64_t free_list_end, uint64_t index) {
-  PML4 =(uint64_t *) ((uint64_t)free_list_end);
-  *PML4 = 0;
+  PML4_kern =(uint64_t *) ((uint64_t)free_list_end);
+  *PML4_kern = 0;
   PDTP = (uint64_t *)((uint64_t)free_list_end+(uint64_t)4096);
   PDE = (uint64_t *)((uint64_t)free_list_end+(uint64_t)8192);
   uint64_t temp = (uint64_t)free_list_end+(uint64_t)12288;
   //PTE1 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)12288);
   //uint64_t * PTE2 = (uint64_t *)((uint64_t)free_list_end+(uint64_t)16384);
-  PML4[511] = ((uint64_t)PDTP) |(uint64_t) SUPERVISOR_ONLY;
+  PML4_kern[511] = ((uint64_t)PDTP) |(uint64_t) SUPERVISOR_ONLY;
   PDTP[510] = ((uint64_t)PDE) | (uint64_t) SUPERVISOR_ONLY; 
   for(int i = 0; i < 510; i++) {
-    PML4[i] = 0;
+    PML4_kern[i] = 0;
   }
   //PDE[0] = (uint64_t)PTE1;
   //PDE[index] = (uint64_t)PTE2;
@@ -185,7 +185,7 @@ void map_memory_range(uint64_t start, uint64_t end, uint64_t map_index) {
     PTE[i] = 0;
   }
 }
-uint64_t get_free_page(uint64_t flags) {
+uint64_t get_free_page(uint64_t flags, uint64_t cr3) {
   uint64_t phy_addr = get_physical_free_page();
   uint64_t virt_addr;
   uint64_t x;
@@ -198,7 +198,7 @@ uint64_t get_free_page(uint64_t flags) {
   uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
   uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
   uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
-
+  uint64_t *PML4 =  (uint64_t *)((uint64_t)cr3 +(uint64_t) 0xffffffff80000000);
 //PML4
   uint64_t *PDPTE;
   if(PML4[PMLframe] == 0) {
@@ -270,13 +270,14 @@ uint64_t get_free_page(uint64_t flags) {
   return virt_addr;
 }
 
-void free_page(void *addr) {
+void free_page(void *addr, uint64_t cr3) {
   uint64_t virt_addr = (uint64_t) addr; 
   uint64_t PMLframe = (virt_addr >> 39) & (uint64_t) 0x1ff;
   uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
   uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
   uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
-  uint64_t *PDPTE, *PDE, *PTE;
+  uint64_t *PDPTE, *PDE, *PTE, *PML4;
+  PML4 = (uint64_t *)((uint64_t)cr3 +(uint64_t) 0xffffffff80000000);
   uint64_t x;
   x = (uint64_t)0xffffffff80000000 + (uint64_t) PML4[PMLframe];
   x = x & 0xfffffffffffff000;
@@ -327,7 +328,7 @@ uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
   uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
   uint64_t PTEindex = (virt_addr >> 12) & (uint64_t) 0x1ff;
 
-  PML4 = (uint64_t *)((uint64_t)cr3val +(uint64_t) 0xffffffff80000000);
+  uint64_t *PML4 = (uint64_t *)((uint64_t)cr3val +(uint64_t) 0xffffffff80000000);
 //PML4
   uint64_t *PDPTE;
   if(PML4[PMLframe] == 0) {

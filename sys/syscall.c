@@ -54,7 +54,6 @@ void copy_vma_list(struct vma *parent,struct mm_struct *child) {
 void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
-    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(SUPERVISOR_ONLY) + 4080);
     child_task->pid =  (last_assn_pid+1)%MAX_PROC ;
     last_assn_pid++;
     child_task->state = WAITING;
@@ -64,6 +63,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->mm->stack_begin = parent_task->mm->stack_begin;
     child_task->mm->e_entry = parent_task->mm->e_entry;
     child_task->mm->pg_pml4 = copy_on_write();
+    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(SUPERVISOR_ONLY, child_task->mm->pg_pml4));
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
     // TODO: need to change this circular mapping
