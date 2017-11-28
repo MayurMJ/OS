@@ -124,6 +124,8 @@ Task *loadElf(char *fileName) {
 				new_task->mm->pg_pml4=newcr3;
 				new_task->next = NULL;
 				new_task->prev = NULL;
+				new_task->children = NULL;
+				new_task->sibling = NULL;
 				new_task->regs.cr3 = newcr3;
 				put_page_mapping(USER_ACCESSIBLE,0xc0000000, newcr3);
 				put_page_mapping(USER_ACCESSIBLE,0xc0000000 - 4096, newcr3);

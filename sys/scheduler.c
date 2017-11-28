@@ -20,6 +20,13 @@ void put_in_run_queue(Task *newtask) {
 	last_assn_pid = newtask->pid;
 	return;
 }
+
+void scheduler() {
+	kprintf("Welcome, I'll schedule everything for you.\n");
+	while(1);
+}
+
+
 /*
 uint64_t execve(char *binary, char *argv[], char *envp[]) {
         // returns a new task struct with newcr3

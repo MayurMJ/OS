@@ -67,6 +67,7 @@ void first_kern_thd() {
   //yield();
 }
 
+
 void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rax = 0;
     task->regs.rbx = 0;
@@ -75,8 +76,8 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rsi = 0;
     task->regs.rdi = 0;
     task->regs.rflags = otherTask->regs.rflags;
-    task->regs.rip = (uint64_t) first_kern_thd;
-    //task->regs.cr3 = createTable();
+    task->regs.rip = (uint64_t) main;
+    task->regs.cr3 = otherTask->regs.cr3;
     task->regs.r8 = 0;
     task->regs.r9 = 0;
     task->regs.r10 = 0;
@@ -169,7 +170,28 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   last_assn_pid = 0;
  
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
-  Task *loadedTask = loadElf("bin/init");
+  Task *schedulerTask = (Task *)kmalloc(sizeof(Task));
+
+//populate the main task cr3 and rflags
+        __asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(mainTask->regs.cr3));
+        __asm__ __volatile__("PUSHFQ \n\t"
+                             "movq (%%rsp), %%rax\n\t"
+                             "movq %%rax, %0\n\t"
+                             "POPFQ\n\t"
+                             :"=m"(mainTask->regs.rflags)::"%rax");
+	
+//set up the scheduler
+  setupTask(schedulerTask,init_scheduler,mainTask);
+
+//switch to scheduler initialization and never come back here
+  switchTask(&mainTask->regs, &scheduler->regs);
+ 
+
+
+
+
+ Task *loadedTask = loadElf("bin/init");
   // put in run queue, give it a pid
   put_in_run_queue(loadedTask);
   CURRENT_TASK = mainTask;

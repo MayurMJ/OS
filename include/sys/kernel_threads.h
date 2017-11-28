@@ -35,10 +35,12 @@ typedef struct TASK {
    int pid;
    int ppid;
    uint64_t *kstack;
-   enum { RUNNING, WAITING, SLEEPING, ZOMBIE } state;
+   enum { RUNNING, WAITING, SLEEPING, ZOMBIE, FINISHED } state;
    Registers regs;
    struct TASK *prev;
    struct TASK *next;
+   struct TASK *children;
+   struct TASK *sibling;
    struct mm_struct *mm;
 } Task ;
 

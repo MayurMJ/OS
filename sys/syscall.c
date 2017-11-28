@@ -185,6 +185,12 @@ uint64_t syscall_handler(void)
 		return -1; // if execve returns its an error
 		break;
 	case 60: /* exit- rdi-return value of main*/
+//		if((uint64_t)arg1 == 0) {//main returned 0, normal exit
+//			Task * deleteme = CURRENT_TASK;
+//			
+//		}
+		kprintf("exited with %d\n", (uint64_t)arg1);
+		while(1);
 		break;
 	default:
 		kprintf("Syscall not found \n");

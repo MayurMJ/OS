@@ -5,4 +5,5 @@
 #include <sys/elf64.h>
 #include <sys/paging.h>
 void put_in_run_queue(Task *newtask);
+void init_scheduler();
 #endif
