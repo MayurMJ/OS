@@ -58,7 +58,7 @@ uint64_t stoi(char *s) // the message and then the line #
 }*/
 Task *loadElf(char *fileName) { 
 	struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
-	kprintf("size of header %d",sizeof(struct posix_header_ustar));
+	//kprintf("size of header %d",sizeof(struct posix_header_ustar));
 	while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
 		uint64_t size = octalToDecimal(stoi(header->size));
     		if (size == 0) {

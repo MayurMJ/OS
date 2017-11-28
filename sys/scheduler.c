@@ -29,7 +29,7 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r13 = 0;
     task->regs.r14 = 0;
     task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY)); // since it grows downward
+    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY, task->regs.cr3)); // since it grows downward
 }
 
 void switch_user_mode(uint64_t symbol) {
@@ -109,7 +109,7 @@ void init_scheduler() {
 
 
 void scheduler() {
-	kprintf("Welcome, I'll schedule everything for you.\n");
+	kprintf("Welcome to scheduler, everything will be scheduled tomorrow.\n");
 	init_scheduler();
 	while(1);
 }
