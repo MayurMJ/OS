@@ -35,58 +35,11 @@ void yield() {
     CURRENT_TASK = CURRENT_TASK->next;
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
-void switch_user_mode(uint64_t symbol) {
-        uint64_t oldcr3;
-        __asm__ __volatile__("movq %%cr3, %0\n\t"
-                             :"=a"(oldcr3));
-        kprintf("\ncr3val:%x\n ", oldcr3 ); 
-        __asm__ __volatile__ ( "cli\n\t"
-                        "movq %1, %%rsp\n\t"
-                        "movw $0x23, %%ax\n\t"
-                        "movw %%ax, %%ds\n\t"
-                        "movw %%ax, %%es\n\t"
-                        "movw %%ax, %%fs\n\t"
-                        "movw %%ax, %%gs\n\t"
-                        "movq %%rsp, %%rax\n\t"
-                        "pushq $0x23\n\t"
-                        "pushq %%rax\n\t"
-                        "pushfq\n\t"
-                        "popq %%rax\n\t"
-                        "orq $0x200, %%rax\n\t"
-                        "pushq %%rax\n\t"
-                        "pushq $0x2B\n\t"
-                        "push %0\n\t"
-                        "iretq\n\t"
-                        ::"b"(symbol), "c"(CURRENT_TASK->mm->stack_begin)
-        );
-}
 
 void first_kern_thd() {
   //loadElf("bin/sbush"); 
-  switch_user_mode(CURRENT_TASK->mm->e_entry);
+  //switch_user_mode(CURRENT_TASK->mm->e_entry);
   //yield();
-}
-
-
-void setupTask(Task *task, void (*main)(), Task *otherTask) {
-    task->regs.rax = 0;
-    task->regs.rbx = 0;
-    task->regs.rcx = 0;
-    task->regs.rdx = 0;
-    task->regs.rsi = 0;
-    task->regs.rdi = 0;
-    task->regs.rflags = otherTask->regs.rflags;
-    task->regs.rip = (uint64_t) main;
-    task->regs.cr3 = otherTask->regs.cr3;
-    task->regs.r8 = 0;
-    task->regs.r9 = 0;
-    task->regs.r10 = 0;
-    task->regs.r11 = 0;
-    task->regs.r12 = 0;
-    task->regs.r13 = 0;
-    task->regs.r14 = 0;
-    task->regs.r15 = 0;
-    task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY, task->regs.cr3)); // since it grows downward
 }
 
 void initTasking(Task *mainTask, Task *loadedTask) {
@@ -166,7 +119,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // now switch to new page
   //switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
-  run_queue = NULL;
+//  run_queue = NULL;
   last_assn_pid = 0;
  
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
@@ -182,15 +135,18 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                              :"=m"(mainTask->regs.rflags)::"%rax");
 	
 //set up the scheduler
-  setupTask(schedulerTask,init_scheduler,mainTask);
+  setupTask(schedulerTask,scheduler,mainTask);
+
+//one kinda hacky way for accessing schedulerTask once you switch
+  CURRENT_TASK = schedulerTask;
 
 //switch to scheduler initialization and never come back here
-  switchTask(&mainTask->regs, &scheduler->regs);
+  switchTask(&mainTask->regs, &schedulerTask->regs);
  
 
 
 
-
+// everything below this point is going off!
  Task *loadedTask = loadElf("bin/init");
   // put in run queue, give it a pid
   put_in_run_queue(loadedTask);

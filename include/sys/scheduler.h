@@ -6,4 +6,6 @@
 #include <sys/paging.h>
 void put_in_run_queue(Task *newtask);
 void init_scheduler();
+void scheduler();
+void setupTask(Task *task, void (*main)(), Task *otherTask);
 #endif

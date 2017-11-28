@@ -4,6 +4,7 @@
 // TODO: change this random value assigned for now
 #define MAX_PROC 1000
 
+uint64_t last_assn_pid;
 typedef struct {
     uint64_t rax, rbx, rcx, rdx, rsi, rdi, rsp, rbp, rip;
     uint64_t r8, r9, r10, r11, r12, r13, r14, r15;
@@ -45,8 +46,6 @@ typedef struct TASK {
 } Task ;
 
 Task *CURRENT_TASK;
-uint64_t last_assn_pid;
-Task *run_queue;;
 extern void switchTask(Registers *oldregs, Registers *newregs); 
 extern void switchTaskUser(Registers *oldregs, Registers *newregs); 
 extern void saveState(Registers *oldregs, uint64_t rsp); 
