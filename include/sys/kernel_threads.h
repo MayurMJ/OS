@@ -30,6 +30,7 @@ struct vma {
     uint64_t *vma_end;
     uint64_t *vma_file_ptr;
     uint64_t vma_file_offset;
+    uint64_t vma_mem_size;
     uint64_t vma_flags;
     uint64_t vma_size;
     struct vma *vma_prev;

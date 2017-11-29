@@ -65,6 +65,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 		uint64_t cr3val = (uint64_t)(curr_mm->pg_pml4);
 		uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
 		if(errcode & (uint64_t)0x2) {
+			kprintf("%d",CURRENT_TASK->pid);
 			// walk PML4 get the physical adress
 			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
 			uint64_t temp = source;
@@ -82,7 +83,9 @@ void generic_irqhandler_err14(uint64_t errcode)
 		else {	
 			put_page_mapping(USER_ACCESSIBLE,aligned_page_fault_addr,cr3val);
 			uint64_t source = (uint64_t)(target_vma->vma_file_ptr)+target_vma->vma_file_offset;
-			kmemcpy((char *)aligned_page_fault_addr,(char *)source,4096);
+			//TODO: Calculate this aligned_page_fault_addr from offset
+			kmemcpy((char *)aligned_page_fault_addr,(char *)source, target_vma->vma_size);
+			memset((char *)aligned_page_fault_addr + target_vma->vma_size, 0, target_vma->vma_size - target_vma->vma_mem_size );
 			target_vma->vma_file_offset = target_vma->vma_file_offset + 4096;
 		}
     }

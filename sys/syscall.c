@@ -207,7 +207,6 @@ uint64_t syscall_handler(void)
                         	    :);
  	
 		uint64_t ret = fork_handler(reg);
-		kprintf("rsp value %x\n",rsp);
 		return ret;
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/

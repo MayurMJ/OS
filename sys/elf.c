@@ -121,6 +121,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 						// GSAHA: added to test page fault handle
 						vm->vma_file_offset = 0;
 						vm->vma_size = proghdr[i].p_filesz;
+						vm->vma_mem_size = proghdr[i].p_memsz;
 						vm->vma_flags = proghdr[i].p_flags;
 						vm->vma_next = NULL;
 						if(new_task->mm->vm_begin == NULL) {
