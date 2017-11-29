@@ -9,8 +9,9 @@
 #include <sys/string.h>
 #include <sys/copy_tables.h>
 #include <sys/scheduler.h>
+#include <sys/utils.h>
 // TODO: change this function
-uint64_t power (uint64_t x, int e) {
+/*uint64_t power (uint64_t x, int e) {
     if (e == 0) return 1;
     return x * power(x, e-1);
 }
@@ -34,7 +35,7 @@ uint64_t stoi(char *s) // the message and then the line #
         s++;
     }
     return i;
-}
+}*/
 // GSAHA: added to test page fault handler
 /*void switch_user_mode(uint64_t symbol) {
         __asm__ __volatile__ ( "cli\n\t"
@@ -120,6 +121,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 			header++;
 		}
 		else {
+			kprintf("\nFileName: %s\n", header->name);
 			Elf64_Ehdr *elfhdr = (Elf64_Ehdr *) (header+1);
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
 			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {

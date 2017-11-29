@@ -8,6 +8,7 @@
 #include <sys/paging.h>
 #include <sys/kmemcpy.h>
 #include <sys/scheduler.h>
+#include <sys/initfs.h>
 static Task *run_queue;;
 static Task *queue_head;;
 static Task *schedulerTask;
@@ -83,6 +84,7 @@ void schedule(){
 
 }
 void idle_task() {
+	parse_elf("root");
 	while(1) {
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
