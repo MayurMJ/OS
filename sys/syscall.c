@@ -183,7 +183,7 @@ uint64_t syscall_handler(void)
 		kprintf("Hi from sbush\n");
 		break;
 	case 11:
-    	        kprintf("I'm in child process %d\n",CURRENT_TASK->pid);
+    	        kprintf("I'm in child process %d with arc %d\n",CURRENT_TASK->pid, arg1);
 		schedule();
 		break;
 	case 24:

@@ -57,8 +57,9 @@ uint64_t stoi(char *s) // the message and then the line #
         );
 }*/
 
-int prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
+uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 	uint64_t *save_tos = tos;
+	kprintf("binary %s - bfr tos val %p\n",filename,save_tos);
 	int argc = 1; //filename comes first	
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
@@ -84,7 +85,8 @@ int prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 	*tos = (uint64_t)filename;
 	tos--;
 	*tos = argc;
-	return (save_tos - tos);
+	kprintf("binary %s - aftr tos val %p\n",filename,tos);
+	return (uint64_t)tos;
 }
 
 Task *loadElf(char *fileName, char *argv[], char *envp[]) { 
@@ -162,8 +164,9 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				put_page_mapping(USER_ACCESSIBLE,USER_STACK - 4096, newcr3);
 				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
 				// prep stack
-				int offset_tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
-				new_task->mm->stack_begin -= offset_tos;
+				uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
+				kprintf("tos val %x\n",tos);
+				new_task->mm->stack_begin = tos;
 				// Allocating a dummy file obj for stdin so its not null
 				new_task->file_desc[0] = kmalloc(sizeof(struct FILE_OBJ));
 				/*

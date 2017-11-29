@@ -45,12 +45,11 @@ int main(int argc, char *argv[], char *envp[]) {
 //	fork();
 	int n;
 //	if (result == 0) {
-
-		while(1) {
+	if (argc == 3) {		
 	                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                               :"=a" (n)
-                              : "0"(11));
-			}
+                              : "0"(11), "D"(argc));
+	}
 		//char *binary = "bin/sbush";
 		//execve(binary, NULL, NULL);
 //		return 100;
