@@ -23,41 +23,12 @@ extern char kernmem, physbase;
 //pg_desc_t *free_list_head;
 
 //Task *runningTask;
-/*
-void user_mode() {
-	__asm__("int $0x80\n\t");
-	//kprintf("hi\n");
-	while(1);
-}
-
-void yield() {
-    Task *last = CURRENT_TASK;
-    CURRENT_TASK = CURRENT_TASK->next;
-    switchTask(&last->regs, &CURRENT_TASK->regs);
-}
-*/
 void first_kern_thd() {
   //loadElf("bin/sbush"); 
   //switch_user_mode(CURRENT_TASK->mm->e_entry);
   //yield();
 }
 
-void initTasking(Task *mainTask, Task *loadedTask) {
-	__asm__ __volatile__("movq %%cr3, %0\n\t"
-                    	     :"=a"(mainTask->regs.cr3));
-	__asm__ __volatile__("PUSHFQ \n\t"
-			     "movq (%%rsp), %%rax\n\t"
-			     "movq %%rax, %0\n\t"
-			     "POPFQ\n\t"
-			     :"=m"(mainTask->regs.rflags)::"%rax");
-	
-	setupTask(loadedTask, first_kern_thd, mainTask);
-    	mainTask->next = loadedTask;
-	loadedTask->prev = mainTask;
-    	//loadedTask->next = mainTask;
- 	// need to not keep main task in the running
-    	// CURRENT_TASK = mainTask;
-}
 
 void start(uint32_t *modulep, void *physbase, void *physfree)
 {
@@ -113,11 +84,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   init_idt();
   //program_pic();
   set_tss_rsp((void *)((uint64_t)kstack));
-  // find a page and copy the function to it
-  //uint64_t *user_user_mode = (uint64_t *)get_free_page(7);
-  //memcpy((char *)user_user_mode, (char *)&user_mode, 8192);
-  // now switch to new page
-  //switch_user_mode((uint64_t)&user_mode);
   // ------------------------------------------------
 //  run_queue = NULL;
   last_assn_pid = 0;
@@ -142,26 +108,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
 //switch to scheduler initialization and never come back here
   switchTask(&mainTask->regs, &schedulerTask->regs);
- 
 
-
-
-// everything below this point is going off!
- Task *loadedTask = loadElf("bin/init");
-  // put in run queue, give it a pid
-  put_in_run_queue(loadedTask);
-  CURRENT_TASK = mainTask;
-
-  initTasking(mainTask, loadedTask);
-  kprintf("Trying multitasking from main\n");
-  //yield();
-  kprintf("back in main for the last time\n");
-  // ------------------------------------------------
-  //__asm__ __volatile("sti");
-  //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
-  //hba_port_t* port = enumerate_pci();
-  //if (port == NULL) kprintf("nothing found\n");
-  //while(1); // if start ever return we should find out
 }
 
 void boot(void)
