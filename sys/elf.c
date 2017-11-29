@@ -56,7 +56,38 @@ uint64_t stoi(char *s) // the message and then the line #
                         ::"b"(symbol)
         );
 }*/
-Task *loadElf(char *fileName) { 
+
+int prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
+	uint64_t *save_tos = tos;
+	int argc = 1; //filename comes first	
+	if (argv != NULL) {
+		while (argv[argc-1] != NULL) {
+			argc++;
+		}		
+	}
+	int envp_count = 0;
+	if (envp != NULL) {
+                while (envp[envp_count] != NULL) {
+                        envp_count++;
+                }
+        }
+	*tos = '\0'; tos--;
+	for (int x=(envp_count-1); x >= 0 ; x--) {
+		*tos = (uint64_t)envp[x];
+		tos--;
+	}
+	*tos = '\0'; tos--;
+	for (int x= (argc-2); x >= 0; x--) {
+		*tos = (uint64_t)argv[x];
+		tos--;
+	}
+	*tos = (uint64_t)filename;
+	tos--;
+	*tos = argc;
+	return (save_tos - tos);
+}
+
+Task *loadElf(char *fileName, char *argv[], char *envp[]) { 
 	struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
 	//kprintf("size of header %d",sizeof(struct posix_header_ustar));
 	while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
@@ -130,6 +161,9 @@ Task *loadElf(char *fileName) {
 				put_page_mapping(USER_ACCESSIBLE,USER_STACK, newcr3);
 				put_page_mapping(USER_ACCESSIBLE,USER_STACK - 4096, newcr3);
 				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
+				// prep stack
+				int offset_tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
+				new_task->mm->stack_begin -= offset_tos;
 				// Allocating a dummy file obj for stdin so its not null
 				new_task->file_desc[0] = kmalloc(sizeof(struct FILE_OBJ));
 				/*

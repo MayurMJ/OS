@@ -146,6 +146,7 @@ uint64_t syscall_handler(void)
     kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
 	case 0:; /* read syscall-arg1-file desc, arg2-buffer to copy to, arg3-number of chars to copy or till \n*/
+		/*
 		if (fd == 0) {
 			while (1) {
 				if (FG_TASK != NULL) {
@@ -173,6 +174,7 @@ uint64_t syscall_handler(void)
 			FG_TASK = NULL;
 			return chars_read;
 		}
+		*/
 		break;
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
@@ -211,7 +213,10 @@ uint64_t syscall_handler(void)
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
 		//kprintf("%d %d\n",arg2, arg3);	
 		//kprintf("%s\n",arg1);
-		Task *replacement_task = loadElf((char *)arg1);
+		char **argv; char **envp;
+		argv = (char **)arg2;
+		envp = (char **)arg3;
+		Task *replacement_task = loadElf((char *)arg1, argv, envp);
 		replacement_task->regs.rax = 0;
     		replacement_task->regs.rbx = 0;
     		replacement_task->regs.rcx = 0;

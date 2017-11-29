@@ -43,5 +43,5 @@ typedef struct {
   Elf64_Xword   p_memsz;
   Elf64_Xword   p_align;
 } Elf64_Phdr;
-Task* loadElf(char *fileName);
+Task* loadElf(char *fileName, char *argv[], char *envp[]);
 #endif

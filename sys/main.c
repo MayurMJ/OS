@@ -110,6 +110,29 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
 //switch to scheduler initialization and never come back here
   switchTask(&mainTask->regs, &schedulerTask->regs);
+<<<<<<< 1513d9f70b1cfc5612f7e27f3bcc027aeea39507
+=======
+ 
+
+
+
+// everything below this point is going off!
+  Task *loadedTask = loadElf("bin/init", NULL, NULL);
+  // put in run queue, give it a pid
+  put_in_run_queue(loadedTask);
+  CURRENT_TASK = mainTask;
+  
+  initTasking(mainTask, loadedTask);
+  kprintf("Trying multitasking from main\n");
+  yield();
+  kprintf("back in main for the last time\n");
+  // ------------------------------------------------
+  //__asm__ __volatile("sti");
+  //kprintf("physfree %p physbase %p\n", (uint64_t)physfree, (uint64_t)physbase);
+  //hba_port_t* port = enumerate_pci();
+  //if (port == NULL) kprintf("nothing found\n");
+  //while(1); // if start ever return we should find out
+>>>>>>> trying to pass arguments to main
 }
 
 void boot(void)

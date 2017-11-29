@@ -113,7 +113,7 @@ void init_scheduler() {
 	queue_head = idleTask;
 	run_queue->next = queue_head;
 	
-	Task *binInit = loadElf("bin/init");
+	Task *binInit = loadElf("bin/init", NULL, NULL);
 	if(binInit == NULL) {
 		kprintf("Could not find the file to load from elf!\n");
 		//kernel panic should happen
