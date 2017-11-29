@@ -29,13 +29,13 @@ void user_mode() {
 	//kprintf("hi\n");
 	while(1);
 }
-*/
+
 void yield() {
     Task *last = CURRENT_TASK;
     CURRENT_TASK = CURRENT_TASK->next;
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
-
+*/
 void first_kern_thd() {
   //loadElf("bin/sbush"); 
   //switch_user_mode(CURRENT_TASK->mm->e_entry);
@@ -154,7 +154,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 
   initTasking(mainTask, loadedTask);
   kprintf("Trying multitasking from main\n");
-  yield();
+  //yield();
   kprintf("back in main for the last time\n");
   // ------------------------------------------------
   //__asm__ __volatile("sti");

@@ -7,5 +7,6 @@
 void put_in_run_queue(Task *newtask);
 void init_scheduler();
 void scheduler();
+void schedule();
 void setupTask(Task *task, void (*main)(), Task *otherTask);
 #endif

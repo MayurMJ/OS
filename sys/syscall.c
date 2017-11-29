@@ -5,6 +5,7 @@
 #include <sys/kernel_threads.h>
 #include <sys/copy_tables.h>
 #include <sys/elf64.h>
+#include <sys/scheduler.h>
 
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
@@ -119,6 +120,7 @@ uint64_t syscall_handler(void)
 		break;
 	case 11:
     	        kprintf("I'm in child process %d\n",CURRENT_TASK->pid);
+		schedule();
 		break;
 	case 24:
 	        return	yyield();

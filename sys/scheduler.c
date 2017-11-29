@@ -67,23 +67,35 @@ void put_in_run_queue(Task *newtask) {
 	return;
 }
 
+
+void yield() {
+    Task *last = CURRENT_TASK;
+    CURRENT_TASK = run_queue;
+    run_queue = run_queue->next;
+    switchTask(&last->regs, &CURRENT_TASK->regs);
+}
+
+
 void schedule(){
 //	Task * curr = CURRENT_TASK;
 //	Task * next = run_queue;
-	
+	yield();	
 
 }
 void idle_task() {
-	kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 	while(1) {
+		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
+		__asm__ __volatile__ ( "sti\n\t");
 		__asm__ __volatile__("hlt\n\t");
 	}
 }
 
 void bin_init_user() {
-	kprintf("bin init kernel thread\n");
-//	while(1);
+//	while(1){
+		kprintf("bin init kernel thread\n");
+//		schedule();
+//	}
 	switch_user_mode(CURRENT_TASK->mm->e_entry);	
 }
 
@@ -116,6 +128,7 @@ void scheduler() {
 	kprintf("Welcome to scheduler, everything will be scheduled tomorrow.\n");
 	init_scheduler();
 	CURRENT_TASK = run_queue;
+	run_queue = run_queue->next;
 	switchTask(&schedulerTask->regs, &CURRENT_TASK->regs);		
 	while(1);
 }
