@@ -9,6 +9,7 @@
 #include <sys/kmemcpy.h>
 #include <sys/scheduler.h>
 static Task *run_queue;;
+static Task *queue_head;;
 static Task *schedulerTask;
 
 void setupTask(Task *task, void (*main)(), Task *otherTask) {
@@ -30,6 +31,7 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.r14 = 0;
     task->regs.r15 = 0;
     task->regs.rsp = (uint64_t) (4088 + get_free_page(SUPERVISOR_ONLY, task->regs.cr3)); // since it grows downward
+    task->kstack = (uint64_t *)task->regs.rsp;//(4088 + get_free_page(SUPERVISOR_ONLY, task->regs.cr3)); // since it grows downward
 }
 
 void switch_user_mode(uint64_t symbol) {
@@ -59,17 +61,12 @@ void switch_user_mode(uint64_t symbol) {
 }
 
 void put_in_run_queue(Task *newtask) {
-	if (run_queue == NULL)
-		run_queue = newtask;
-	else {
-		newtask->next = run_queue;
-		run_queue->prev = newtask;
-                run_queue = newtask;
-	}
-	newtask->pid = (last_assn_pid+1)%MAX_PROC;
-	last_assn_pid = newtask->pid;
+	run_queue->next = newtask;
+	newtask->next = queue_head;
+	run_queue = newtask;
 	return;
 }
+
 void schedule(){
 //	Task * curr = CURRENT_TASK;
 //	Task * next = run_queue;
@@ -77,7 +74,7 @@ void schedule(){
 
 }
 void idle_task() {
-	kprintf("In the idle task, will stay here forever unless preempted\n");
+	kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 	while(1) {
 		schedule();
 		__asm__ __volatile__("hlt\n\t");
@@ -85,6 +82,8 @@ void idle_task() {
 }
 
 void bin_init_user() {
+	kprintf("bin init kernel thread\n");
+//	while(1);
 	switch_user_mode(CURRENT_TASK->mm->e_entry);	
 }
 
@@ -95,15 +94,20 @@ void init_scheduler() {
 
 	Task *idleTask = (Task *)kmalloc(sizeof(Task));
 	setupTask(idleTask,idle_task,schedulerTask);
-	put_in_run_queue(idleTask);
-
-	CURRENT_TASK = idleTask;
+	idleTask->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = idleTask->pid;
+	//put_in_run_queue(idleTask);
+	run_queue = idleTask;
+	queue_head = idleTask;
+	run_queue->next = queue_head;
+	
 	Task *binInit = loadElf("bin/init");
 	if(binInit == NULL) {
 		kprintf("Could not find the file to load from elf!\n");
 		//kernel panic should happen
 	}
 	setupTask(binInit,bin_init_user,idleTask);
+	binInit->regs.cr3 = binInit->mm->pg_pml4;
 	put_in_run_queue(binInit);
 }
 
@@ -111,6 +115,8 @@ void init_scheduler() {
 void scheduler() {
 	kprintf("Welcome to scheduler, everything will be scheduled tomorrow.\n");
 	init_scheduler();
+	CURRENT_TASK = run_queue;
+	switchTask(&schedulerTask->regs, &CURRENT_TASK->regs);		
 	while(1);
 }
 
