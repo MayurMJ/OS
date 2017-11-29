@@ -65,18 +65,24 @@ int strlen(char *s) {
 	return (len+1); // includes NULL char at the end
 }
 uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
-	kprintf("binary %s - bfr tos val %p\n",filename,tos);	
-
 	int argc = 1, len; //filename comes first	
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
 			len = strlen(argv[argc-1]);
 			tos -= len;
 			kmemcpy((char *)tos,argv[argc-1],len);
+			//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
 			argv[argc-1] = (char *)tos;
+			//kprintf("copied ptr %p\n",argv[argc-1]);
 			argc++;
 		}		
 	}
+	len = strlen(filename);
+	tos -= len;
+	kmemcpy((char *)tos,filename,len);
+	char *fptr = (char *)tos;	
+	//kprintf("fname ptr %p content %s\n",fptr,fptr);
+
 	int envp_count = 0;
 	if (envp != NULL) {
                 while (envp[envp_count] != NULL) {
@@ -87,6 +93,7 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
                         envp_count++;
                 }
         }
+	tos--;
 	*tos = '\0'; tos--;
 	for (int x=(envp_count-1); x >= 0 ; x--) {
 		*tos = (uint64_t)envp[x];
@@ -97,10 +104,10 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 		*tos = (uint64_t)argv[x];
 		tos--;
 	}
-	*tos = (uint64_t)filename;
+	*tos = (uint64_t)fptr;
 	tos--;
 	*tos = argc;
-	kprintf("binary %s - aftr tos val %p\n",filename,tos);
+	//kprintf("%x %x %x %x\n",*tos,*(tos+1),*(tos+2),*(tos+3));
 	return (uint64_t)tos;
 }
 
@@ -181,7 +188,6 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
 				// prep stack
 				uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
-				kprintf("tos val %x\n",tos);
 				new_task->mm->stack_begin = tos;
 				// Allocating a dummy file obj for stdin so its not null
 				new_task->file_desc[0] = kmalloc(sizeof(struct FILE_OBJ));
