@@ -42,10 +42,11 @@ int main(int argc, char *argv[], char *envp[]) {
                                : "0"(yield));
 	}
 */
-	if (argc == 3) {		
+//	int result  = fork();
+//	fork();
+//	if (result == 0) {
 	                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                               :"=a" (n)
-                              : "0"(11), "D"(argc));
-	}
+                              : "0"(x), "D"(argc));
 	while(1); //no need to return from bin/init
 }

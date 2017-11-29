@@ -57,18 +57,33 @@ uint64_t stoi(char *s) // the message and then the line #
         );
 }*/
 
+int strlen(char *s) {
+	int len = 0;
+	while(s[len] != '\0') {
+		len++;
+	}
+	return (len+1); // includes NULL char at the end
+}
 uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
-	uint64_t *save_tos = tos;
-	kprintf("binary %s - bfr tos val %p\n",filename,save_tos);
-	int argc = 1; //filename comes first	
+	kprintf("binary %s - bfr tos val %p\n",filename,tos);	
+
+	int argc = 1, len; //filename comes first	
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
+			len = strlen(argv[argc-1]);
+			tos -= len;
+			kmemcpy((char *)tos,argv[argc-1],len);
+			argv[argc-1] = (char *)tos;
 			argc++;
 		}		
 	}
 	int envp_count = 0;
 	if (envp != NULL) {
                 while (envp[envp_count] != NULL) {
+			len = strlen(envp[envp_count]);
+                        tos -= len;
+                        kmemcpy((char *)tos,envp[envp_count],len);
+                        envp[envp_count] = (char *)tos;
                         envp_count++;
                 }
         }
