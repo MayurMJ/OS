@@ -1,4 +1,5 @@
 #define MAXLEN 100
+#include <sys/kmalloc.h>
 static char* iterator;
 void kstrcpy(char *s1, char*s2) {
   while(*s2) {
@@ -23,7 +24,7 @@ int kstrcat(char *s1, const char *s2) {
 }
 
 char *kstrtok(char *s, char tok) {
-  char *ret = (char *)malloc(sizeof(char) * MAXLEN);
+  char *ret = (char *)kmalloc(sizeof(char) * MAXLEN);
   int i = 0;
   if(s != NULL) {
     iterator = s;
@@ -38,4 +39,3 @@ char *kstrtok(char *s, char tok) {
   }
   return ret;
 }
-
