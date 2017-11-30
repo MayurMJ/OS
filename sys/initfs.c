@@ -29,17 +29,25 @@ void make_dentry(dentry *parent, dentry *child, char* name, uint64_t begin, uint
 
 }
 
+void populate_dentry(char *name, int type, uint64_t start, uint64_t end) {
+	
+}
 void parse_tarfs() {
         struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
         while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
                 uint64_t size = octalToDecimal(stoi(header->size));
+		if(header->name[0] == 0) break;
+		if (kstrcmp(header->typeflag, "5") == 0) {
+			populate_dentry(header->name, DIRECTORY, 0, 2); 
+		} else {
+			populate_dentry(header->name, FILE, (uint64_t)(header + 1), (uint64_t)((void *)header + 512 + size));
+		}
                 if (size == 0) {
-                        kprintf("\nFileName: %s\n", header->name);
-                        if(header->name[0] == 0) break; 
+                        //kprintf("\nFileName: %s\n", header->name);
 			header++;
                 }
                 else {
-                        kprintf("\nFileName: %s\n", header->name);
+                        //kprintf("\nFileName: %s\n", header->name);
 			size = (size%512==0) ? size +512: size + 512 + (512-size%512);
 			header = (struct posix_header_ustar *) (((uint64_t)(header)) + size);
 		}
