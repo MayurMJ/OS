@@ -61,11 +61,23 @@ void switch_user_mode(uint64_t symbol) {
         );
 }
 
-void put_in_run_queue(Task *newtask) {
-	run_queue->next = newtask;
-	newtask->next = queue_head;
-	run_queue = newtask;
+void put_in_run_queue(Task *newTask) {
+	run_queue->next = newTask;
+	newTask->next = queue_head;
+	run_queue = newTask;
 	return;
+}
+
+void remove_from_run_queue(Task * removeTask) {
+	Task * temp = queue_head;
+	while(temp->next!=removeTask || temp->next == queue_head) {
+		temp = temp->next;
+	}
+	if(temp == queue_head) {
+		kprintf("task not in the run_queue\n, delete error!!!!!!\n");
+	}
+	temp->next = removeTask->next;
+	//TODO:kfree the removeTask
 }
 
 
@@ -87,8 +99,8 @@ void idle_task() {
 	while(1) {
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
-		__asm__ __volatile__ ( "sti\n\t");
-		__asm__ __volatile__("hlt\n\t");
+	//	__asm__ __volatile__ ( "sti\n\t");
+	//	__asm__ __volatile__("hlt\n\t");
 	}
 }
 

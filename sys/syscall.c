@@ -257,7 +257,8 @@ uint64_t syscall_handler(void)
 //			
 //		}
 		kprintf("exited with %d\n", (uint64_t)arg1);
-		while(1);
+		remove_from_run_queue(CURRENT_TASK);
+		schedule();
 		break;
 	default:
 		kprintf("Syscall not found \n");

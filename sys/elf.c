@@ -126,6 +126,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
 			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {
 				Task *new_task = (Task*) kmalloc(sizeof(Task));
+				new_task->pid = (last_assn_pid+1)%MAX_PROC;
+				last_assn_pid = new_task->pid;
 				new_task->mm = (struct mm_struct *) kmalloc((sizeof(struct mm_struct)));
 				new_task->mm->vm_begin = NULL;
 				uint8_t *data = (uint8_t *)(header+1);
