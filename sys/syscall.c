@@ -24,7 +24,7 @@ void save_state(Task *child, uint64_t rsp) {
 	}
 	child->regs.rax = 0;
 	child->regs.rip = stack[0];
-	child->regs.rsp = (uint64_t)child->kstack + 1;
+	child->regs.rsp = (uint64_t)child->kstack ;
 }
 
 uint64_t yyield() {
@@ -148,7 +148,7 @@ uint64_t syscall_handler(void)
     __asm__ __volatile__("movq %%rbx, %0\n\t"
                         :"=b" (rsp)
                         :);
-    rsp += 8;
+    rsp -= 8;
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
