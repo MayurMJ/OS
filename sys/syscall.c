@@ -81,11 +81,10 @@ void copy_to_child(Task *parent_task, Task *child_task) {
 }
 
 //#include <sys/ahci.h>
-uint64_t fork_handler(Registers *reg) {
-    Task * child_task = (Task *) kmalloc(sizeof(Task));
+uint64_t fork_handler(Task * child_task) {
     Task * parent_task = CURRENT_TASK;
 
-    child_task->regs = *reg;
+//    child_task->regs = *reg;
     copy_to_child(parent_task,child_task);
     return child_task->pid;
     //TODO To be continued ....
@@ -191,9 +190,9 @@ uint64_t syscall_handler(void)
 		break;
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
-                Registers *reg = (Registers*) kmalloc(sizeof(Registers));
-	        saveState(reg, rsp);
-                __asm__ __volatile__("movq %%ds, %0\n\t"
+    		Task * child_task = (Task *) kmalloc(sizeof(Task));
+                Registers *reg = (Registers *)&child_task->regs;
+		__asm__ __volatile__("movq %%ds, %0\n\t"
                       		    :"=a" (reg->ds)
                         	    :);
                 __asm__ __volatile__("movq %%es, %0\n\t"
@@ -205,8 +204,10 @@ uint64_t syscall_handler(void)
                 __asm__ __volatile__("movq %%gs, %0\n\t"
                       		    :"=a" (reg->gs)
                         	    :);
- 	
-		uint64_t ret = fork_handler(reg);
+	
+		uint64_t ret = fork_handler(child_task);
+		kprintf("rsp value %x\n",rsp);
+	        saveState(reg);
 		return ret;
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/

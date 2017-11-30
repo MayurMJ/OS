@@ -61,7 +61,7 @@ typedef struct TASK {
 Task *CURRENT_TASK;
 extern void switchTask(Registers *oldregs, Registers *newregs); 
 extern void switchTaskUser(Registers *oldregs, Registers *newregs); 
-extern void saveState(Registers *oldregs, uint64_t rsp); 
+extern void saveState(Registers *oldregs); 
 Task *FG_TASK;
 
 uint64_t TERMINAL_BUFFER;
