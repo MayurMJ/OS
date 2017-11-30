@@ -10,8 +10,8 @@ int getsysid() {
 }
 int result;
 int main(int argc, char *argv[], char *envp[]) {
-/*	int result  = 1;
-	int yield = 24;
+	int result  = 1;
+	//int yield = 24;
 	int n;
 	//fork();
 	result = fork();
@@ -20,15 +20,14 @@ int main(int argc, char *argv[], char *envp[]) {
 		
 	int yield;
 	yield = 24;
-	for(int i =0; i <5; i++) {
+	//for(int i =0; i <5; i++) {
  	        __asm__ __volatile__("int $0x80\n\t"	//a sycall that simply prints I'm in child
                               :"=a" (n)
                               : "0"(11));
- 		yield = getsysid();
  		        __asm__ __volatile__("int $0x80\n\t"
                                :"=a" (result)
                                : "0"(yield));
-	}
+	//}
 	} 
 	else {
 		int yield;
@@ -40,12 +39,11 @@ int main(int argc, char *argv[], char *envp[]) {
                                :"=a" (result)
                                : "0"(yield));
 	}
-*/
 //	int result  = fork();
 //	fork();
 //	if (result == 0) {
 //	int n;
-		    uint64_t syscallno = 57;
+   /* uint64_t syscallno = 57;
     uint64_t result = 1;
     __asm__ __volatile__("int $0x80\n\t"
                              :"=a" (result)
@@ -88,7 +86,7 @@ int main(int argc, char *argv[], char *envp[]) {
 	__asm__ __volatile__("int $0x80\n\t"
 			     :"=a" (ret)
 			     : "0"(yieldsyscall));
-//	return 10;
-	while(1); //no need to return from bin/init
+//	return 10;*/
+	//while(1); //no need to return from bin/init
 	return 0;
 }

@@ -14,6 +14,19 @@ void * syscall_tbl[NUM_SYSCALLS] =
 	opendir,
 }
 */
+
+void save_state(Task *child, uint64_t rsp) {
+	
+	uint64_t *stack = (uint64_t*) rsp;
+	child->kstack -= 19;
+	for(int i = 0; i < 20; ++i) {
+		child->kstack[i] = stack[i+1];
+	}
+	child->regs.rax = 0;
+	child->regs.rip = stack[0];
+	child->regs.rsp = (uint64_t)child->kstack + 1;
+}
+
 uint64_t yyield() {
     Task *last = CURRENT_TASK;
     CURRENT_TASK = CURRENT_TASK->next;
@@ -135,6 +148,7 @@ uint64_t syscall_handler(void)
     __asm__ __volatile__("movq %%rbx, %0\n\t"
                         :"=b" (rsp)
                         :);
+    rsp += 8;
     uint64_t syscall_number=0;
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
@@ -189,23 +203,24 @@ uint64_t syscall_handler(void)
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
     		Task * child_task = (Task *) kmalloc(sizeof(Task));
-                Registers *reg = (Registers *)&child_task->regs;
+                //Registers *reg = (Registers *)&child_task->regs;
 		__asm__ __volatile__("movq %%ds, %0\n\t"
-                      		    :"=a" (reg->ds)
+                      		    :"=a" (child_task->regs.ds)
                         	    :);
                 __asm__ __volatile__("movq %%es, %0\n\t"
-                      		    :"=a" (reg->es)
+                      		    :"=a" (child_task->regs.es)
                         	    :);
                 __asm__ __volatile__("movq %%fs, %0\n\t"
-                      		    :"=a" (reg->fs)
+                      		    :"=a" (child_task->regs.fs)
                         	    :);
                 __asm__ __volatile__("movq %%gs, %0\n\t"
-                      		    :"=a" (reg->gs)
+                      		    :"=a" (child_task->regs.gs)
                         	    :);
 	
 		kprintf("rsp value %x\n",rsp);
 		uint64_t ret = fork_handler(child_task);
-	        saveState(reg);
+		save_state(child_task, rsp);
+	        //saveState(reg);
 		return ret;
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/

@@ -3,7 +3,6 @@
  
 syscall:
     cli
-    pushq    %rbx  # Hack to ignore rax
     pushq    %rbx
     pushq    %rcx
     pushq    %rdx
@@ -33,7 +32,6 @@ syscall:
     popq    %r8
     popq    %rdx
     popq    %rcx
-    popq    %rbx
     popq    %rbx
     sti
     iretq
