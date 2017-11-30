@@ -84,7 +84,6 @@ void schedule(){
 
 }
 void idle_task() {
-	parse_elf("root");
 	while(1) {
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
