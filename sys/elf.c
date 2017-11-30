@@ -10,6 +10,7 @@
 #include <sys/copy_tables.h>
 #include <sys/scheduler.h>
 #include <sys/utils.h>
+#include <sys/kstring.h>
 // TODO: change this function
 /*uint64_t power (uint64_t x, int e) {
     if (e == 0) return 1;
@@ -124,7 +125,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 			kprintf("\nFileName: %s\n", header->name);
 			Elf64_Ehdr *elfhdr = (Elf64_Ehdr *) (header+1);
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
-			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!strcmp(header->name,fileName))) {
+			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!kstrcmp(header->name,fileName))) {
 				Task *new_task = (Task*) kmalloc(sizeof(Task));
 				new_task->pid = (last_assn_pid+1)%MAX_PROC;
 				last_assn_pid = new_task->pid;
