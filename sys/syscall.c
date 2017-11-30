@@ -73,10 +73,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
     // TODO: need to change this circular mapping
-    child_task->next = parent_task;
-    child_task->prev = parent_task;
-    parent_task->next = child_task;
-    parent_task->prev = child_task;
+     put_in_run_queue(child_task);
 
 }
 
@@ -186,7 +183,8 @@ uint64_t syscall_handler(void)
 		schedule();
 		break;
 	case 24:
-	        return	yyield();
+	        schedule();
+		return 1000;
 		break;
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
@@ -205,8 +203,8 @@ uint64_t syscall_handler(void)
                       		    :"=a" (reg->gs)
                         	    :);
 	
-		uint64_t ret = fork_handler(child_task);
 		kprintf("rsp value %x\n",rsp);
+		uint64_t ret = fork_handler(child_task);
 	        saveState(reg);
 		return ret;
 		break;

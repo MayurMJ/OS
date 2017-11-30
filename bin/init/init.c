@@ -45,18 +45,29 @@ int main(int argc, char *argv[], char *envp[]) {
 //	fork();
 //	if (result == 0) {
 	int n;
-	            __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
-                              :"=a" (n)
-                              : "0"(11), "D"(argc));
+		    uint64_t syscallno = 57;
+    uint64_t result = 1;
+    __asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(syscallno));
 		//char *binary = "bin/sbush";
 		//execve(binary, NULL, NULL);
 //		return 100;
 //	}
-//	uint64_t yieldsyscall = 24;
-//	uint64_t ret;
-//	__asm__ __volatile__("int $0x80\n\t"
-//			     :"=a" (ret)
-//			     : "0"(yieldsyscall));
+		              __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
+                              :"=a" (n)
+                              : "0"(result));
+	uint64_t yieldsyscall = 24;
+	uint64_t ret;
+	__asm__ __volatile__("int $0x80\n\t"
+			     :"=a" (ret)
+			     : "0"(yieldsyscall));
+	__asm__ __volatile__("int $0x80\n\t"
+			     :"=a" (ret)
+			     : "0"(result));
+	__asm__ __volatile__("int $0x80\n\t"
+			     :"=a" (ret)
+			     : "0"(yieldsyscall));
 //	return 10;
 	while(1); //no need to return from bin/init
 }

@@ -22,7 +22,6 @@ saveState:
         pushfq
         movq    %cr3, %rax
         pushq   %rax # pushing stuff is over
-        pushq   %rax # pushing stuff is over
         movq    %rdi, %rax # from is copied to rax
         movq    %rbx, 8(%rax)
         movq    %rcx, 16(%rax)
@@ -37,7 +36,7 @@ saveState:
         movq    %r13, 112(%rax)
         movq    %r14, 120(%rax)
         movq    %r15, 128(%rax) # copied the regular regs
-        movq    144(%rsp), %rbx # rax
+        movq    144(%rsp), %r9 # rax
         movq    152(%rsp), %rcx # ip , changed it to access the ret addr pushed into stack bfr switch call
         movq    96(%rsp), %rdx # rsp
         addq    $56, %rdx # might need to pop beyond the return addr, not sure
@@ -48,12 +47,12 @@ saveState:
         movq    %r8, 56(%rax) # rbp
         movq    %rcx, 64(%rax) # ip
         movq    %rdi, 136(%rax) # eflags
-        popq    %rbx #cr3
-        movq    %rbx, 144(%rax)
-        pushq   %rbx
-	movq	%rsp, %rbx
-	addq	$152, %rbx
-	movq	%rbx, %rsp
+        popq    %r9 #cr3
+        movq    %r9, 144(%rax)
+        pushq   %r9
+	movq	%rsp, %r10
+	addq	$152, %r10
+	movq	%r10, %rsp
 	retq
 /*
 	movq	%rdi, %rbx # Register Pointer where we need to store stuff
