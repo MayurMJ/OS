@@ -117,7 +117,7 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
     return -1;
 }
 
-uint64_t syscall_handler(void)
+uint64_t syscall_handler_old(void)
 {
     // don't put anything before this!!!
     uint64_t arg1,arg2,arg3,arg4;
@@ -264,4 +264,148 @@ uint64_t syscall_handler(void)
 		kprintf("Syscall not found \n");
     }
 	return 1;
+}
+
+void syscall_handler(void)
+{
+    // don't put anything before this!!!
+    uint64_t arg1,arg2,arg3,arg4;
+    __asm__ __volatile__("movq %%rdi, %0\n\t"
+			 "movq %%rsi, %1\n\t"
+			 "movq %%rdx, %2\n\t"
+			 "movq %%rcx, %3\n\t"
+			 :"=D"(arg1),"=S"(arg2),"=d"(arg3),"=c"(arg4));
+    /*
+    uint64_t *binaryname=NULL;
+    __asm__ __volatile__("movq %%rdi, %0\n\t"
+                         :"=D" (binaryname) :);
+     */
+    uint64_t syscall_number=0;
+    __asm__ __volatile__("movq %%rax, %0\n\t"
+			:"=a" (syscall_number)
+                        :);
+    kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
+    switch(syscall_number) {
+	case 0:; /* read syscall-arg1-file desc, arg2-buffer to copy to, arg3-number of chars to copy or till \n*/
+		/*
+		if (fd == 0) {
+			while (1) {
+				if (FG_TASK != NULL) {
+					// save state and schedule another task
+				}
+				else
+					break;
+			}
+			FG_TASK = CURRENT_TASK;
+			int fd = arg1;
+			char *buffer = (char *)arg2;
+			int count = arg3;
+			ssize_t chars_read = read_handler(fd, buffer, count);
+			if (chars_read == -1) { //input is not ready yet, should I take it at 0 available?
+				FG_TASK->state = WAITING;
+				// save state and schedule next task	
+			}
+			// adjust terminal buffer and offset and unset fg task
+			// TODO: what would be a better startegy? - should i just empty buffer here or keep the buffer content?
+			int x;
+			for (x= chars_read; x <4096; x++) {
+				*(char *)(TERMINAL_BUFFER + x - chars_read) = *(char *)(TERMINAL_BUFFER + x);
+			}
+			TERM_BUF_OFFSET -= chars_read;
+			FG_TASK = NULL;
+			return chars_read;
+		}
+		*/
+		break;
+	case 10:
+    	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
+		break;
+	case 9:
+		kprintf("Hi from sbush\n");
+		break;
+	case 11:
+    	        kprintf("I'm in child process %d with arc %d\n",CURRENT_TASK->pid, arg1);
+		schedule();
+		break;
+	case 24:
+	        schedule();
+		break;
+	case 57:;
+		//kprintf("rsp value %x\n",rsp);
+    		Task * child_task = (Task *) kmalloc(sizeof(Task));
+                Registers *reg = (Registers *)&child_task->regs;
+		__asm__ __volatile__("movq %%ds, %0\n\t"
+                      		    :"=a" (reg->ds)
+                        	    :);
+                __asm__ __volatile__("movq %%es, %0\n\t"
+                      		    :"=a" (reg->es)
+                        	    :);
+                __asm__ __volatile__("movq %%fs, %0\n\t"
+                      		    :"=a" (reg->fs)
+                        	    :);
+                __asm__ __volatile__("movq %%gs, %0\n\t"
+                      		    :"=a" (reg->gs)
+                        	    :);
+	
+		uint64_t ret = fork_handler(child_task);
+                __asm__ __volatile__("movq %0, %%rax\n\t"
+                                    :"=a" (ret)
+                                    :);
+	        saveState(reg);
+		break;
+	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
+		//kprintf("%d %d\n",arg2, arg3);	
+		//kprintf("%s\n",arg1);
+		char **argv; char **envp;
+		argv = (char **)arg2;
+		envp = (char **)arg3;
+		Task *replacement_task = loadElf((char *)arg1, argv, envp);
+		replacement_task->regs.rax = 0;
+    		replacement_task->regs.rbx = 0;
+    		replacement_task->regs.rcx = 0;
+    		replacement_task->regs.rdx = 0;
+    		replacement_task->regs.rsi = 0;
+    		replacement_task->regs.rdi = 0;
+    		replacement_task->regs.rflags = CURRENT_TASK->regs.rflags;
+    		replacement_task->regs.rip = replacement_task->mm->e_entry;
+   		replacement_task->regs.r8 = 0;
+    		replacement_task->regs.r9 = 0;
+    		replacement_task->regs.r10 = 0;
+    		replacement_task->regs.r11 = 0;
+    		replacement_task->regs.r12 = 0;
+    		replacement_task->regs.r13 = 0;
+    		replacement_task->regs.r14 = 0;
+    		replacement_task->regs.r15 = 0;
+    		replacement_task->regs.rsp = replacement_task->mm->stack_begin;
+    		replacement_task->regs.ds = CURRENT_TASK->regs.ds;
+		replacement_task->regs.es = CURRENT_TASK->regs.es;
+		replacement_task->regs.fs = CURRENT_TASK->regs.fs;
+		replacement_task->regs.gs = CURRENT_TASK->regs.gs;
+		replacement_task->regs.ss = CURRENT_TASK->regs.ss;
+		replacement_task->regs.cs = CURRENT_TASK->regs.cs;
+		// put in run queue and give it the same pid
+		replacement_task->pid = CURRENT_TASK->pid;
+		// TODO: remove this circular list
+		replacement_task->next = CURRENT_TASK->next;
+		replacement_task->prev = CURRENT_TASK->prev;
+		replacement_task->next->next = replacement_task;
+		replacement_task->next->prev = replacement_task;
+		
+		CURRENT_TASK->next = replacement_task;
+		delete_page_tables(CURRENT_TASK->regs.cr3);
+		yyield();	
+		break;
+	case 60: /* exit- rdi-return value of main*/
+//		if((uint64_t)arg1 == 0) {//main returned 0, normal exit
+//			Task * deleteme = CURRENT_TASK;
+//			
+//		}
+		kprintf("exited with %d\n", (uint64_t)arg1);
+		remove_from_run_queue(CURRENT_TASK);
+		schedule();
+		break;
+	default:
+		kprintf("Syscall not found \n");
+    }
+	__asm__ __volatile__("iretq;");
 }
