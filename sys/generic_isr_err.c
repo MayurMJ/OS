@@ -88,7 +88,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 			
 			free_list[temp / 4096].ref_count--;
 			if(free_list[temp / 4096].ref_count == 0) {
-				free_physical_page((pg_desc_t*)((temp >> 12) <<12));
+				//free_physical_page((pg_desc_t*)((temp >> 12) <<12));
 			}
 		}
     }

@@ -61,6 +61,7 @@ uint64_t copy_on_write() {
 			
 		}
 	}
+	reload_cr3();
 	return newcr3;	
 }
 
