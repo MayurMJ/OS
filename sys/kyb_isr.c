@@ -47,14 +47,15 @@ void kyb_irqhandler(void) {
 			c = kyb_map[scancode];
 			display = 1;
 		}
-	}
+	}/*
 	if (bckspc == 1) {
 		if (TERM_BUF_OFFSET != 0)
 			TERM_BUF_OFFSET--;
 		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
 		*addr = ' ';
-	}
-	else if (display == 1) {
+	}*/
+	//else if (display == 1) {
+	if (display == 1) {
 		char * videomem = (char*)(0xffffffff80000000 + 0xb8f6c);
 		*videomem = c;
 		videomem-=2;
@@ -62,13 +63,13 @@ void kyb_irqhandler(void) {
 		if (control == 1) {
 			*videomem = '^';
 		}
-		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
+/*		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
 		*addr = c;
 		// check for fg_task != null as input might arrive before a process has scheduled
 		// a read from stdin
 		if ((c == '\n') && (FG_TASK != NULL)) {
 			FG_TASK->state = READY;
 			FG_TASK = NULL;
-		}
+		}*/
 	}
 }

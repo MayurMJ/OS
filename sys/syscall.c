@@ -82,7 +82,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->mm->stack_begin = parent_task->mm->stack_begin;
     child_task->mm->e_entry = parent_task->mm->e_entry;
     child_task->mm->pg_pml4 = copy_on_write();
-    child_task->kstack = (uint64_t *)( (uint64_t)get_free_page(SUPERVISOR_ONLY, child_task->mm->pg_pml4));
+    child_task->kstack = (uint64_t *)( 4088+(uint64_t)get_free_page(SUPERVISOR_ONLY, child_task->mm->pg_pml4));
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
     // TODO: need to change this circular mapping
@@ -100,7 +100,7 @@ uint64_t fork_handler(Task * child_task) {
     //TODO To be continued ....
 
 }    
-
+/*
 ssize_t read_handler(int fd, char *buf, size_t count) {
     // TODO: not checking bounds on buf
     if (fd == 0) { // special treatment for stdin
@@ -129,7 +129,7 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
     }
     return -1;
 }
-
+*/
 uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
@@ -192,9 +192,12 @@ uint64_t syscall_handler(void)
 	case 9:
 		kprintf("Hi from sbush\n");
 		break;
+	case 12:
+		kprintf("i'm in another child\n");
+		break;;
 	case 11:
     	        kprintf("I'm in child process %d with arc %d\n",CURRENT_TASK->pid, arg1);
-		schedule();
+		//schedule();
 		break;
 	case 24:
 	        schedule();

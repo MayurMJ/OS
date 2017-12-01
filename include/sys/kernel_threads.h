@@ -64,6 +64,6 @@ extern void switchTaskUser(Registers *oldregs, Registers *newregs);
 extern void saveState(Registers *oldregs); 
 Task *FG_TASK;
 
-uint64_t TERMINAL_BUFFER;
-uint64_t TERM_BUF_OFFSET;
+//uint64_t TERMINAL_BUFFER;
+//uint64_t TERM_BUF_OFFSET;
 #endif

@@ -1,4 +1,6 @@
 #include <sys/paging.h>
+#include <sys/kprintf.h>
+
 uint64_t create_table() {
 	uint64_t *newPML4 = (uint64_t*) get_physical_free_page();
 	uint64_t *temp = (uint64_t *)((uint64_t) newPML4 + (uint64_t)0xffffffff80000000 );
@@ -37,15 +39,17 @@ uint64_t copy_on_write() {
 						PDE_new[k] = PDE_old[k];
 						if(PDE_old[k] != 0) {
 							PDE_new[k] = get_physical_free_page();
+							//kprintf("count val %d, %d, %d %x\n",i,j,k, PDE_new[k]);
 							uint64_t *PTE_old = (uint64_t *)((((uint64_t) PDE_old[k] + (uint64_t)0xffffffff80000000 )>>12) << 12);
 							uint64_t *PTE_new = (uint64_t *)((uint64_t) PDE_new[k] + (uint64_t)0xffffffff80000000 );
 							PDE_new[k] |= (uint64_t) 7;
 							for(int l = 0; l < 512; l++) {
 								PTE_new[l] = PTE_old[l];
 								if(PTE_old[l] != 0) {
+									//kprintf("count val %d, %d, %d %x %d %x\n",i,j,k, PDE_new[k],l,PTE_old[l]);
 									PTE_new[l] = (PTE_new[l] >> 12) << 12;
 									PTE_new[l] |= (uint64_t) 0x805;
-									PTE_old[l] &= (uint64_t) 0xfffffffffffffffd;
+									PTE_old[l] &= (uint64_t) 0xfffffffd;
 									PTE_old[l] |= (uint64_t) 0x800;
 									free_list[(((PTE_old[l]) >> 12 ) << 12) / 4096].ref_count++;
 								}

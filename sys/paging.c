@@ -21,13 +21,21 @@ uint64_t get_physical_free_page () {
   temp->ref_count = 1;
   return addr;
 }
-
+void reload_cr3() {
+  uint64_t cr3;
+  __asm__ __volatile__("movq %%cr3, %0\n\t"
+                             :"=a"(cr3));
+  __asm __volatile__("movq %0, %%cr3\n\t"
+                    :
+                    :"a"(cr3));
+}
 void free_physical_page( pg_desc_t *pg){
   pg_desc_t* page = (pg_desc_t *) ((uint64_t)0xffffffff80000000 + (uint64_t) pg);
   page->next=free_list_head;
   page->prev = NULL;
   page->is_avail = 1;
   free_list_head = page;
+  reload_cr3();
 }
 
 uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, int index) {
@@ -390,9 +398,8 @@ uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
     PTE = (uint64_t *) x;
   }
 
-//PTE
-  
   PTE[PTEindex] = (uint64_t) phy_addr | (uint64_t) flags;
+  //kprintf("\n Printing: %d, %d, %d, %d, %x, %x",PMLframe,PDPTEindex,PDEindex, PTEindex, phy_addr, PTE[PTEindex]); 
   pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
   page.count++; 
   //free_list[((PDE[PDEindex] >> 12) << 12) / 4096].count++;
