@@ -8,85 +8,37 @@ int getsysid() {
 	b = b*a;
 	return b;
 }
-int result;
+//int result;
 int main(int argc, char *argv[], char *envp[]) {
 	int result  = 1;
-	//int yield = 24;
 	int n;
-	//fork();
+	int syscallno;
 	result = fork();
 	if (result == 0) {
-		//execve("bin/sbush", NULL, NULL);
-		
-	int yield;
-	yield = 24;
-	//for(int i =0; i <5; i++) {
+		syscallno = 11;
  	        __asm__ __volatile__("int $0x80\n\t"	//a sycall that simply prints I'm in child
-                              :"=a" (n)
-                              : "0"(11));
- 		        __asm__ __volatile__("int $0x80\n\t"
-                               :"=a" (result)
-                               : "0"(yield));
-	//}
+                                     :"=a" (n)
+                                     : "0"(syscallno));
+		syscallno = 24;
+ 		__asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (n)
+                                     : "0"(syscallno));
+	/*	syscallno = 57;
+		__asm__ __volatile__("int $0x80\n\t"
+                             	     :"=a" (n)
+                                     : "0"(syscallno));
+	*/
 	} 
 	else {
-		int yield;
-		yield = 24;
-		                __asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
-                              :"=a" (n)
-                              : "0"(10));
-	                        __asm__ __volatile__("int $0x80\n\t"
-                               :"=a" (result)
-                               : "0"(yield));
+		syscallno = 10;
+		__asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
+                                     :"=a" (n)
+                                     : "0"(syscallno));
+		syscallno = 24;
+	        __asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (n)
+                                     : "0"(syscallno));
 	}
-//	int result  = fork();
-//	fork();
-//	if (result == 0) {
-//	int n;
-   /* uint64_t syscallno = 57;
-    uint64_t result = 1;
-    __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (result)
-                             : "0"(syscallno));
-    __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (result)
-                             : "0"(syscallno));
-    __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (result)
-                             : "0"(syscallno));
-		//char *binary = "bin/sbush";
-		//execve(binary, NULL, NULL);
-//		return 100;
-//	}
-	uint64_t yieldsyscall = 24;
-	uint64_t ret;
-	__asm__ __volatile__("int $0x80\n\t"
-			     :"=a" (ret)
-			     : "0"(yieldsyscall));
-            __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-        __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-
-        __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-        __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-
-        __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-        __asm__ __volatile__("int $0x80\n\t"
-                             :"=a" (ret)
-                             : "0"(yieldsyscall));
-	__asm__ __volatile__("int $0x80\n\t"
-			     :"=a" (ret)
-			     : "0"(yieldsyscall));
-//	return 10;*/
-	//while(1); //no need to return from bin/init
+	while(1); //no need to return from bin/init
 	return 0;
 }
