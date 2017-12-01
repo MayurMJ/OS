@@ -16,6 +16,7 @@ int buffer_row = 0;
 int buffer_col = 0;
 int carriage_ret_flag = 0;
 
+
 void shift_up() {
       int k;
       char *shiftPtr = (char*)0xffffffff80000000 + 0xb8000;
@@ -27,6 +28,59 @@ void shift_up() {
         *shiftPtr = ' ';
         shiftPtr = shiftPtr + 2;
       }
+}
+
+void local_echo() {
+    int i = 0, j = 0;
+    while(1) {
+        j = colIndex;
+        while(buffer[i][j] != '\0' && j < 80) {
+                if(count >= 3840) {
+                  shift_up();
+                  tempMem = tempMem - 160;
+                  count = count - 160;
+                }  
+		if (buffer[i][j] == '\b') {
+			tempMem = tempMem - 2;
+			j++;
+			count = count - 2;
+			*tempMem = ' ';
+		}
+		else {     
+                	*tempMem = buffer[i][j];
+                	j++;
+                	tempMem = tempMem + 2;
+                	count = count + 2;
+		}
+        }
+        if(j >= 80) {
+                colIndex = 0;
+                i++;
+        }
+        else if(buffer[i][j] == '\0') break;
+    }
+    colIndex = (((uint64_t)tempMem - (0xffffffff80000000 + 0xb8000)) % 160) / 2;
+}
+
+int put_stdin_into_buffer(char c) {
+        buffer_col = colIndex;
+        buffer_row = 0;
+        switch(c) {
+        case '\n':
+                buffer_row++;
+                buffer_col = 0;
+                break;
+        case '\t':
+                buffer_col = (buffer_col + 10) % 80;
+                break;
+        default:
+                buffer[buffer_row][buffer_col] = c;
+                buffer_col = (buffer_col + 1)%80;
+                if (buffer_col == 0) buffer_row++;
+                break;
+        }
+        buffer[buffer_row][buffer_col] = '\0';
+        return 0;
 }
 void display() {
   int i = 0, j = 0; 

@@ -80,13 +80,13 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   //-------------k malloc init----------------------
   init_kmalloc(); 
   FG_TASK = NULL;
-  //TERMINAL_BUFFER = get_free_page(SUPERVISOR_ONLY, cr3val);
-  //TERM_BUF_OFFSET = 0;
+  TERMINAL_BUFFER = get_free_page(SUPERVISOR_ONLY, cr3val);
+  TERM_BUF_OFFSET = 0;
   // ------------------------------------------------
   // switch to user mode
   init_idt();
   //program_pic();
-  set_tss_rsp((void *)((uint64_t)kstack));
+  set_tss_rsp((void *)((uint64_t)tss_kstack));
   // ------------------------------------------------
 //  run_queue = NULL;
   last_assn_pid = 0;

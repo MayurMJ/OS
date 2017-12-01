@@ -301,7 +301,7 @@ uint64_t syscall_handler(void)
                 break;
 
 	default:
-		kprintf("Syscall not found \n");
+		kprintf("Syscall not found %d\n",syscall_number);
     }
 	
 	return ret;
