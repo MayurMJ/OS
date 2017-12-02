@@ -40,4 +40,5 @@ void map_memory_range(uint64_t start, uint64_t end, uint64_t ind);
 uint64_t walk_pml4_get_address(uint64_t virt_addr, uint64_t cr3val);
 void free_old_page_tables(uint64_t addr);
 void reload_cr3();
+void walk_pml4_unmark_cow(uint64_t virt_addr, uint64_t cr3val, uint64_t flags);
 #endif
