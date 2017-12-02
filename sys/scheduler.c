@@ -9,6 +9,8 @@
 #include <sys/kmemcpy.h>
 #include <sys/scheduler.h>
 #include <sys/initfs.h>
+#include <sys/gdt.h>
+
 static Task *run_queue;;
 static Task *queue_head;;
 static Task *schedulerTask;
@@ -122,7 +124,6 @@ void yield() {
 #endif
     	CURRENT_TASK = CURRENT_TASK->next;
     }
-
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 
@@ -149,6 +150,7 @@ void bin_init_user() {
 		kprintf("bin init kernel thread\n");
 //		schedule();
 //	}
+	set_tss_rsp((void *)((uint64_t)CURRENT_TASK->regs.rsp));
 	switch_user_mode(CURRENT_TASK->mm->e_entry);	
 }
 

@@ -110,6 +110,7 @@ initfs();
   CURRENT_TASK = schedulerTask;
 
 //switch to scheduler initialization and never come back here
+  set_tss_rsp((void *)((uint64_t)schedulerTask->kstack));
   switchTask(&mainTask->regs, &schedulerTask->regs);
 }
 

@@ -18,10 +18,11 @@ void * syscall_tbl[NUM_SYSCALLS] =
 void save_state(Task *child, uint64_t rsp) {
 	
 	uint64_t *stack = (uint64_t*) rsp;
-	child->kstack -= 19;
-	for(int i = 0; i < 20; ++i) {
+	child->kstack -= 20;
+	for(int i = 0; i < 21; ++i) {
 		child->kstack[i] = stack[i+1];
 	}
+	child->kstack[14] = 0;
 	child->regs.rax = 0;
 	child->regs.rip = stack[0];
 	child->regs.rsp = (uint64_t)child->kstack ;
@@ -134,6 +135,7 @@ uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
     uint64_t arg1,arg2,arg3,arg4;
+    uint64_t ret = 0;
     __asm__ __volatile__("movq %%rdi, %0\n\t"
 			 "movq %%rsi, %1\n\t"
 			 "movq %%rdx, %2\n\t"
@@ -202,7 +204,6 @@ uint64_t syscall_handler(void)
 	case 24:
 		display_queue();
 	        schedule();
-		return 1000;
 		break;
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
@@ -222,11 +223,10 @@ uint64_t syscall_handler(void)
                         	    :);
 	
 		kprintf("rsp value %x\n",rsp);
-		uint64_t ret = fork_handler(child_task);
+		ret = fork_handler(child_task);
 		save_state(child_task, rsp);
 	        //saveState(reg);
 		display_queue();
-		return ret;
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
 		//kprintf("%d %d\n",arg2, arg3);	
@@ -269,7 +269,7 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK->next = replacement_task;
 		delete_page_tables(CURRENT_TASK->regs.cr3);
 		yyield();	
-		return -1; // if execve returns its an error
+		ret = -1; // if execve returns its an error
 		break;
 	case 60: /* exit- rdi-return value of main*/
 //		if((uint64_t)arg1 == 0) {//main returned 0, normal exit
@@ -303,5 +303,6 @@ uint64_t syscall_handler(void)
 	default:
 		kprintf("Syscall not found \n");
     }
-	return 1;
+	
+	return ret;
 }

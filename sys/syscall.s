@@ -3,6 +3,7 @@
  
 syscall:
     cli
+    pushq    %rax
     pushq    %rbx
     pushq    %rcx
     pushq    %rdx
@@ -19,6 +20,9 @@ syscall:
     pushq    %rbp
     movq     %rsp, %rbx
     call    syscall_handler
+    movq    %rsp, %rdi
+    addq    $168, %rdi
+    call    set_tss_rsp
     popq    %rbp
     popq    %rsi
     popq    %rdi
@@ -33,5 +37,6 @@ syscall:
     popq    %rdx
     popq    %rcx
     popq    %rbx
+    popq    %rax
     sti
     iretq
