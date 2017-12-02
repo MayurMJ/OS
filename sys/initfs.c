@@ -10,6 +10,38 @@
 #include <sys/utils.h>
 #include <sys/kmalloc.h>
 
+dentry* dentry_lookup(char* path) {
+	dentry *iter_node = root_node->d_children[0];
+	dentry *temp_node = root_node->d_children[0];
+	if(path[0] == '/') path = path + 1;
+	char *token = kstrtok(path , '/');
+	if(token == NULL) return NULL;
+	
+	while(token != NULL) {
+		temp_node = iter_node;
+		if(kstrcmp(token, ".") == 0) {
+			iter_node = temp_node->d_children[1];
+		}
+		else if(kstrcmp(token, "..") == 0) {
+			iter_node = temp_node->d_children[0];
+		}
+		else {
+			int i;
+			for (i = 2; i < temp_node->d_end; i++) {
+				if(kstrcmp(temp_node->d_children[i]->d_name, token) == 0) {
+					iter_node = temp_node->d_children[i];
+					break;
+				}
+			}
+			if(i == temp_node->d_end) {
+				return NULL;
+			}
+		}
+		token = kstrtok(NULL, '/');
+	}
+	return iter_node; 
+}
+
 inode *make_inode(uint64_t start, uint64_t end, int perm) {
 	inode *ino = (inode*) kmalloc(sizeof(inode));
 	ino->i_start = start;
@@ -91,8 +123,9 @@ void initfs() {
 	dentry *temp_node = (dentry*) kmalloc(sizeof(dentry));
 	make_dentry(root_node, temp_node, "rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
 	root_node->d_children[2] = temp_node;
-	parse_tarfs();
-	kprintf("\n");
+	root_node->d_end = 3;
+//	parse_tarfs();
+//	kprintf("\n");
 	//print_dentry(ro->d_children[2]);
 	print_dentries(temp_node);
 } 
