@@ -49,12 +49,12 @@ void kyb_irqhandler(void) {
 		}
 	}
 	if (bckspc == 1) {// known bugs: if theres a tab bfr, it erases 1 space at a time
-		/*
+		
 		if (TERM_BUF_OFFSET != 0)
 			TERM_BUF_OFFSET--;
 		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
 		*addr = ' ';
-		*/
+		
 		init_buffer();
                 int error = put_stdin_into_buffer('\b');
                 if (error == 0) local_echo();
@@ -70,13 +70,16 @@ void kyb_irqhandler(void) {
 		init_buffer();
 		int error = put_stdin_into_buffer(c);
 		if (error == 0) local_echo();
-/*		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
+
+		char *addr = (char *)(TERMINAL_BUFFER + TERM_BUF_OFFSET);
+		TERM_BUF_OFFSET++;
 		*addr = c;
+		if (TERM_BUF_OFFSET == 4096) kprintf("PANIC: terminal buffer overflow\n");
 		// check for fg_task != null as input might arrive before a process has scheduled
 		// a read from stdin
 		if ((c == '\n') && (FG_TASK != NULL)) {
-			FG_TASK->state = READY;
-			FG_TASK = NULL;
+		    //kprintf("kyb handler, input is ready, offset %d waiting pid %d\n",TERM_BUF_OFFSET,FG_TASK->pid);
+		    FG_TASK->state = READY;
 		}
-*/	}
+	}
 }

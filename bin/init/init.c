@@ -10,7 +10,7 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
-	int result  = 1;
+/*	int result  = 1;
 	int n;
 	int syscallno;
 	result = fork();
@@ -35,15 +35,29 @@ int main(int argc, char *argv[], char *envp[]) {
 //                                     : "0"(b));			
 	} 
 	else {
-		wait(); //parent waits for the child to finish
 		syscallno = 10;
 		__asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                                      :"=a" (n)
                                      : "0"(syscallno));
-	}
-	                __asm__ __volatile__("int $0x80\n\t"
+		syscallno = 24;
+	        __asm__ __volatile__("int $0x80\n\t"
                                      :"=a" (n)
-                                     : "0"(result));
-	//while(1); //no need to return from bin/init
+                                     : "0"(syscallno));
+	}
+*/
+	ssize_t retval;
+	int count = 100;
+        //uint64_t buffer[512];
+	for(int x=0;x<10;x++) {
+        uint64_t buffer[512];
+        __asm__ __volatile("int $0x80\n\t"
+                           :"=a"(retval)
+                           :"a"(0),"D"(0),"S"(buffer),"d"(count));
+	__asm__ __volatile("int $0x80\n\t"
+			   :"=a"(retval)
+			   :"a"(59), "D"((uint64_t)buffer), "S"((uint64_t)0), "d"((uint64_t)0)
+			   :"memory");
+	}
+	while(1); //no need to return from bin/init
 	return 0;
 }

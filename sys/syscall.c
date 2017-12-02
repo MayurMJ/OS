@@ -101,7 +101,7 @@ uint64_t fork_handler(Task * child_task) {
     //TODO To be continued ....
 
 }    
-/*
+
 ssize_t read_handler(int fd, char *buf, size_t count) {
     // TODO: not checking bounds on buf
     if (fd == 0) { // special treatment for stdin
@@ -112,9 +112,9 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
 	// if lesser num of bytes are available than count then read only available number of chars
 	if (TERM_BUF_OFFSET < count)
 		count = TERM_BUF_OFFSET; 
-	
+	//kprintf("count inside read_handler %d\n",count);	
 	for (x=0; x < count;x++) {
-		char c = *(char *)(TERMINAL_BUFFER+TERM_BUF_OFFSET);
+		char c = *(char *)(TERMINAL_BUFFER+x);
 		if (c == '\n') {
 			chars_read++;
 			*buf = c;
@@ -130,7 +130,7 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
     }
     return -1;
 }
-*/
+
 uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
@@ -158,27 +158,42 @@ uint64_t syscall_handler(void)
     kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
 	case 0:; /* read syscall-arg1-file desc, arg2-buffer to copy to, arg3-number of chars to copy or till \n*/
-		/*
+		int fd = arg1;
+                char *buffer = (char *)arg2;
+                int count = arg3;
 		if (fd == 0) {
 			while (1) {
 				if (FG_TASK != NULL) {
+					//kprintf("fg task not null\n");
 					// save state and schedule another task
+					schedule(); // TODO: is this the right call?
 				}
 				else
 					break;
 			}
 			FG_TASK = CURRENT_TASK;
-			int fd = arg1;
-			char *buffer = (char *)arg2;
-			int count = arg3;
+			//kprintf("now i am fg task %d\n",FG_TASK->pid);
 			ssize_t chars_read = read_handler(fd, buffer, count);
-			if (chars_read == -1) { //input is not ready yet, should I take it at 0 available?
+			//input is not ready yet, should I take it at 0 available?
+			if ((chars_read == -1) || (chars_read == 0)) {
 				FG_TASK->state = WAITING;
-				// save state and schedule next task	
+				/*
+				while((chars_read == -1) || (chars_read == 0)) {
+					schedule();
+					chars_read = read_handler(fd, buffer, count);
+				}
+				*/
+				while(FG_TASK->state == WAITING) {
+                                        schedule();
+                                }
+				// save state and schedule next task
 			}
 			// adjust terminal buffer and offset and unset fg task
-			// TODO: what would be a better startegy? - should i just empty buffer here or keep the buffer content?
-			int x;
+			// TODO: should i just empty buffer here or keep the buffer content?
+			chars_read = read_handler(fd, buffer, count);	
+			buffer[chars_read]='\0';
+			//kprintf("read handler chars read %d\n",chars_read);
+			int x; // TODO:look into this again
 			for (x= chars_read; x <4096; x++) {
 				*(char *)(TERMINAL_BUFFER + x - chars_read) = *(char *)(TERMINAL_BUFFER + x);
 			}
@@ -186,7 +201,6 @@ uint64_t syscall_handler(void)
 			FG_TASK = NULL;
 			return chars_read;
 		}
-		*/
 		break;
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
@@ -230,8 +244,8 @@ uint64_t syscall_handler(void)
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
 		//kprintf("%d %d\n",arg2, arg3);	
-		//kprintf("%s\n",arg1);
-		char **argv; char **envp;
+		kprintf("process read this %s\n",(char *)arg1);/*
+		cihar **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
@@ -269,7 +283,7 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK->next = replacement_task;
 		delete_page_tables(CURRENT_TASK->regs.cr3);
 		yyield();	
-		ret = -1; // if execve returns its an error
+		return -1; // if execve returns its an error*/
 		break;
 	case 60: /* exit- rdi-return value of main*/
 //		if((uint64_t)arg1 == 0) {//main returned 0, normal exit
