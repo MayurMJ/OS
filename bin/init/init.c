@@ -19,6 +19,7 @@ int main(int argc, char *argv[], char *envp[]) {
  	        __asm__ __volatile__("int $0x80\n\t"	//a sycall that simply prints I'm in child
                                      :"=a" (n)
                                      : "0"(syscallno));
+		fork();
 		syscallno = 24;
                 __asm__ __volatile__("int $0x80\n\t"
                                      :"=a" (n)
@@ -31,6 +32,10 @@ int main(int argc, char *argv[], char *envp[]) {
                                      : "0"(syscallno));
 		syscallno = 24;
 	        __asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (n)
+                                     : "0"(syscallno));
+		syscallno = 24;
+                __asm__ __volatile__("int $0x80\n\t"
                                      :"=a" (n)
                                      : "0"(syscallno));
 	}
