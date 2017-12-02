@@ -86,6 +86,10 @@ void put_in_run_queue(Task *newTask) {
 }
 
 void remove_from_run_queue(Task * removeTask) {
+	if(removeTask == run_queue) {
+		run_queue = removeTask->next;
+		queue_head->next = run_queue;
+	}
 	Task * temp = queue_head;
 	while(temp->next!=removeTask || temp->next == queue_head) {
 		temp = temp->next;
@@ -103,7 +107,9 @@ void yield() {
     
     CURRENT_TASK = CURRENT_TASK->next;
     while(CURRENT_TASK->state != READY) {
-		kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+#ifdef DEBUG_PRINT_SCHEDULER
+	kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+#endif
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 
@@ -119,10 +125,12 @@ void schedule(){
 }
 void idle_task() {
 	while(1) {
+#ifdef DEBUG_PRINT_SCHEDULER
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+#endif
 		schedule();
-	//	__asm__ __volatile__ ( "sti\n\t");
-	//	__asm__ __volatile__("hlt\n\t");
+		__asm__ __volatile__ ( "sti\n\t");
+		__asm__ __volatile__("hlt\n\t");
 	}
 }
 

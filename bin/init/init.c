@@ -39,6 +39,6 @@ int main(int argc, char *argv[], char *envp[]) {
                                      :"=a" (n)
                                      : "0"(syscallno));
 	}
-	while(1); //no need to return from bin/init
+	//while(1); //no need to return from bin/init
 	return 0;
 }

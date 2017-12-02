@@ -276,8 +276,9 @@ uint64_t syscall_handler(void)
 //			Task * deleteme = CURRENT_TASK;
 //			
 //		}
-		kprintf("exited with %d\n", (uint64_t)arg1);
-		remove_from_run_queue(CURRENT_TASK);
+		kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
+		//remove_from_run_queue(CURRENT_TASK);
+		CURRENT_TASK->state = ZOMBIE;
 		display_queue();
 		schedule();
 		break;
