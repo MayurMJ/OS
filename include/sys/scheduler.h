@@ -9,5 +9,6 @@ void init_scheduler();
 void scheduler();
 void remove_from_run_queue(Task * removeTask);
 void schedule();
+void display_queue();
 void setupTask(Task *task, void (*main)(), Task *otherTask);
 #endif

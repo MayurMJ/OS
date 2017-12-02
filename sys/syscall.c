@@ -75,7 +75,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->ppid = parent_task->pid;
     child_task->pid =  (last_assn_pid+1)%MAX_PROC ;
     last_assn_pid++;
-    child_task->state = WAITING;
+    child_task->state = READY;
     duplicate_fds(parent_task, child_task); 
     //copy mm_struct
     child_task->mm = (struct mm_struct *)kmalloc(sizeof(struct mm_struct));
@@ -200,6 +200,7 @@ uint64_t syscall_handler(void)
 		//schedule();
 		break;
 	case 24:
+		display_queue();
 	        schedule();
 		return 1000;
 		break;
@@ -224,6 +225,7 @@ uint64_t syscall_handler(void)
 		uint64_t ret = fork_handler(child_task);
 		save_state(child_task, rsp);
 	        //saveState(reg);
+		display_queue();
 		return ret;
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
@@ -276,6 +278,7 @@ uint64_t syscall_handler(void)
 //		}
 		kprintf("exited with %d\n", (uint64_t)arg1);
 		remove_from_run_queue(CURRENT_TASK);
+		display_queue();
 		schedule();
 		break;
 	default:

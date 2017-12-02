@@ -13,6 +13,8 @@ static Task *run_queue;;
 static Task *queue_head;;
 static Task *schedulerTask;
 
+
+//fills up the task registers and the kstack pointer CAUTION::check the cr3, must set it appropriately after using this function
 void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rax = 0;
     task->regs.rbx = 0;
@@ -61,10 +63,25 @@ void switch_user_mode(uint64_t symbol) {
         );
 }
 
+void display_queue() {
+	Task * curr = queue_head->next;
+	while(curr != queue_head) {
+		kprintf("%d(%d) -> ", curr->pid,curr->state);
+		curr = curr->next;
+	}
+	kprintf("%d(%d) \n", curr->pid,curr->state);
+	
+}
+
+
 void put_in_run_queue(Task *newTask) {
+	newTask->next = run_queue;
+	queue_head->next = newTask;
+	run_queue = newTask; 
+	/*
 	run_queue->next = newTask;
 	newTask->next = queue_head;
-	run_queue = newTask;
+	run_queue = newTask;*/
 	return;
 }
 
@@ -83,8 +100,8 @@ void remove_from_run_queue(Task * removeTask) {
 
 void yield() {
     Task *last = CURRENT_TASK;
-    CURRENT_TASK = run_queue;
-    run_queue = run_queue->next;
+    CURRENT_TASK = CURRENT_TASK->next;
+//    run_queue = run_queue->next;
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 
@@ -112,19 +129,26 @@ void bin_init_user() {
 	switch_user_mode(CURRENT_TASK->mm->e_entry);	
 }
 
+
+// initialize the run queue with idle task and bin init
 void init_scheduler() {
 	schedulerTask = CURRENT_TASK;
 	last_assn_pid = 0;
 	run_queue = NULL;
 
+	//idle task setup and made queue head
 	Task *idleTask = (Task *)kmalloc(sizeof(Task));
 	setupTask(idleTask,idle_task,schedulerTask);
 	idleTask->pid = (last_assn_pid+1)%MAX_PROC;
+	idleTask->ppid = 1;	//making the idle task it's own parent, just in case
 	last_assn_pid = idleTask->pid;
-	//put_in_run_queue(idleTask);
+	idleTask->state = READY;
+
 	run_queue = idleTask;
 	queue_head = idleTask;
 	run_queue->next = queue_head;
+
+	
 	/*
 	char *s1 = "param1";
 	char *s2 = "param2";
@@ -132,22 +156,49 @@ void init_scheduler() {
 	argv[0] = s1;
 	argv[1] = s2;
 	argv[2] = '\0'; */
+
 	Task *binInit = loadElf("bin/init", NULL, NULL);
 	if(binInit == NULL) {
 		kprintf("Could not find the file to load from elf!\n");
 		//kernel panic should happen
 	}
+	
 	setupTask(binInit,bin_init_user,idleTask);
 	binInit->regs.cr3 = binInit->mm->pg_pml4;
 	put_in_run_queue(binInit);
+	binInit->state = READY;
+	binInit->ppid = idleTask->pid;
+/*
+	Task *c = (Task *)kmalloc(sizeof(Task));
+	c->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = c->pid;
+	c->state = READY;
+	put_in_run_queue(c);
+	c = (Task *)kmalloc(sizeof(Task));
+	c->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = c->pid;
+	c->state = READY;
+	put_in_run_queue(c);
+	c = (Task *)kmalloc(sizeof(Task));
+	c->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = c->pid;
+	c->state = READY;
+	put_in_run_queue(c);
+	c = (Task *)kmalloc(sizeof(Task));
+	c->pid = (last_assn_pid+1)%MAX_PROC;
+	last_assn_pid = c->pid;
+	c->state = READY;
+	put_in_run_queue(c);
+	display_queue();
+	while(1);*/
 }
 
 
 void scheduler() {
-	kprintf("Welcome to scheduler, everything will be scheduled tomorrow.\n");
+	kprintf("Welcome to scheduler!\n");
 	init_scheduler();
 	CURRENT_TASK = run_queue;
-	run_queue = run_queue->next;
+//	run_queue = run_queue->next;
 	switchTask(&schedulerTask->regs, &CURRENT_TASK->regs);		
 	while(1);
 }
