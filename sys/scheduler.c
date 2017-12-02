@@ -100,8 +100,13 @@ void remove_from_run_queue(Task * removeTask) {
 
 void yield() {
     Task *last = CURRENT_TASK;
+    
     CURRENT_TASK = CURRENT_TASK->next;
-//    run_queue = run_queue->next;
+    while(CURRENT_TASK->state != READY) {
+		kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+    	CURRENT_TASK = CURRENT_TASK->next;
+    }
+
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 
