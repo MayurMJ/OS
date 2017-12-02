@@ -428,7 +428,7 @@ uint64_t walk_pml4_get_address(uint64_t virt_addr, uint64_t cr3val) {
   x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
   x = x & 0xfffffffffffff000;
   PTE = (uint64_t *) x;   
-  
+  reload_cr3();
   return PTE[PTEindex];
 }
 

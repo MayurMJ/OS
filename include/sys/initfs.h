@@ -11,7 +11,7 @@ enum perm {O_RDONLY, O_WRONLY, O_RDWR, O_APPEND, O_CREAT, O_TRUNC};
 typedef struct indexnode {
 	int i_perm;
 	uint64_t i_start;
-	uint64_t i_size;
+	uint64_t i_end;
 }inode;
 
 typedef struct dent {
@@ -26,4 +26,5 @@ typedef struct dent {
 dentry *root_node;
 
 void parse_tarfs();
+void initfs();
 #endif

@@ -9,6 +9,7 @@
 #include <sys/kmalloc.h>
 #include <sys/elf64.h>
 #include <sys/scheduler.h>
+#include <sys/initfs.h>
 /*
 deleted pci.c and pci.h due to reduction in available memory
 #include <sys/pci.h>
@@ -90,6 +91,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
 //  run_queue = NULL;
   last_assn_pid = 0;
  
+initfs();	
   Task *mainTask = (Task*) kmalloc(sizeof(Task));
   Task *schedulerTask = (Task *)kmalloc(sizeof(Task));
 
@@ -101,7 +103,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
                              "movq %%rax, %0\n\t"
                              "POPFQ\n\t"
                              :"=m"(mainTask->regs.rflags)::"%rax");
-	
 //set up the scheduler
   setupTask(schedulerTask,scheduler,mainTask);
 

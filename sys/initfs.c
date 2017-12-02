@@ -10,10 +10,10 @@
 #include <sys/utils.h>
 #include <sys/kmalloc.h>
 
-inode *make_inode(uint64_t size, uint64_t start, int perm) {
+inode *make_inode(uint64_t start, uint64_t end, int perm) {
 	inode *ino = (inode*) kmalloc(sizeof(inode));
-	ino->i_size = size;
 	ino->i_start = start;
+	ino->i_end = end;
 	ino->i_perm = perm;
 	return ino;
 }
@@ -29,8 +29,39 @@ void make_dentry(dentry *parent, dentry *child, char* name, uint64_t begin, uint
 
 }
 
+void print_dentries(dentry * temp) {
+	kprintf("\t%s", temp->d_name);
+	if(temp->d_type == DIRECTORY) {
+		for(int i =2; i < temp->d_end; i++) {
+			print_dentries(temp->d_children[i]);
+		}
+	}
+}
+
 void populate_dentry(char *name, int type, uint64_t start, uint64_t end) {
-	
+	dentry *temp_node, *iter_node;
+	temp_node = root_node->d_children[2];
+	iter_node = root_node->d_children[2];
+	char *token = kstrtok(name, '/');
+	int i;
+	while(token != NULL) {
+		//kprintf("\tprint %s", token);
+		//if(token[0] == '\0') continue;
+		temp_node = iter_node;
+		for (i = 2; i < temp_node->d_end; i++) {
+			if(kstrcmp(temp_node->d_children[i]->d_name, token) == 0) {
+				iter_node = temp_node->d_children[i];
+				break;
+			}
+		}
+		if(i == temp_node->d_end) {
+			iter_node = (dentry *)kmalloc(sizeof(dentry));
+			make_dentry(temp_node, iter_node, token, start, end, type, make_inode(start, end, O_RDWR));
+			temp_node->d_children[i] = iter_node;
+			temp_node->d_end++;
+		}
+		token = kstrtok(NULL, '/');
+	}
 }
 void parse_tarfs() {
         struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
@@ -43,7 +74,7 @@ void parse_tarfs() {
 			populate_dentry(header->name, FILE, (uint64_t)(header + 1), (uint64_t)((void *)header + 512 + size));
 		}
                 if (size == 0) {
-                        //kprintf("\nFileName: %s\n", header->name);
+                       // kprintf("\nFileName: %s\n", header->name);
 			header++;
                 }
                 else {
@@ -61,4 +92,7 @@ void initfs() {
 	make_dentry(root_node, temp_node, "rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
 	root_node->d_children[2] = temp_node;
 	parse_tarfs();
+	kprintf("\n");
+	//print_dentry(ro->d_children[2]);
+	print_dentries(temp_node);
 } 

@@ -32,6 +32,8 @@ char *kstrtok(char *s, char tok) {
   else {
     if(!*iterator) return NULL;
     iterator++;
+    if(!*iterator) return NULL;
+
   }
   for(;*iterator != tok && *iterator; iterator++) {
     ret[i] = *iterator;
