@@ -138,8 +138,10 @@ void idle_task() {
 	while(1) {
 #ifdef DEBUG_PRINT_SCHEDULER
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+		display_queue();
 #endif
 		schedule();
+		reap_all_child(CURRENT_TASK);
 		__asm__ __volatile__ ( "sti\n\t");
 		__asm__ __volatile__("hlt\n\t");
 	}
@@ -241,7 +243,6 @@ uint64_t has_child(Task * parent) {
 
 
 /* returns a zombie child task of the input parent if it exists, NULL otherwise*/
-
 Task* zombie_child_exists(Task * parent) {
 	Task * curr = run_queue;
         while(curr!=queue_head) {
@@ -254,8 +255,20 @@ Task* zombie_child_exists(Task * parent) {
 }
 
 
-/* reap the process */
+/*reap all the children of the parent task */
 
+void reap_all_child(Task *parent) {
+	Task * curr = run_queue;
+	while(curr!=queue_head) {
+		if(curr->ppid == parent->pid && curr->state == ZOMBIE)
+			reap_process(curr);
+		curr = curr->next;
+	}
+
+}
+
+
+/* reap the process */
 void reap_process(Task * reapThis) {
 	remove_from_run_queue(reapThis);
 	//TODO: free the memory of the reaped task;	

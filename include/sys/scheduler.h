@@ -11,6 +11,7 @@ void remove_from_run_queue(Task * removeTask);
 void schedule();
 uint64_t has_child(Task * parent);
 void display_queue();
+void reap_all_child(Task *parent);
 Task* zombie_child_exists(Task * parent);
 void reap_process(Task * reapThis);
 void setupTask(Task *task, void (*main)(), Task *otherTask);
