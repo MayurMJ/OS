@@ -50,6 +50,7 @@ typedef struct TASK {
    uint64_t *kstack;
    enum { READY, WAITING, ZOMBIE } state;
    Registers regs;
+   uint64_t exit_value;
    struct TASK *prev;
    struct TASK *next;
    struct TASK *children;

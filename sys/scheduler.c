@@ -85,20 +85,30 @@ void put_in_run_queue(Task *newTask) {
 	return;
 }
 
+
+/* remove the input task from the queue, doesn't free the memory though */
 void remove_from_run_queue(Task * removeTask) {
+	if(removeTask == queue_head) {
+		kprintf("PANIC: trying to remove the idle task\n");
+		return;
+	}
 	if(removeTask == run_queue) {
 		run_queue = removeTask->next;
 		queue_head->next = run_queue;
 	}
-	Task * temp = queue_head;
-	while(temp->next!=removeTask || temp->next == queue_head) {
-		temp = temp->next;
+	else {
+		Task * curr = run_queue;
+		while(curr->next!= removeTask && curr != queue_head) {
+			curr = curr->next;
+		}
+		if(curr == queue_head) {
+			kprintf("PANIC: trying to remove a task which doesn't exist\n");
+		}
+		else {
+			curr->next = removeTask->next;	
+		}	
 	}
-	if(temp == queue_head) {
-		kprintf("task not in the run_queue\n, delete error!!!!!!\n");
-	}
-	temp->next = removeTask->next;
-	//TODO:kfree the removeTask
+	return;
 }
 
 
@@ -215,6 +225,40 @@ void scheduler() {
 	switchTask(&schedulerTask->regs, &CURRENT_TASK->regs);		
 	while(1);
 }
+
+/* returns true if the input task has a child, 0 otherwise */
+uint64_t has_child(Task * parent) {
+	Task * curr = run_queue;
+	while(curr!=queue_head) {
+		if(curr->ppid == parent->pid)
+			return 1;
+		curr = curr->next;
+	}
+	return 0;
+}
+
+
+/* returns a zombie child task of the input parent if it exists, NULL otherwise*/
+
+Task* zombie_child_exists(Task * parent) {
+	Task * curr = run_queue;
+        while(curr!=queue_head) {
+                if(curr->ppid == parent->pid && curr->state == ZOMBIE) { //curr is a child of the parent and it's state is ZOMBIE
+                        return curr;
+		}
+                curr = curr->next;
+        }
+        return NULL;
+}
+
+
+/* reap the process */
+
+void reap_process(Task * reapThis) {
+	remove_from_run_queue(reapThis);
+	//TODO: free the memory of the reaped task;	
+}
+
 
 
 /*

@@ -279,9 +279,27 @@ uint64_t syscall_handler(void)
 		kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
 		//remove_from_run_queue(CURRENT_TASK);
 		CURRENT_TASK->state = ZOMBIE;
+		CURRENT_TASK->exit_value = arg1;
 		display_queue();
 		schedule();
 		break;
+	case 61: /* wait- rdi-ptr to status of the exiting child process*/
+		
+		if(has_child(CURRENT_TASK)==0) 
+			return -1; //this process doesn't have any child
+		while(1) {
+			Task * child_task = zombie_child_exists(CURRENT_TASK);
+			if(child_task) {
+				uint64_t child_id = child_task->pid;
+				//uint64_t *wstatus = (uint64_t *) arg1;
+				//*wstatus = child_task->exit_value;
+				reap_process(child_task);
+				return child_id;
+			}
+			schedule();
+		}
+                break;
+
 	default:
 		kprintf("Syscall not found \n");
     }

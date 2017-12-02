@@ -28,3 +28,12 @@ ssize_t read(int fd, void *buf, size_t count) {
                        :"a"(code),"D"(fd),"S"(buffer),"d"(count));
     return (ssize_t)retval;
 }
+
+pid_t wait(int *status) {
+    int retval;
+    uint64_t code = 61;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code), "D"((uint64_t)status));
+    return retval;
+}
