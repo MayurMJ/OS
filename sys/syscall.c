@@ -22,7 +22,7 @@ void save_state(Task *child, uint64_t rsp) {
 	for(int i = 0; i < 21; ++i) {
 		child->kstack[i] = stack[i+1];
 	}
-	child->kstack[14] = 0;
+//	child->kstack[14] = 0;
 	child->regs.rax = 0;
 	child->regs.rip = stack[0];
 	child->regs.rsp = (uint64_t)child->kstack ;

@@ -25,20 +25,15 @@ int main(int argc, char *argv[], char *envp[]) {
                                      : "0"(syscallno));
 		}
 	else {
+		wait(); //parent waits for the child to finish
 		syscallno = 10;
 		__asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
                                      :"=a" (n)
                                      : "0"(syscallno));
-		syscallno = 24;
-	        __asm__ __volatile__("int $0x80\n\t"
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-		syscallno = 24;
-                __asm__ __volatile__("int $0x80\n\t"
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-	//wait();
 	}
+	                __asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (n)
+                                     : "0"(result));
 	//while(1); //no need to return from bin/init
 	return 0;
 }
