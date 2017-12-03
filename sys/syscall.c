@@ -103,7 +103,8 @@ int readFile(int fd, char *buf, uint64_t length) {
 void copy_to_child(Task *parent_task, Task *child_task) {
 
     child_task->ppid = parent_task->pid;
-    child_task->pid =  (last_assn_pid+1)%MAX_PROC ;
+    child_task->pid =  (last_assn_pid+1)%MAX_PROC;
+    kstrcpy(child_task->cwd, parent_task->cwd);
     last_assn_pid++;
     child_task->state = READY;
     duplicate_fds(parent_task, child_task); 
@@ -162,7 +163,7 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
 
 int printLine(char *str) {
     kprintf("%s",str);
-    return strlen(str);
+    return kstrlen(str);
 }
 
 uint64_t syscall_handler(void)
@@ -382,9 +383,33 @@ uint64_t syscall_handler(void)
 		break;
 	// open dir
 	case 78:;	
-		kprintf("process read this %s\n",(char *)arg1);
+		//kprintf("process read this %s\n",(char *)arg1);
 		dentry *dir_entry = dentry_lookup((char*)arg1);
 		ret = allocate_new_dir(dir_entry);
+		break;
+	// getcwd
+	case 79:;
+		kstrcpy((char*)arg1, CURRENT_TASK->cwd);
+		ret = (uint64_t) arg1;
+		break;
+	// chdir
+	case 80:;
+		char *path = (char *) arg1;
+		char check_path[100] = {0};
+		if(path[0] == '/') {
+			kstrcpy(check_path, (char*) arg1);
+		} else {
+			kstrcat(check_path, CURRENT_TASK->cwd);
+			kstrcat(check_path, (char*) arg1);
+		}
+		char *full_path = dentry_lookup_get_path(check_path);
+		if(full_path){
+			kstrcpy(CURRENT_TASK->cwd, full_path);
+			kfree((uint64_t*)full_path);
+			ret = 0;
+		} else {
+			ret = -1;
+		}
 		break;
 	default:
 		kprintf("Syscall not found %d\n",syscall_number);

@@ -59,18 +59,11 @@ uint64_t stoi(char *s) // the message and then the line #
         );
 }*/
 
-int strlen(char *s) {
-	int len = 0;
-	while(s[len] != '\0') {
-		len++;
-	}
-	return (len+1); // includes NULL char at the end
-}
 uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 	int argc = 1, len; //filename comes first	
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
-			len = strlen(argv[argc-1]);
+			len = kstrlen(argv[argc-1]);
 			tos -= len;
 			kmemcpy((char *)tos,argv[argc-1],len);
 			//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
@@ -79,7 +72,7 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 			argc++;
 		}		
 	}
-	len = strlen(filename);
+	len = kstrlen(filename);
 	tos -= len;
 	kmemcpy((char *)tos,filename,len);
 	char *fptr = (char *)tos;	
@@ -88,7 +81,7 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 	int envp_count = 0;
 	if (envp != NULL) {
                 while (envp[envp_count] != NULL) {
-			len = strlen(envp[envp_count]);
+			len = kstrlen(envp[envp_count]);
                         tos -= len;
                         kmemcpy((char *)tos,envp[envp_count],len);
                         envp[envp_count] = (char *)tos;
@@ -122,11 +115,26 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 			header++;
 		}
 		else {
-			kprintf("\nFileName: %s\n", header->name);
+			//kprintf("\nFileName: %s\n", header->name);
 			Elf64_Ehdr *elfhdr = (Elf64_Ehdr *) (header+1);
 			if((elfhdr->e_ident[0]==0x7f)&&(elfhdr->e_ident[1]==0x45)&&
 			(elfhdr->e_ident[2]==0x4c)&&(elfhdr->e_ident[3]==0x46)&& (!kstrcmp(header->name,fileName))) {
 				Task *new_task = (Task*) kmalloc(sizeof(Task));
+				kstrcpy(new_task->cwd,"/rootfs/bin/");
+				/*char tokens[10][100];
+				char *token = kstrtok(header->name, '/');
+				int token_index = 0;
+				while(token!= NULL) {
+					kstrcpy(tokens[token_index],token);
+					kfree((uint64_t*)token);
+					token = kstrtok(NULL, '/');
+					token_index++;
+				}
+				for(int i = 0; i < token_index-1; i++) {
+					kstrcat(new_task->cwd, tokens[i]);
+					kstrcat(new_task->cwd, "/");
+				}
+				kprintf("\n CWD %s\n", new_task->cwd);*/
 				new_task->pid = (last_assn_pid+1)%MAX_PROC;
 				last_assn_pid = new_task->pid;
 				new_task->mm = (struct mm_struct *) kmalloc((sizeof(struct mm_struct)));
@@ -202,8 +210,10 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				new_task->file_desc[0]->file_offset = 0;
 				*/
 				int x;
-				for(x=1; x< MAX_FDS;x++)
+				for(x=1; x< MAX_FDS;x++) {
 					new_task->file_desc[x] = NULL;
+					new_task->dir_desc[x] = NULL;
+				}
                                 // may move above part
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(oldcr3));        

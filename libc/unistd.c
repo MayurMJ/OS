@@ -75,4 +75,23 @@ int waitpid(int pid, int *status) {
     return retval;
 }
 
+int chdir(const char *path) {
+    int retval;
+    uint64_t code = 80;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code), "D"((uint64_t)path)
+		       :"memory");
+    return retval;
+}
+
+char *getcwd(char *buf, size_t size) {
+    uint64_t retval;
+    uint64_t code = 79;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code), "D"((uint64_t)buf), "S" ((uint64_t) size)
+                       :"memory");
+    return (char*)retval;	
+}
 

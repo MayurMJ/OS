@@ -19,7 +19,7 @@ int printf(const char *format, ...);
 int getchar();
 //FILE *fopen(const char *, const char *);
 //int getc(FILE *);
-FILE *fopen(const char *, const char *);
+//FILE *fopen(const char *, const char *);
 //int getc(FILE *);
 int getc(int fd); //changed getc to take fd instead of File *
 char *gets(char *s);

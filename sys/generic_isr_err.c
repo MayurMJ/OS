@@ -57,7 +57,7 @@ void generic_irqhandler_err14(uint64_t errcode)
     }
     if (target_vma == NULL) {
 	// seg fault
-	//kprintf("Unauthorized access!!!\n");
+	kprintf("Unauthorized access!!!\n");
     }
     else {
 	// kmemcpy to the right location

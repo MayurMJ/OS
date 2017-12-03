@@ -68,7 +68,8 @@ typedef struct TASK {
    struct TASK *sibling;
    struct mm_struct *mm;
    struct FILE_OBJ *file_desc[MAX_FDS];  
-   DIR *dir_desc[MAX_FDS];  
+   DIR *dir_desc[MAX_FDS];
+   char cwd[100];
 } Task ;
 
 Task *CURRENT_TASK;

@@ -10,6 +10,45 @@
 #include <sys/utils.h>
 #include <sys/kmalloc.h>
 
+char* dentry_lookup_get_path(char* path) {
+	char *ret_path = (char*) kmalloc(sizeof(char) *100);
+	memset(ret_path, 0, 100);
+	kstrcat(ret_path, "/");
+	dentry *iter_node = root_node->d_children[0];
+	dentry *temp_node = root_node->d_children[0];
+	if(path[0] == '/') path = path + 1;
+	char *token = kstrtok(path , '/');
+	if(token == NULL) return NULL;
+	
+	while(token != NULL) {
+		temp_node = iter_node;
+		if(kstrcmp(token, ".") == 0) {
+			iter_node = temp_node->d_children[1];
+		}
+		else if(kstrcmp(token, "..") == 0) {
+			iter_node = temp_node->d_children[0];
+			kstrrem(ret_path, '/');	
+		}
+		else {
+			//kstrcat(ret_path, temp_node->d_name);
+			int i;
+			for (i = 2; i < temp_node->d_end; i++) {
+				if(kstrcmp(temp_node->d_children[i]->d_name, token) == 0) {
+					iter_node = temp_node->d_children[i];
+					break;
+				}
+			}
+			if(i == temp_node->d_end) {
+				return NULL;
+			}
+			kstrcat(ret_path, iter_node->d_name);
+			kstrcat(ret_path, "/");
+		}
+		token = kstrtok(NULL, '/');
+	}
+	return ret_path; 
+}
+
 dentry* dentry_lookup(char* path) {
 	dentry *iter_node = root_node->d_children[0];
 	dentry *temp_node = root_node->d_children[0];

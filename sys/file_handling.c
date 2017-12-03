@@ -29,7 +29,6 @@ void deallocate_file_object(int fd) {
 		if(CURRENT_TASK->file_desc[fd]->file_ref_count == 1) {
 			kfree((uint64_t*)CURRENT_TASK->file_desc[fd]);
 			CURRENT_TASK->file_desc[fd] = NULL;
-			kprintf("\nDeleted");
 		}
 		else
 			CURRENT_TASK->file_desc[fd]->file_ref_count--;
@@ -60,7 +59,6 @@ void deallocate_new_dir(int fd) {
 		if(CURRENT_TASK->dir_desc[fd]->dir_ref_count == 1) {
 			kfree((uint64_t*)CURRENT_TASK->dir_desc[fd]);
 			CURRENT_TASK->dir_desc[fd] = NULL;
-			kprintf("\nDeleted");
 		}
 		else
 			CURRENT_TASK->dir_desc[fd]->dir_ref_count--;

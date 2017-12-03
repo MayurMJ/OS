@@ -11,16 +11,16 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
+	//int n;
 	/*
 	// open read write close
-	int n;
 //	int x = open("/rootfs/bin/sample", 3);
 	//                __asm__ __volatile__("int $0x80\n\t"
         //                             :"=a" (n)
         //                             : "0"(x + 100));
 	*/
-	/*
-	int fd = opendir("rootfs/bin");
+	
+	/*int fd = opendir("rootfs/bin");
 	DIR* dir = readdir(fd);
 	while(dir != NULL) {
 	__asm__ __volatile("int $0x80\n\t"
@@ -29,14 +29,19 @@ int main(int argc, char *argv[], char *envp[]) {
 	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(n)
                            :"a"(1),"D"(1),"S"(dir->d_name),"d"(100));
+//	puts(dir->d_name);
 	dir = readdir(fd);
 	}
 	closedir(fd);
-	
+	char buf[100];
+	chdir("../../bin");
+	getcwd(buf, 100);
+	__asm__ __volatile("int $0x80\n\t"
+                           :"=a"(n)
+                           :"a"(1),"D"(1),"S"(buf),"d"(100));*/
 
-                           :"a"(1),"D"(1),"S"(buffer),"d"(100));
-	close(x);
-	*/
+                 //          :"a"(1),"D"(1),"S"(buffer),"d"(100));
+	//close(x);
 	// read from stdin and print in a loop
         //uint64_t buffer[512];
 	/* for(int x=0;x<10;x++) {
