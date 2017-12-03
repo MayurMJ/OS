@@ -53,7 +53,7 @@ int main(int argc, char *argv[], char *envp[]) {
                            :"=a"(retval)
                            :"a"(1),"D"(1),"S"((uint64_t)strtemp),"d"(0));
 	*/
-	/*
+	/*	
 	// cat code
 	if(argc == 1) {
     		puts("please Enter a fileName");
@@ -77,5 +77,7 @@ int main(int argc, char *argv[], char *envp[]) {
 		wait(&status);
 	}
 	//while(1); //no need to return from bin/init
+	
+	while(1); //no need to return from bin/init
 	return 0;
 }

@@ -159,6 +159,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 						vm->vma_mem_size = proghdr[i].p_memsz;
 						vm->vma_flags = proghdr[i].p_flags;
 						vm->vma_next = NULL;
+						vm->vm_type = NORMAL;
 						if(new_task->mm->vm_begin == NULL) {
 							new_task->mm->vm_begin = vm;
 						}
@@ -175,6 +176,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				struct vma *vm = (struct vma*) kmalloc(sizeof(struct vma));
 				vm->vma_start = (uint64_t *) end_addr;
 				vm->vma_end = (uint64_t *) end_addr;
+				new_task->mm->brk_begin = end_addr;
+				vm->vm_type = HEAP;
 				vm->vma_next = NULL;
 				iter->vma_next = vm;
 				// Add vma entry for stack
@@ -182,6 +185,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				vm_stack->vma_start = (uint64_t *) USER_STACK - USER_STACK_SIZE;
 				vm_stack->vma_end = (uint64_t *) USER_STACK;
 				vm_stack->vma_next = NULL;
+				vm_stack->vm_type = STACK;
 				vm->vma_next = vm_stack;
 				// Allocate 1 page for stack for now and add it to the new cr3 page mapping
 				uint64_t newcr3 = create_table(); //preps the PMl4 table only

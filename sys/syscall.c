@@ -184,6 +184,19 @@ int printLine(char *str) {
     return kstrlen(str);
 }
 
+//TODO: incomplete
+int brk_handler(uint64_t addr) {
+    struct vma *stack_vma;
+    for(stack_vma = CURRENT_TASK->mm->vm_begin; stack_vma->vm_type != STACK; stack_vma = stack_vma->vma_next);
+    if (addr >= (uint64_t)stack_vma->vma_start) return -1;
+
+    struct vma *heap_vma;
+    for(heap_vma = CURRENT_TASK->mm->vm_begin; heap_vma->vm_type != HEAP; heap_vma = heap_vma->vma_next);
+    heap_vma->vma_end = (uint64_t *)addr;
+    CURRENT_TASK->mm->brk_begin = addr;
+    return 0; 
+}
+
 uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
@@ -276,9 +289,12 @@ uint64_t syscall_handler(void)
 	case 9:
 		kprintf("Hi from sbush\n");
 		break;
-	case 12:
-		kprintf("i'm in another child\n");
-		break;;
+	case 12:; /* brk system call- rdi-unsigned long addr */
+		//kprintf("i'm in another child\n");
+		//TODO: incomplete
+		uint64_t addr = arg1;
+		return brk_handler(addr);
+		break;
 	case 11:
     	        kprintf("I'm in child process %d with arc %d\n",CURRENT_TASK->pid, arg1);
 		//schedule();

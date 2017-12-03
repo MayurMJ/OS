@@ -18,7 +18,7 @@ int execvpe(const char *file, char *const argv[], char *const envp[]);
 int execve(const char *file, char *const argv[], char *const envp[]);
 pid_t wait(int *status);
 int waitpid(int pid, int *status);
-
+int brk(void *addr);
 //unsigned int sleep(unsigned int seconds);
 
 pid_t getpid(void);

@@ -19,13 +19,14 @@ typedef struct {
 
 struct mm_struct {
     //uint64_t code_begin, code_end, data_begin, data_end, stack_begin, brk_start;
-    uint64_t stack_begin;
+    uint64_t stack_begin, brk_begin;
     struct vma *vm_begin;
     uint64_t pg_pml4;
     uint64_t e_entry; 	
 };
 
 struct vma {
+    enum { NORMAL, HEAP, STACK } vm_type;
     struct mm_struct *vma_mm;
     uint64_t *vma_start;
     uint64_t *vma_end;
