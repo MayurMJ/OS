@@ -1,6 +1,7 @@
 #ifndef _KERN_THD
 #define _KERN_THD
 #include <sys/defs.h>
+#include <sys/initfs.h>
 // TODO: change this random value assigned for now
 #define MAX_PROC 1000
 #define FNAMELEN 100
@@ -45,6 +46,15 @@ struct FILE_OBJ {
     uint64_t file_ref_count;
 };
 
+struct DIR {
+  char d_name[100];
+  int d_current;
+  dentry* d_entry;
+  int dir_ref_count;
+};
+
+typedef struct DIR DIR;
+
 typedef struct TASK {
    int pid;
    int ppid;
@@ -58,6 +68,7 @@ typedef struct TASK {
    struct TASK *sibling;
    struct mm_struct *mm;
    struct FILE_OBJ *file_desc[MAX_FDS];  
+   DIR *dir_desc[MAX_FDS];  
 } Task ;
 
 Task *CURRENT_TASK;
