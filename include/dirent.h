@@ -1,6 +1,6 @@
 #ifndef _DIRENT_H
 #define _DIRENT_H
-
+#include <sys/initfs.h>
 #define NAME_MAX 255
 #define SYS_getdents 78
 struct dirent {
@@ -14,14 +14,17 @@ typedef struct linux_dirent {
            } ldirent;
 
 struct DIR {
-  int fd;
-  char buff[10000];
+  char d_name[100];
+  int d_current;
+  dentry* d_entry;
+  int dir_ref_count;
 };
 
 typedef struct DIR DIR;
 
-DIR *opendir(const char *name);
-ldirent *readdir(DIR *dirp);
-int closedir(DIR *dirp);
+
+int opendir(const char *file_name);
+int closedir(int fd);
+DIR* readdir(int fd);
 
 #endif

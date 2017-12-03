@@ -358,22 +358,23 @@ uint64_t syscall_handler(void)
 		break; 
 	// Read dir
 	case 77:;
-		DIR *read_dir = (DIR*) CURRENT_TASK->dir_desc[(uint64_t)arg1];
-		if(read_dir->d_current + 1 < read_dir->d_entry->d_end) {
-			read_dir->d_current++;
+		DIR *read_dir = CURRENT_TASK->dir_desc[(uint64_t)arg1];
+		int current = read_dir->d_current + 1;
+		int end = read_dir->d_entry->d_end;
+		if(current < end) {
+			read_dir->d_current = current;
 			dentry *dir_entry = read_dir->d_entry->d_children[read_dir->d_current];
 			kstrcpy(read_dir->d_name, dir_entry->d_name);
-			read_dir->d_entry = dir_entry;
 			ret = (uint64_t)read_dir;
 		}
-		else
+		else {
 			ret = (uint64_t)NULL;
+		}
 		break;
 	// open dir
 	case 78:;	
 		kprintf("process read this %s\n",(char *)arg1);
 		dentry *dir_entry = dentry_lookup((char*)arg1);
-		
 		ret = allocate_new_dir(dir_entry);
 		break;
 	default:
