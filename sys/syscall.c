@@ -374,6 +374,7 @@ uint64_t syscall_handler(void)
 		if(current < end) {
 			read_dir->d_current = current;
 			dentry *dir_entry = read_dir->d_entry->d_children[read_dir->d_current];
+			memset(read_dir->d_name, 0, 100);
 			kstrcpy(read_dir->d_name, dir_entry->d_name);
 			ret = (uint64_t)read_dir;
 		}

@@ -91,6 +91,7 @@ inode *make_inode(uint64_t start, uint64_t end, int perm) {
 
 void make_dentry(dentry *parent, dentry *child, char* name, uint64_t begin, uint64_t end, int type, inode *in) {
 	
+	memset(child->d_name, 0, MAXLEN);
 	kstrcpy(child->d_name, name);
 	//kprintf("%s", child->d_name);
         child->d_ino = in;
