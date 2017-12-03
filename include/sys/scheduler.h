@@ -14,5 +14,6 @@ void display_queue();
 void reap_all_child(Task *parent);
 Task* zombie_child_exists(Task * parent);
 void reap_process(Task * reapThis);
+void replace_ptr_in_queue(Task * replace, Task * new_task);
 void setupTask(Task *task, void (*main)(), Task *otherTask);
 #endif

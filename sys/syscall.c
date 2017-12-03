@@ -33,6 +33,24 @@ void save_state(Task *child, uint64_t rsp) {
 	child->regs.rsp = (uint64_t)child->kstack ;
 }
 
+void setup_stack_exec(Task *child, uint64_t rsp) {
+
+        uint64_t *stack = (uint64_t*) rsp;
+        child->kstack -= 20;
+        for(int i = 0; i < 14; ++i) {
+                child->kstack[i] = 0;
+        }
+        for(int i = 14; i < 21; ++i) {
+                child->kstack[i] = stack[i+1];
+        }
+	child->kstack[14] = child->mm->e_entry;
+	child->kstack[17] = child->mm->stack_begin;	
+//      child->kstack[14] = 0;
+        child->regs.rip = stack[0];
+        child->regs.rsp = (uint64_t)child->kstack ;
+}
+
+
 uint64_t yyield() {
     Task *last = CURRENT_TASK;
     CURRENT_TASK = CURRENT_TASK->next;
@@ -306,7 +324,7 @@ uint64_t syscall_handler(void)
     		replacement_task->regs.rsi = 0;
     		replacement_task->regs.rdi = 0;
     		replacement_task->regs.rflags = CURRENT_TASK->regs.rflags;
-    		replacement_task->regs.rip = replacement_task->mm->e_entry;
+    	//	replacement_task->regs.rip = replacement_task->mm->e_entry;
    		replacement_task->regs.r8 = 0;
     		replacement_task->regs.r9 = 0;
     		replacement_task->regs.r10 = 0;
@@ -315,15 +333,37 @@ uint64_t syscall_handler(void)
     		replacement_task->regs.r13 = 0;
     		replacement_task->regs.r14 = 0;
     		replacement_task->regs.r15 = 0;
-    		replacement_task->regs.rsp = replacement_task->mm->stack_begin;
+		replacement_task->kstack = (uint64_t *)( 4048+(uint64_t)get_free_page(SUPERVISOR_ONLY, replacement_task->mm->pg_pml4));
+    	//	replacement_task->regs.rsp = replacement_task->mm->stack_begin;
+	        __asm__ __volatile__("movq %%ds, %0\n\t"
+       			            :"=a" (replacement_task->regs.ds)
+                                    :);
+                __asm__ __volatile__("movq %%es, %0\n\t"
+                                    :"=a" (replacement_task->regs.es)
+                                    :);
+                __asm__ __volatile__("movq %%fs, %0\n\t"
+                                    :"=a" (replacement_task->regs.fs)
+                                    :);
+                __asm__ __volatile__("movq %%gs, %0\n\t"
+                                    :"=a" (replacement_task->regs.gs)
+                                    :);
+/*
     		replacement_task->regs.ds = CURRENT_TASK->regs.ds;
 		replacement_task->regs.es = CURRENT_TASK->regs.es;
 		replacement_task->regs.fs = CURRENT_TASK->regs.fs;
 		replacement_task->regs.gs = CURRENT_TASK->regs.gs;
 		replacement_task->regs.ss = CURRENT_TASK->regs.ss;
-		replacement_task->regs.cs = CURRENT_TASK->regs.cs;
+		replacement_task->regs.cs = CURRENT_TASK->regs.cs;*/
 		// put in run queue and give it the same pid
 		replacement_task->pid = CURRENT_TASK->pid;
+		replacement_task->ppid = CURRENT_TASK->ppid;
+		setup_stack_exec(replacement_task, rsp);
+		replace_ptr_in_queue(CURRENT_TASK,replacement_task);
+		CURRENT_TASK->pid = 0;
+		CURRENT_TASK->ppid = 1;
+		CURRENT_TASK->state = ZOMBIE;
+		switchTask(&CURRENT_TASK->regs, &replacement_task->regs);
+/*
 		// TODO: remove this circular list
 		replacement_task->next = CURRENT_TASK->next;
 		replacement_task->prev = CURRENT_TASK->prev;
@@ -332,7 +372,7 @@ uint64_t syscall_handler(void)
 		
 		CURRENT_TASK->next = replacement_task;
 		delete_page_tables(CURRENT_TASK->regs.cr3);
-		yyield();	
+		yyield();*/	
 		return -1; // if execve returns its an error*/
 		break;
 	case 60: /* exit- rdi-return value of main*/

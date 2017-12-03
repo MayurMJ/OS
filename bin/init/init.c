@@ -67,6 +67,15 @@ int main(int argc, char *argv[], char *envp[]) {
     		putchar(ch);
   	}
 	*/
-	while(1); //no need to return from bin/init
+	int res = fork();
+	if(res == 0) {
+		char *binary = "bin/sbush";
+  		execve(binary, NULL, NULL);		
+	}
+	else {
+		int status;
+		wait(&status);
+	}
+	//while(1); //no need to return from bin/init
 	return 0;
 }

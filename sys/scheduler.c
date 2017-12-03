@@ -311,7 +311,25 @@ void reap_process(Task * reapThis) {
 	//TODO: free the memory of the reaped task;	
 }
 
-
+void replace_ptr_in_queue(Task * replace, Task * new_task) {
+	if(replace == run_queue) {
+		queue_head->next = new_task;
+		new_task->next = replace->next;
+		run_queue = new_task;
+		return;
+	}
+	Task *curr = run_queue;
+	while(curr->next != replace || curr->next != queue_head) {
+		curr = curr->next;
+	}
+	if(curr->next == queue_head ) {
+		kprintf("PANIC: replacing something not in queue!\n");
+		return;
+	}
+	curr->next = new_task;
+	new_task->next = replace->next;
+	return;
+}
 
 /*
 uint64_t execve(char *binary, char *argv[], char *envp[]) {
