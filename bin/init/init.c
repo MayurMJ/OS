@@ -49,14 +49,21 @@ int main(int argc, char *argv[], char *envp[]) {
 	//ssize_t retval;
 	//int count = 100;
 	int n;
-	int x = open("/rootfs/bin/sbush", 3);
-	                __asm__ __volatile__("int $0x80\n\t"
-                                     :"=a" (n)
-                                     : "0"(x + 100));
+	int x = open("/rootfs/bin/sample", 3);
+	//                __asm__ __volatile__("int $0x80\n\t"
+        //                             :"=a" (n)
+        //                             : "0"(x + 100));
+	char buffer[300];
+	__asm__ __volatile("int $0x80\n\t"
+                           :"=a"(n)
+                           :"a"(0),"D"(x),"S"(buffer),"d"(100));
+	__asm__ __volatile("int $0x80\n\t"
+                           :"=a"(n)
+                           :"a"(1),"D"(1),"S"(buffer),"d"(100));
 	close(x);
 
         //uint64_t buffer[512];
-	/*for(int x=0;x<10;x++) {
+	/* for(int x=0;x<10;x++) {
         uint64_t buffer[512];
         __asm__ __volatile("int $0x80\n\t"
                            :"=a"(retval)
@@ -65,12 +72,13 @@ int main(int argc, char *argv[], char *envp[]) {
 			   :"=a"(retval)
 			   :"a"(59), "D"((uint64_t)buffer), "S"((uint64_t)0), "d"((uint64_t)0)
 			   :"memory");
-	}*/
+	}
 	char *strtemp = "gargi";
 	int retval;
 	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(retval)
                            :"a"(1),"D"(1),"S"((uint64_t)strtemp),"d"(0));
+	*/
 	while(1); //no need to return from bin/init
 	return 0;
 }

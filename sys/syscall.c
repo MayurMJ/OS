@@ -96,6 +96,8 @@ int readFile(int fd, char *buf, uint64_t length) {
                  - (CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset);
     }
     kmemcpy(buf,(char *)(CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset),length);
+    CURRENT_TASK->file_desc[fd]->file_offset += length;
+    buf[length]='\0';
     return length;
 }
 void copy_to_child(Task *parent_task, Task *child_task) {
