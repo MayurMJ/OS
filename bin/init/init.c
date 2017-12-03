@@ -52,7 +52,8 @@ int main(int argc, char *argv[], char *envp[]) {
 	int x = open("/rootfs/bin/sbush", 3);
 	                __asm__ __volatile__("int $0x80\n\t"
                                      :"=a" (n)
-                                     : "0"(x));
+                                     : "0"(x + 100));
+	close(x);
 
         //uint64_t buffer[512];
 	/*for(int x=0;x<10;x++) {

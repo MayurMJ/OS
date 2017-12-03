@@ -42,6 +42,7 @@ struct FILE_OBJ {
     uint64_t file_begin;
     uint64_t file_end;
     uint64_t file_offset; //file will read from this offset
+    uint64_t file_ref_count;
 };
 
 typedef struct TASK {

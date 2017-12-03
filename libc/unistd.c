@@ -40,12 +40,19 @@ pid_t wait(int *status) {
 
 int open(const char *fileName, int mode) {
     int retval;
-    uint64_t code = 5;
+    uint64_t code = 3;
     __asm__ __volatile("int $0x80\n\t"
                        :"=a"(retval)
                        :"a"(code), "D"((uint64_t)fileName), "S"((uint64_t) mode)
 		       :"memory");
     return retval;
-
 }
 
+int close(int fd) {
+    int retval;
+    uint64_t code = 5;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code), "D"((uint64_t)fd));
+    return retval;
+}

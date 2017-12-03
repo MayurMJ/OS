@@ -221,13 +221,6 @@ uint64_t syscall_handler(void)
 		}
 		else return readFile(fd,buffer,count);
 		break;
-<<<<<<< 322c4736267a4653effd49a400395065b06c1e58
-	case 5:;
-		kprintf("process read this %s\n",(char *)arg1);
-		dentry *file_entry = dentry_lookup((char*)arg1);
-		ret =  (allocate_file_object(file_entry));
-		
-=======
 	case 1:; /* write syscall-arg1-file desc, arg2-buffer to copy from, arg3-number of chars to copy */
 		
 		int fdw = arg1;
@@ -238,7 +231,14 @@ uint64_t syscall_handler(void)
 		}
 		return lengthw;
 		break;
->>>>>>> write works
+	case 3:;
+		kprintf("process read this %s\n",(char *)arg1);
+		dentry *file_entry = dentry_lookup((char*)arg1);
+		ret =  (allocate_file_object(file_entry));
+		break;
+	case 5:;
+		deallocate_file_object((uint64_t) arg1);
+		break;
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
 		break;
