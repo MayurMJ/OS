@@ -29,6 +29,16 @@ ssize_t read(int fd, void *buf, size_t count) {
     return (ssize_t)retval;
 }
 
+ssize_t write(unsigned int fd, const char * buf, size_t count) {
+	ssize_t retval;
+	uint64_t buffer = (uint64_t)buf;
+	__asm__ __volatile("int $0x80\n\t"
+			   :"=a"(retval)
+			   :"a"(1),"D"(fd),"S"(buffer),"d"(count));
+	return (ssize_t)retval;
+}
+
+
 pid_t wait(int *status) {
     int retval;
     uint64_t code = 61;

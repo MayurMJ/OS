@@ -11,54 +11,21 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
-/*	int result  = 1;
-	int n;
-	int syscallno;
-	result = fork();
-	if (result == 0) {
-//		__asm__ __volatile__("pushq %rcx\n\t");
-//		__asm__ __volatile__("popq %rcx\n\t");
-		syscallno = 11;
- 	        __asm__ __volatile__("int $0x80\n\t"	//a sycall that simply prints I'm in child
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-		__asm__ __volatile__("int $0x80\n\t"
-                             	     :"=a" (n)
-                                     : "0"(24));
-		syscallno = 24;
-                __asm__ __volatile__("int $0x80\n\t"
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-		}
-//		int b = getsysid();
-//		__asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
-//                                     :"=a" (n)
-//                                     : "0"(b));			
-	} 
-	else {
-		syscallno = 10;
-		__asm__ __volatile__("int $0x80\n\t"    //a sycall that simply prints I'm in child
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-		syscallno = 24;
-	        __asm__ __volatile__("int $0x80\n\t"
-                                     :"=a" (n)
-                                     : "0"(syscallno));
-	}
-*/
-	//ssize_t retval;
-	//int count = 100;
+	/*
+	// open read write close
 	int n;
 //	int x = open("/rootfs/bin/sample", 3);
 	//                __asm__ __volatile__("int $0x80\n\t"
         //                             :"=a" (n)
         //                             : "0"(x + 100));
+	*/
+	/*
 	int fd = opendir("rootfs/bin");
 	DIR* dir = readdir(fd);
 	while(dir != NULL) {
-/*	__asm__ __volatile("int $0x80\n\t"
+	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(n)
-                           :"a"(0),"D"(x),"S"(buffer),"d"(100));*/
+                           :"a"(0),"D"(x),"S"(buffer),"d"(100));
 	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(n)
                            :"a"(1),"D"(1),"S"(dir->d_name),"d"(100));
@@ -67,6 +34,10 @@ int main(int argc, char *argv[], char *envp[]) {
 	closedir(fd);
 	
 
+                           :"a"(1),"D"(1),"S"(buffer),"d"(100));
+	close(x);
+	*/
+	// read from stdin and print in a loop
         //uint64_t buffer[512];
 	/* for(int x=0;x<10;x++) {
         uint64_t buffer[512];
@@ -83,6 +54,20 @@ int main(int argc, char *argv[], char *envp[]) {
 	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(retval)
                            :"a"(1),"D"(1),"S"((uint64_t)strtemp),"d"(0));
+	*/
+	/*
+	// cat code
+	if(argc == 1) {
+    		puts("please Enter a fileName");
+  	}
+  	char *fileName = argv[1];
+	int fd = open(fileName, 3);
+  	//FILE *fp = fopen(fileName, "r");
+  	char ch;
+	
+  	while ((ch = getc(fd)) != EOF) {
+    		putchar(ch);
+  	}
 	*/
 	while(1); //no need to return from bin/init
 	return 0;

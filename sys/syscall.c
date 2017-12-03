@@ -88,7 +88,6 @@ int readFile(int fd, char *buf, uint64_t length) {
     // TODO: check if file is WRONLY
     if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset)
         >=CURRENT_TASK->file_desc[fd]->file_end) {
-        kprintf("Nothing left to be read\n");
         return -1;
     }
     if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset+length)
@@ -161,7 +160,7 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
     return -1;
 }
 
-int puts(char *str) {
+int printLine(char *str) {
     kprintf("%s",str);
     return strlen(str);
 }
@@ -190,7 +189,7 @@ uint64_t syscall_handler(void)
     __asm__ __volatile__("movq %%rax, %0\n\t"
 			:"=a" (syscall_number)
                         :);
-    kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
+    //kprintf("Syscallno %d from process %d\n",syscall_number,CURRENT_TASK->pid);
     switch(syscall_number) {
 	case 0:; /* read syscall-arg1-file desc, arg2-buffer to copy to, arg3-number of chars to copy or till \n*/
 		int fd = arg1;
@@ -224,15 +223,25 @@ uint64_t syscall_handler(void)
 		}
 		else return readFile(fd,buffer,count);
 		break;
-	case 1:; /* write syscall-arg1-file desc, arg2-buffer to copy from, arg3-number of chars to copy */
-		
+	case 1:; /* write syscall-arg1-file desc, arg2-buffer to copy from, arg3-number of chars to copy */	
 		int fdw = arg1;
-                char *bufferw = (char *)arg2;
-		int lengthw = 0;
 		if (fdw == 1 || fdw == 2) {
-			lengthw = puts(bufferw);
+			int lengthw = arg3;
+                	if (lengthw == 1) {
+                        	char str[2]; // TODO: should i use kmalloc for this?
+                        	str[0] = *(char *)arg2;
+                        	str[1] = '\0';
+				return printLine(str);
+                	}
+			else {
+				char *bufferw = (char *)arg2;
+				return  printLine(bufferw);
+			}
 		}
-		return lengthw;
+		else {
+			kprintf("Unknown fd for write\n");
+			return -1;
+		}	
 		break;
 	case 3:;
 		kprintf("process read this %s\n",(char *)arg1);
