@@ -10,6 +10,7 @@
 #include <sys/file_handling.h>
 #include <sys/string.h>
 #include <sys/kmemcpy.h>
+
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
 {
@@ -73,6 +74,29 @@ void duplicate_fds(Task *parent, Task *child) {
     for (i=0; i<MAX_FDS; i++)
 	child->file_desc[i] = parent->file_desc[i];
     return;
+}
+int readFile(int fd, char *buf, uint64_t length) {
+    if ((fd <=2) || (fd >= MAX_FDS)) {
+        kprintf("PANIC: invalid fd\n");
+        return -1;
+    }
+    if (CURRENT_TASK->file_desc[fd] == NULL) {
+        kprintf("PANIC: fd does not point to any file obj\n");
+        return -1;
+    }
+    // TODO: check if file is WRONLY
+    if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset)
+        >=CURRENT_TASK->file_desc[fd]->file_end) {
+        kprintf("Nothing left to be read\n");
+        return -1;
+    }
+    if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset+length)
+        > CURRENT_TASK->file_desc[fd]->file_end) {
+        length = CURRENT_TASK->file_desc[fd]->file_end
+                 - (CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset);
+    }
+    kmemcpy(buf,(char *)(CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset),length);
+    return length;
 }
 void copy_to_child(Task *parent_task, Task *child_task) {
 
@@ -195,6 +219,7 @@ uint64_t syscall_handler(void)
 			FG_TASK = NULL;
 			return chars_read;
 		}
+		else return readFile(fd,buffer,count);
 		break;
 <<<<<<< 322c4736267a4653effd49a400395065b06c1e58
 	case 5:;
