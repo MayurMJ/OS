@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/defs.h>
+#include <stdio.h>
 
 int getsysid() {
 	int a = 3;
@@ -45,10 +46,16 @@ int main(int argc, char *argv[], char *envp[]) {
                                      : "0"(syscallno));
 	}
 */
-	ssize_t retval;
-	int count = 100;
+	//ssize_t retval;
+	//int count = 100;
+	int n;
+	int x = open("/rootfs/bin/sbush", 3);
+	                __asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (n)
+                                     : "0"(x));
+
         //uint64_t buffer[512];
-	for(int x=0;x<10;x++) {
+	/*for(int x=0;x<10;x++) {
         uint64_t buffer[512];
         __asm__ __volatile("int $0x80\n\t"
                            :"=a"(retval)
@@ -57,7 +64,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			   :"=a"(retval)
 			   :"a"(59), "D"((uint64_t)buffer), "S"((uint64_t)0), "d"((uint64_t)0)
 			   :"memory");
-	}
+	}*/
 	while(1); //no need to return from bin/init
 	return 0;
 }

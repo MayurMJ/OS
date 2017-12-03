@@ -6,7 +6,8 @@
 #include <sys/copy_tables.h>
 #include <sys/elf64.h>
 #include <sys/scheduler.h>
-
+#include <sys/initfs.h>
+#include <sys/file_handling.h>
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
 {
@@ -202,6 +203,11 @@ uint64_t syscall_handler(void)
 			return chars_read;
 		}
 		break;
+	case 5:;
+		kprintf("process read this %s\n",(char *)arg1);
+		dentry *file_entry = dentry_lookup((char*)arg1);
+		ret =  (allocate_file_object(file_entry));
+		
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
 		break;

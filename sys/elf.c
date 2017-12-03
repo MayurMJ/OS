@@ -195,7 +195,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
 				new_task->mm->stack_begin = tos;
 				// Allocating a dummy file obj for stdin so its not null
-				new_task->file_desc[0] = kmalloc(sizeof(struct FILE_OBJ));
+				new_task->file_desc[0] = (struct FILE_OBJ*)kmalloc(sizeof(struct FILE_OBJ));
 				/*
 				new_task->file_desc[0]->file_begin = USER_READ_BUFFER;
 				new_task->file_desc[0]->file_end = USER_READ_BUFFER+4095;

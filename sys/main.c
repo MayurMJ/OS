@@ -95,11 +95,11 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   /*dentry *de = dentry_lookup("rootfs/bin/init");
   if(de != NULL)
   kprintf("\nFound: %s", de->d_name);
-  de = dentry_lookup("/rootfs/./lib/crt1.o");
+  de = dentry_lookup("rootfs/bin/sbush");
   if(de != NULL)
   kprintf("\nFound: %s", de->d_name);
   else kprintf("Not Found");
-  de = dentry_lookup("/rootfs/bin/../bin");
+  de = dentry_lookup("rootfs/bin/../bin");
   if(de != NULL)
   kprintf("\nFound: %s", de->d_name);*/
   Task *mainTask = (Task*) kmalloc(sizeof(Task));

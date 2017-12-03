@@ -2,10 +2,7 @@
 #include <sys/kmalloc.h>
 static char* iterator;
 void kstrcpy(char *s1, char*s2) {
-  while(*s2) {
-    *s1 = *s2;
-    s1++;s2++;
-  }
+   while((*s1++ = *s2++));
 }
 
 int kstrcmp(char *s1, char *s2) {

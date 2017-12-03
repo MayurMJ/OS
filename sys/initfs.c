@@ -51,7 +51,9 @@ inode *make_inode(uint64_t start, uint64_t end, int perm) {
 }
 
 void make_dentry(dentry *parent, dentry *child, char* name, uint64_t begin, uint64_t end, int type, inode *in) {
+	
 	kstrcpy(child->d_name, name);
+	//kprintf("%s", child->d_name);
         child->d_ino = in;
         child->d_begin = begin;
         child->d_end = end;
@@ -92,6 +94,7 @@ void populate_dentry(char *name, int type, uint64_t start, uint64_t end) {
 			temp_node->d_children[i] = iter_node;
 			temp_node->d_end++;
 		}
+		kfree((uint64_t*)token);
 		token = kstrtok(NULL, '/');
 	}
 }
@@ -106,7 +109,7 @@ void parse_tarfs() {
 			populate_dentry(header->name, FILE, (uint64_t)(header + 1), (uint64_t)((void *)header + 512 + size));
 		}
                 if (size == 0) {
-                       // kprintf("\nFileName: %s\n", header->name);
+                        //kprintf("\nFileName: %s\n", header->name);
 			header++;
                 }
                 else {
@@ -119,13 +122,11 @@ void parse_tarfs() {
 
 void initfs() {
 	root_node = (dentry *) kmalloc (sizeof(dentry));
-	make_dentry(root_node, root_node, "/", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
+	make_dentry(root_node, root_node, (char*)"/", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
 	dentry *temp_node = (dentry*) kmalloc(sizeof(dentry));
-	make_dentry(root_node, temp_node, "rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
+	make_dentry(root_node, temp_node, (char *)"rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
 	root_node->d_children[2] = temp_node;
 	root_node->d_end = 3;
-//	parse_tarfs();
-//	kprintf("\n");
-	//print_dentry(ro->d_children[2]);
-	print_dentries(temp_node);
+	parse_tarfs();
+	//print_dentries(temp_node);
 } 
