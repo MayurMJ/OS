@@ -48,6 +48,7 @@ int main(int argc, char *argv[], char *envp[]) {
 */
 	//ssize_t retval;
 	//int count = 100;
+/*	
 	int n;
 	int x = open("/rootfs/bin/sample", 3);
 	//                __asm__ __volatile__("int $0x80\n\t"
@@ -61,7 +62,16 @@ int main(int argc, char *argv[], char *envp[]) {
                            :"=a"(n)
                            :"a"(1),"D"(1),"S"(buffer),"d"(100));
 	close(x);
-
+*/
+	int n;
+	int cid = fork();
+	if (cid == 0) {
+		fork();
+		wait(&n);
+	}
+	else {
+		wait(&n);
+	}
         //uint64_t buffer[512];
 	/* for(int x=0;x<10;x++) {
         uint64_t buffer[512];
@@ -72,6 +82,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			   :"=a"(retval)
 			   :"a"(59), "D"((uint64_t)buffer), "S"((uint64_t)0), "d"((uint64_t)0)
 			   :"memory");
+<<<<<<< f931812d5ff02fb78a1d0d529a66941ae8fa2718
 	}
 	char *strtemp = "gargi";
 	int retval;
@@ -79,6 +90,6 @@ int main(int argc, char *argv[], char *envp[]) {
                            :"=a"(retval)
                            :"a"(1),"D"(1),"S"((uint64_t)strtemp),"d"(0));
 	*/
-	while(1); //no need to return from bin/init
+//	while(1); //no need to return from bin/init
 	return 0;
 }

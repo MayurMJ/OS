@@ -282,9 +282,9 @@ uint64_t syscall_handler(void)
 		display_queue();
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
-		//kprintf("%d %d\n",arg2, arg3);	
-		kprintf("process read this %s\n",(char *)arg1);/*
-		cihar **argv; char **envp;
+		kprintf("%d %d\n",arg2, arg3);	
+		kprintf("process read this %s\n",(char *)arg1);
+		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
@@ -344,8 +344,8 @@ uint64_t syscall_handler(void)
 			Task * child_task = zombie_child_exists(CURRENT_TASK);
 			if(child_task) {
 				uint64_t child_id = child_task->pid;
-				//uint64_t *wstatus = (uint64_t *) arg1;
-				//*wstatus = child_task->exit_value;
+				uint64_t *wstatus = (uint64_t *) arg1;
+				*wstatus = child_task->exit_value;
 				reap_process(child_task);
 				return child_id;
 			}

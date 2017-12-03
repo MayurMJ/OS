@@ -56,3 +56,13 @@ int close(int fd) {
                        :"a"(code), "D"((uint64_t)fd));
     return retval;
 }
+int waitpid(int pid, int *status) {
+    int retval;
+    uint64_t code = 247;
+    __asm__ __volatile("int $0x80\n\t"
+                       :"=a"(retval)
+                       :"a"(code), "D"((uint64_t)status));
+    return retval;
+}
+
+

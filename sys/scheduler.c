@@ -10,6 +10,7 @@
 #include <sys/scheduler.h>
 #include <sys/initfs.h>
 #include <sys/gdt.h>
+#include <sys/copy_tables.h>
 
 static Task *run_queue;;
 static Task *queue_head;;
@@ -261,17 +262,48 @@ Task* zombie_child_exists(Task * parent) {
 void reap_all_child(Task *parent) {
 	Task * curr = run_queue;
 	while(curr!=queue_head) {
-		if(curr->ppid == parent->pid && curr->state == ZOMBIE)
-			reap_process(curr);
-		curr = curr->next;
+		if(curr->ppid == parent->pid && curr->state == ZOMBIE) {
+			Task * reapme = curr;
+			curr = curr->next;
+			reap_process(reapme);
+		}
+		else {
+			curr = curr->next;
+		}
 	}
 
 }
 
+void free_vmas(struct vma *vm_begin) {
+	if(!vm_begin)
+		return;
+	struct vma *vm_curr = vm_begin;
+	while(vm_curr->vma_next) {
+		struct vma * deleteme = vm_curr;
+		vm_curr = vm_curr->vma_next;
+		kfree((uint64_t *)deleteme);
+	} 
+	kfree((uint64_t *)vm_curr);
+}
+
+
+void free_file_desc(Task * reapThis) {
+	for(int i = 0; i < MAX_FDS; i++) {
+		if(reapThis->file_desc[i])
+			kfree((uint64_t *)(reapThis->file_desc[i]));
+	}
+
+}
 
 /* reap the process */
 void reap_process(Task * reapThis) {
-	remove_from_run_queue(reapThis);
+	remove_from_run_queue(reapThis); 
+	free_vmas(reapThis->mm->vm_begin);
+	kfree((uint64_t *)(reapThis->mm));
+	free_page(reapThis->kstack, reapThis->regs.cr3);
+	free_file_desc(reapThis);
+	delete_page_tables(reapThis->regs.cr3);
+	kfree((uint64_t *)reapThis);	
 	//TODO: free the memory of the reaped task;	
 }
 
