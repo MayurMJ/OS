@@ -6,7 +6,7 @@
 //#include <sys/ahci.h>
 void generic_irqhandler_err8(void)
 {
-    kprintf("Generic interrupt occured with error code 8\n");
+    kprintf("oh no Generic interrupt occured with error code 8\n");
 	
 }
 

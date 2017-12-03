@@ -8,6 +8,8 @@
 #include <sys/scheduler.h>
 #include <sys/initfs.h>
 #include <sys/file_handling.h>
+#include <sys/string.h>
+#include <sys/kmemcpy.h>
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
 {
@@ -132,6 +134,11 @@ ssize_t read_handler(int fd, char *buf, size_t count) {
     return -1;
 }
 
+int puts(char *str) {
+    kprintf("%s",str);
+    return strlen(str);
+}
+
 uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
@@ -165,35 +172,21 @@ uint64_t syscall_handler(void)
 		if (fd == 0) {
 			while (1) {
 				if (FG_TASK != NULL) {
-					//kprintf("fg task not null\n");
-					// save state and schedule another task
 					schedule(); // TODO: is this the right call?
 				}
 				else
 					break;
 			}
 			FG_TASK = CURRENT_TASK;
-			//kprintf("now i am fg task %d\n",FG_TASK->pid);
 			ssize_t chars_read = read_handler(fd, buffer, count);
-			//input is not ready yet, should I take it at 0 available?
 			if ((chars_read == -1) || (chars_read == 0)) {
 				FG_TASK->state = WAITING;
-				/*
-				while((chars_read == -1) || (chars_read == 0)) {
-					schedule();
-					chars_read = read_handler(fd, buffer, count);
-				}
-				*/
 				while(FG_TASK->state == WAITING) {
                                         schedule();
                                 }
-				// save state and schedule next task
 			}
-			// adjust terminal buffer and offset and unset fg task
-			// TODO: should i just empty buffer here or keep the buffer content?
 			chars_read = read_handler(fd, buffer, count);	
 			buffer[chars_read]='\0';
-			//kprintf("read handler chars read %d\n",chars_read);
 			int x; // TODO:look into this again
 			for (x= chars_read; x <4096; x++) {
 				*(char *)(TERMINAL_BUFFER + x - chars_read) = *(char *)(TERMINAL_BUFFER + x);
@@ -203,11 +196,24 @@ uint64_t syscall_handler(void)
 			return chars_read;
 		}
 		break;
+<<<<<<< 322c4736267a4653effd49a400395065b06c1e58
 	case 5:;
 		kprintf("process read this %s\n",(char *)arg1);
 		dentry *file_entry = dentry_lookup((char*)arg1);
 		ret =  (allocate_file_object(file_entry));
 		
+=======
+	case 1:; /* write syscall-arg1-file desc, arg2-buffer to copy from, arg3-number of chars to copy */
+		
+		int fdw = arg1;
+                char *bufferw = (char *)arg2;
+		int lengthw = 0;
+		if (fdw == 1 || fdw == 2) {
+			lengthw = puts(bufferw);
+		}
+		return lengthw;
+		break;
+>>>>>>> write works
 	case 10:
     	        kprintf("I'm in parent process %d\n",CURRENT_TASK->pid);
 		break;

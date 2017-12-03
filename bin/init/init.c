@@ -65,6 +65,11 @@ int main(int argc, char *argv[], char *envp[]) {
 			   :"a"(59), "D"((uint64_t)buffer), "S"((uint64_t)0), "d"((uint64_t)0)
 			   :"memory");
 	}*/
+	char *strtemp = "gargi";
+	int retval;
+	__asm__ __volatile("int $0x80\n\t"
+                           :"=a"(retval)
+                           :"a"(1),"D"(1),"S"((uint64_t)strtemp),"d"(0));
 	while(1); //no need to return from bin/init
 	return 0;
 }
