@@ -1,0 +1,124 @@
+From 2e62e5660e9bf2746cad80c993a35f56b0b222ff Mon Sep 17 00:00:00 2001
+From: Raghav Dogra <raghavdogra@gmail.com>
+Date: Mon, 4 Dec 2017 04:14:51 -0500
+Subject: [PATCH] git preeemptive patch2
+
+Signed-off-by: Raghav Dogra <raghavdogra@gmail.com>
+---
+ bin/init/init.c   | 11 ++++++++++-
+ bin/sbush/sbush.c |  2 ++
+ sys/scheduler.c   | 16 +++++++++++++---
+ sys/syscall.s     |  2 ++
+ sys/timer_isr.c   |  2 +-
+ 5 files changed, 28 insertions(+), 5 deletions(-)
+
+diff --git a/bin/init/init.c b/bin/init/init.c
+index 1a0dc5e..3183b93 100644
+--- a/bin/init/init.c
++++ b/bin/init/init.c
+@@ -71,16 +71,25 @@ int main(int argc, char *argv[], char *envp[]) {
+ 	if(res == 0) {
+ 		char *binary = "bin/sbush";
+   		execve(binary, NULL, NULL);		
++        uint64_t syscallno = 9;
++        uint64_t result = 1;
++        while (1) {
++        __asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++	}
+ 	}
+ 	else {
+-		for(int i = 0; i < 1000; i++) {
++	//	for(int i = 0; i < 1000; i++) {
+ 	uint64_t syscallno = 10;
+     	uint64_t result = 1;
++	while (1) {
+     	__asm__ __volatile__("int $0x80\n\t"
+                              :"=a" (result)
+                              : "0"(syscallno));
+ 			
+ 		}
++	//}
+ //		int status;
+ //		wait(&status);
+ 	}
+diff --git a/bin/sbush/sbush.c b/bin/sbush/sbush.c
+index 137bec9..b9cc576 100644
+--- a/bin/sbush/sbush.c
++++ b/bin/sbush/sbush.c
+@@ -47,9 +47,11 @@ int main(int argc, char *argv[], char *envp[]) {
+     	__asm__ __volatile__("int $0x80\n\t"
+                              :"=a" (result)
+                              : "0"(syscallno));
++	while(1) {
+     	__asm__ __volatile__("int $0x80\n\t"
+                              :"=a" (result)
+                              : "0"(syscallno));
++	}
+ 	/*
+         int result=1; 
+ 	int n = 57; 
+diff --git a/sys/scheduler.c b/sys/scheduler.c
+index 04d52fe..0a0b59d 100644
+--- a/sys/scheduler.c
++++ b/sys/scheduler.c
+@@ -126,9 +126,19 @@ void yield() {
+ //	kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+     	CURRENT_TASK = CURRENT_TASK->next;
+     }
+-	display_queue();
++	if(CURRENT_TASK->pid == 1) {
++		    while(CURRENT_TASK->state != READY) {
++#ifdef DEBUG_PRINT_SCHEDULER
++        kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
++#endif
++//      kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
++        CURRENT_TASK = CURRENT_TASK->next;
++    }
++
++	}
++//	display_queue();
+ 	kprintf("this task is getting scheduled  pid = %d\n", CURRENT_TASK->pid);
+-    switchTask(&last->regs, &CURRENT_TASK->regs);
++        switchTask(&last->regs, &CURRENT_TASK->regs);
+ }
+ 
+ 
+@@ -145,7 +155,7 @@ void idle_task() {
+ 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+ 		display_queue();
+ #endif
+-	//	kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
++		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+ 		schedule();
+ //		reap_all_child(CURRENT_TASK);
+ //		__asm__ __volatile__ ( "sti\n\t");
+diff --git a/sys/syscall.s b/sys/syscall.s
+index f0f549e..3737ccb 100644
+--- a/sys/syscall.s
++++ b/sys/syscall.s
+@@ -38,5 +38,7 @@ syscall:
+     popq    %rdx
+     popq    %rcx
+     popq    %rbx
++    movb    $0x20, %al
++    outb    %al, $0x20
+     sti
+     iretq
+diff --git a/sys/timer_isr.c b/sys/timer_isr.c
+index 5183a17..59cb577 100644
+--- a/sys/timer_isr.c
++++ b/sys/timer_isr.c
+@@ -63,7 +63,7 @@ void timer_irqhandler(void)
+     *videomem = 's';
+     videomem = (char*)(0xffffffff80000000+0xb8f8e);
+     process_in(time_boot,videomem);
+-    while(CURRENT_TASK->pid > 0)
++    if(CURRENT_TASK->pid > 0)
+ 	schedule();
+     //kprintf("address of timer_isr %x\n",&timer_isr);
+     //kprintf("time since boot %d s \n",time_boot++);
+-- 
+2.7.4
+

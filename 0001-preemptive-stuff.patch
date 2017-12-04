@@ -1,0 +1,198 @@
+From 7356d5d1eb297dd192c7f88471a5a314601f5dcb Mon Sep 17 00:00:00 2001
+From: Raghav Dogra <raghavdogra@gmail.com>
+Date: Sun, 3 Dec 2017 21:24:25 -0500
+Subject: [PATCH] preemptive stuff
+
+Signed-off-by: Raghav Dogra <raghavdogra@gmail.com>
+---
+ bin/init/init.c   | 20 ++++++++++++++------
+ bin/sbush/sbush.c | 15 +++++++++++++++
+ sys/scheduler.c   | 10 +++++++---
+ sys/syscall.c     |  4 ++--
+ sys/timer_isr.c   |  3 +++
+ sys/timer_isr.s   |  5 ++++-
+ 6 files changed, 45 insertions(+), 12 deletions(-)
+
+diff --git a/bin/init/init.c b/bin/init/init.c
+index 2be2395..1a0dc5e 100644
+--- a/bin/init/init.c
++++ b/bin/init/init.c
+@@ -11,7 +11,7 @@ int getsysid() {
+ }
+ //int result;
+ int main(int argc, char *argv[], char *envp[]) {
+-	int n;
++	//int n;
+ 	/*
+ 	// open read write close
+ //	int x = open("/rootfs/bin/sample", 3);
+@@ -19,7 +19,7 @@ int main(int argc, char *argv[], char *envp[]) {
+         //                             :"=a" (n)
+         //                             : "0"(x + 100));
+ 	*/
+-	
++/*	
+ 	int fd = opendir("rootfs/bin");
+ 	DIR* dir = readdir(fd);
+ 	while(dir != NULL) {
+@@ -31,8 +31,8 @@ int main(int argc, char *argv[], char *envp[]) {
+ 	}
+ 	closedir(fd);
+ 	char buf[100];
+-	chdir("../../bin");
+-	getcwd(buf, 100);
++	chdir("../../bin");*/
++//	getcwd(buf, 100);
+ //	puts(buf);
+ 	//close(x);
+ 	// read from stdin and print in a loop
+@@ -73,8 +73,16 @@ int main(int argc, char *argv[], char *envp[]) {
+   		execve(binary, NULL, NULL);		
+ 	}
+ 	else {
+-		int status;
+-		wait(&status);
++		for(int i = 0; i < 1000; i++) {
++	uint64_t syscallno = 10;
++    	uint64_t result = 1;
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++			
++		}
++//		int status;
++//		wait(&status);
+ 	}
+ 	//while(1); //no need to return from bin/init
+ 	return 0;
+diff --git a/bin/sbush/sbush.c b/bin/sbush/sbush.c
+index 9d2294a..137bec9 100644
+--- a/bin/sbush/sbush.c
++++ b/bin/sbush/sbush.c
+@@ -35,6 +35,21 @@ int main(int argc, char *argv[], char *envp[]) {
+     	__asm__ __volatile__("int $0x80\n\t"
+                              :"=a" (result)
+                              : "0"(syscallno));
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
++    	__asm__ __volatile__("int $0x80\n\t"
++                             :"=a" (result)
++                             : "0"(syscallno));
+ 	/*
+         int result=1; 
+ 	int n = 57; 
+diff --git a/sys/scheduler.c b/sys/scheduler.c
+index b49dcab..04d52fe 100644
+--- a/sys/scheduler.c
++++ b/sys/scheduler.c
+@@ -123,8 +123,11 @@ void yield() {
+ #ifdef DEBUG_PRINT_SCHEDULER
+ 	kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+ #endif
++//	kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+     	CURRENT_TASK = CURRENT_TASK->next;
+     }
++	display_queue();
++	kprintf("this task is getting scheduled  pid = %d\n", CURRENT_TASK->pid);
+     switchTask(&last->regs, &CURRENT_TASK->regs);
+ }
+ 
+@@ -135,6 +138,7 @@ void schedule(){
+ 	yield();	
+ 
+ }
++//#define DEBUG_PRINT_SCHEDULER 1
+ void idle_task() {
+ 	while(1) {
+ #ifdef DEBUG_PRINT_SCHEDULER
+@@ -143,9 +147,9 @@ void idle_task() {
+ #endif
+ 	//	kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+ 		schedule();
+-		reap_all_child(CURRENT_TASK);
+-		__asm__ __volatile__ ( "sti\n\t");
+-		__asm__ __volatile__("hlt\n\t");
++//		reap_all_child(CURRENT_TASK);
++//		__asm__ __volatile__ ( "sti\n\t");
++//		__asm__ __volatile__("hlt\n\t");
+ 	}
+ }
+ 
+diff --git a/sys/syscall.c b/sys/syscall.c
+index 77bbfed..fc5edd2 100644
+--- a/sys/syscall.c
++++ b/sys/syscall.c
+@@ -217,7 +217,7 @@ uint64_t syscall_handler(void)
+ 		if (fd == 0) {
+ 			while (1) {
+ 				if (FG_TASK != NULL) {
+-					schedule(); // TODO: is this the right call?
++					//schedule(); // TODO: is this the right call?
+ 				}
+ 				else
+ 					break;
+@@ -227,7 +227,7 @@ uint64_t syscall_handler(void)
+ 			if ((chars_read == -1) || (chars_read == 0)) {
+ 				FG_TASK->state = WAITING;
+ 				while(FG_TASK->state == WAITING) {
+-                                        schedule();
++                                        //schedule();
+                                 }
+ 			}
+ 			chars_read = read_handler(fd, buffer, count);	
+diff --git a/sys/timer_isr.c b/sys/timer_isr.c
+index 02245e9..5183a17 100644
+--- a/sys/timer_isr.c
++++ b/sys/timer_isr.c
+@@ -1,5 +1,6 @@
+ #include <sys/kprintf.h>
+ #include <sys/defs.h>
++#include <sys/scheduler.h>
+ 
+ extern int timer_isr;
+ static int time_boot = 0;
+@@ -62,6 +63,8 @@ void timer_irqhandler(void)
+     *videomem = 's';
+     videomem = (char*)(0xffffffff80000000+0xb8f8e);
+     process_in(time_boot,videomem);
++    while(CURRENT_TASK->pid > 0)
++	schedule();
+     //kprintf("address of timer_isr %x\n",&timer_isr);
+     //kprintf("time since boot %d s \n",time_boot++);
+ }
+diff --git a/sys/timer_isr.s b/sys/timer_isr.s
+index 57af70d..314ee56 100644
+--- a/sys/timer_isr.s
++++ b/sys/timer_isr.s
+@@ -22,6 +22,9 @@ timer_isr:
+     pushq    %rbp
+     cld /* C code following the sysV ABI requires DF to be clear on function entry */
+     call timer_irqhandler
++    movq    %rsp, %rdi
++    addq    $168, %rdi
++    call    set_tss_rsp
+     popq    %rbp
+     popq    %rsi
+     popq    %rdi
+@@ -38,7 +41,7 @@ timer_isr:
+     popq    %rdx
+     popq    %rcx
+     popq    %rbx
+-    popq    %rax
++    popq    %rbx
+     movb    $0x20, %al
+     outb    %al, $0x20
+     sti
+-- 
+2.7.4
+

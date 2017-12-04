@@ -1,0 +1,50 @@
+From f7cda5ac2ce167ba6847433767a1b27af3725f25 Mon Sep 17 00:00:00 2001
+From: Raghav Dogra <raghavdogra@gmail.com>
+Date: Mon, 4 Dec 2017 16:05:18 -0500
+Subject: [PATCH] preemptive 3
+
+Signed-off-by: Raghav Dogra <raghavdogra@gmail.com>
+---
+ sys/syscall.s   | 2 ++
+ sys/timer_isr.s | 4 ----
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/sys/syscall.s b/sys/syscall.s
+index 3737ccb..5e8425f 100644
+--- a/sys/syscall.s
++++ b/sys/syscall.s
+@@ -38,7 +38,9 @@ syscall:
+     popq    %rdx
+     popq    %rcx
+     popq    %rbx
++    pushq   %rax
+     movb    $0x20, %al
+     outb    %al, $0x20
++    popq    %rax
+     sti
+     iretq
+diff --git a/sys/timer_isr.s b/sys/timer_isr.s
+index 314ee56..fbcc8ac 100644
+--- a/sys/timer_isr.s
++++ b/sys/timer_isr.s
+@@ -17,8 +17,6 @@ timer_isr:
+     pushq    %r13
+     pushq    %r14
+     pushq    %r15
+-    pushq    %rdi
+-    pushq    %rsi
+     pushq    %rbp
+     cld /* C code following the sysV ABI requires DF to be clear on function entry */
+     call timer_irqhandler
+@@ -26,8 +24,6 @@ timer_isr:
+     addq    $168, %rdi
+     call    set_tss_rsp
+     popq    %rbp
+-    popq    %rsi
+-    popq    %rdi
+     popq    %r15
+     popq    %r14
+     popq    %r13
+-- 
+2.7.4
+
