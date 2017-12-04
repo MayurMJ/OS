@@ -3,7 +3,7 @@
 #include <sys/defs.h>
 
 #define MAXLEN 100
-#define MAXSIZE 100
+#define MAXSIZE 10
 
 enum ftype {DIRECTORY, FILE};
 enum perm {O_RDONLY, O_WRONLY, O_RDWR, O_APPEND, O_CREAT, O_TRUNC};
