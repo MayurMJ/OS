@@ -278,7 +278,8 @@ uint64_t syscall_handler(void)
 	case 3:;
 		kprintf("process read this %s\n",(char *)arg1);
 		dentry *file_entry = dentry_lookup((char*)arg1);
-		ret =  (allocate_file_object(file_entry));
+		if (file_entry == NULL) ret = -1;
+		else ret =  (allocate_file_object(file_entry));
 		break;
 	case 5:;
 		deallocate_file_object((uint64_t) arg1);

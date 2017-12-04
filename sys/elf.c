@@ -192,6 +192,47 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				uint64_t oldcr3;
 				__asm__ __volatile__("movq %%cr3, %0\n\t"
 						    :"=a"(oldcr3));
+				
+				// creating duplicate filename
+				int strl = kstrlen(fileName); // for xyz\0 it returns 4
+				char *newfileName = (char *)kmalloc(strl);
+				kstrcpy(newfileName, fileName);
+				newfileName[strl-1] = '\0';
+				// creating duplicate argv
+				char **duplargv=NULL;
+				int argc = 0;
+				if (argv != NULL) {
+                			while (argv[argc] != NULL) argc++;
+					duplargv = (char **)kmalloc((argc+1)*sizeof(char *));
+					int x=0;
+					while (argv[x] != NULL) {
+						int len = kstrlen(argv[x]); // returns 4 for xyz\0
+						duplargv[x] = (char *)kmalloc(len); //4
+						kstrcpy(duplargv[x],argv[x]);
+						duplargv[x][len-1] = '\0';
+						x++;
+					}
+					duplargv[argc] = NULL;
+        			}
+				//if (argv != NULL)
+				//	kprintf("print before prep stack %s\n",duplargv[0]);
+				// creating duplicate envp
+				char **duplenvp = NULL;
+				int envcount = 0;
+                                if (envp != NULL) {
+                                        while (envp[envcount] != NULL) envcount++;
+					duplenvp = (char **)kmalloc((envcount+1)*sizeof(char *));
+                                        int x=0;
+                                        while (envp[x] != NULL) {
+                                                int len = kstrlen(envp[x]); // returns 4 for xyz\0
+                                                duplenvp[x] = kmalloc(len); //4
+                                                kstrcpy(duplenvp[x],envp[x]);
+                                                duplenvp[x][len-1] = '\0';
+                                                x++;
+                                        }
+                                        duplenvp[envcount] = NULL;
+                                }
+
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(newcr3));
 				new_task->mm->pg_pml4=newcr3;
@@ -204,8 +245,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				put_page_mapping(USER_ACCESSIBLE,USER_STACK - 4096, newcr3);
 				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
 				// prep stack
-			//	uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
-				//new_task->mm->stack_begin = tos;
+				uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), duplargv, duplenvp, newfileName);
+				new_task->mm->stack_begin = tos;
 				// Allocating a dummy file obj for stdin so its not null
 				new_task->file_desc[0] = (struct FILE_OBJ*)kmalloc(sizeof(struct FILE_OBJ));
 				/*

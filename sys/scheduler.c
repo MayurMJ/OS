@@ -178,19 +178,18 @@ void init_scheduler() {
 	run_queue->next = queue_head;
 
 	
-	
+	/*
 	char *s1 = "/rootfs/bin/sample";
 	char *argv[2];
         argv[0] = s1;
         argv[1] = '\0';
-	/*
 	char *s2 = "param2";
 	char *argv[3];
 	argv[0] = s1;
 	argv[1] = s2;
 	argv[2] = '\0'; */
-	Task *binInit = loadElf("bin/init", argv, NULL);
-	//Task *binInit = loadElf("bin/init", NULL, NULL);
+	//Task *binInit = loadElf("bin/init", argv, NULL);
+	Task *binInit = loadElf("bin/init", NULL, NULL);
 	if(binInit == NULL) {
 		kprintf("Could not find the file to load from elf!\n");
 		//kernel panic should happen

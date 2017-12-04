@@ -11,7 +11,6 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
-	int n;
 	/*
 	// open read write close
 //	int x = open("/rootfs/bin/sample", 3);
@@ -19,7 +18,7 @@ int main(int argc, char *argv[], char *envp[]) {
         //                             :"=a" (n)
         //                             : "0"(x + 100));
 	*/
-	
+	/*	
 	int fd = opendir("rootfs/bin");
 	DIR* dir = readdir(fd);
 	while(dir != NULL) {
@@ -32,7 +31,7 @@ int main(int argc, char *argv[], char *envp[]) {
 	closedir(fd);
 	char buf[100];
 	chdir("../../bin");
-	getcwd(buf, 100);
+	getcwd(buf, 100);*/
 //	puts(buf);
 	//close(x);
 	// read from stdin and print in a loop
@@ -69,13 +68,22 @@ int main(int argc, char *argv[], char *envp[]) {
 	*/
 	int res = fork();
 	if(res == 0) {
-		char *binary = "bin/sbush";
-  		execve(binary, NULL, NULL);		
+		
+		char *binary = "bin/cat";
+		char *s1 = "/rootfs/bin/sample";
+        	char *argv[2];
+        	argv[0] = s1;
+        	argv[1] = '\0';
+  		execve(binary, argv, NULL);
+		
+		//execve(binary, NULL, NULL);		
 	}
 	else {
 		int status;
 		wait(&status);
 	}
+
+	//puts("testing puts from init");
 	//while(1); //no need to return from bin/init
 	
 	while(1); //no need to return from bin/init
