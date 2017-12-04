@@ -292,8 +292,11 @@ void free_vmas(struct vma *vm_begin) {
 
 void free_file_desc(Task * reapThis) {
 	for(int i = 0; i < MAX_FDS; i++) {
-		if(reapThis->file_desc[i])
-			kfree((uint64_t *)(reapThis->file_desc[i]));
+		if(reapThis->file_desc[i]) {
+			reapThis->file_desc[i]->file_ref_count--;
+			if (reapThis->file_desc[i]->file_ref_count <= 0)
+				kfree((uint64_t *)(reapThis->file_desc[i]));
+		}
 	}
 
 }
