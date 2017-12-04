@@ -9,6 +9,7 @@ int memcpy(char *s1, char *s2, int size) {
   }
   return i;
 }
+
 int kmemcpy(char *s1, char *s2, int size) {
   int i = 0;
   while(i < size) {
@@ -19,6 +20,7 @@ int kmemcpy(char *s1, char *s2, int size) {
   }
   return i;
 }
+
 int memset(uint8_t *bufptr, int val, int size) {
   int i = 0;
   while(i < size) {
