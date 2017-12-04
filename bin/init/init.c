@@ -26,14 +26,14 @@ int main(int argc, char *argv[], char *envp[]) {
 	__asm__ __volatile("int $0x80\n\t"
                            :"=a"(n)
                            :"a"(1),"D"(1),"S"(dir->d_name),"d"(100));
-		puts(dir->d_name);
+		//puts(dir->d_name);
 		dir = readdir(fd);
 	}
 	closedir(fd);
 	char buf[100];
 	chdir("../../bin");
 	getcwd(buf, 100);
-	puts(buf);
+//	puts(buf);
 	//close(x);
 	// read from stdin and print in a loop
         //uint64_t buffer[512];
