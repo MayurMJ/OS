@@ -37,14 +37,14 @@ void setup_stack_exec(Task *child, uint64_t rsp) {
 
         uint64_t *stack = (uint64_t*) rsp;
         child->kstack -= 20;
-        for(int i = 0; i < 14; ++i) {
+        for(int i = 0; i < 15; ++i) {
                 child->kstack[i] = 0;
         }
-        for(int i = 14; i < 21; ++i) {
+        for(int i = 15; i < 21; ++i) {
                 child->kstack[i] = stack[i+1];
         }
-	child->kstack[14] = child->mm->e_entry;
-	child->kstack[17] = child->mm->stack_begin;	
+	child->kstack[15] = child->mm->e_entry;
+	child->kstack[18] = child->mm->stack_begin;	
 //      child->kstack[14] = 0;
         child->regs.rip = stack[0];
         child->regs.rsp = (uint64_t)child->kstack ;
@@ -362,7 +362,9 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK->pid = 0;
 		CURRENT_TASK->ppid = 1;
 		CURRENT_TASK->state = ZOMBIE;
-		switchTask(&CURRENT_TASK->regs, &replacement_task->regs);
+		Task * oldtask = CURRENT_TASK;
+		CURRENT_TASK = replacement_task;
+		switchTask(&oldtask->regs, &CURRENT_TASK->regs);
 /*
 		// TODO: remove this circular list
 		replacement_task->next = CURRENT_TASK->next;

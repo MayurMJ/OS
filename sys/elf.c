@@ -200,8 +200,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				put_page_mapping(USER_ACCESSIBLE,USER_STACK - 4096, newcr3);
 				new_task->mm->stack_begin = (uint64_t) (USER_STACK);
 				// prep stack
-				uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
-				new_task->mm->stack_begin = tos;
+			//	uint64_t tos = prep_stack((uint64_t *)(new_task->mm->stack_begin), argv, envp, fileName);
+				//new_task->mm->stack_begin = tos;
 				// Allocating a dummy file obj for stdin so its not null
 				new_task->file_desc[0] = (struct FILE_OBJ*)kmalloc(sizeof(struct FILE_OBJ));
 				/*
