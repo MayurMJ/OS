@@ -295,6 +295,9 @@ uint64_t syscall_handler(void)
 		uint64_t addr = arg1;
 		return brk_handler(addr);
 		break;
+	case 13:;
+		return CURRENT_TASK->mm->brk_begin;
+		break;
 	case 11:
     	        kprintf("I'm in child process %d with arc %d\n",CURRENT_TASK->pid, arg1);
 		//schedule();

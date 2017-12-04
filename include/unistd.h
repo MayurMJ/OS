@@ -11,7 +11,7 @@ int unlink(const char *pathname);
 
 int chdir(const char *path);
 char *getcwd(char *buf, size_t size);
-
+uint64_t ret_brk();
 
 pid_t fork();
 int execvpe(const char *file, char *const argv[], char *const envp[]);
