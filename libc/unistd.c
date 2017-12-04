@@ -1,5 +1,4 @@
 #include <sys/defs.h>
-
 pid_t fork() {
     uint64_t syscallno = 57;
     uint64_t result = 1;
