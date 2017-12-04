@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+
 void exit(int ret) {
 	uint64_t syscall_code = 60;
 //	uint64_t retval= ret;
@@ -9,6 +10,28 @@ void exit(int ret) {
 	__asm__ __volatile("int $0x80\n\t"
 			   :"=a"(result)
 			   :"a"(syscall_code), "D"(ret));
+}
+
+/*void print_list() {
+	m_header *temp = start;
+	while(temp != NULL) {
+		puts("i");	
+	}
+}*/
+
+void divide_block(m_header *block, size_t alloc_size) {
+	size_t remaining_block_size = 0;
+	if(block->size > alloc_size) {
+		remaining_block_size = block->size - alloc_size;
+		if(remaining_block_size > ((sizeof(m_header) + 15 ) & ~(15))) {
+			//splitblock
+			m_header *split_block = (m_header*) ((uint64_t) block + alloc_size);
+			split_block->next = block->next;
+			block->next = split_block;
+			split_block->size = remaining_block_size;
+			split_block->available = 1;
+		}
+	}
 }
 
 void *find_first_fit(m_header *start, size_t alloc_size) {
@@ -23,12 +46,13 @@ void *find_first_fit(m_header *start, size_t alloc_size) {
 }
 
 void *malloc(size_t size) {
-	static m_header *start = NULL;
-	static m_header *end = NULL;
+static m_header *start = NULL;
+static m_header *end = NULL;
 	size_t alloc_size = (size + sizeof(m_header) + 15 ) & ~(15);
-	alloc_size = alloc_size << 1;
+	//alloc_size = alloc_size << 1;
 	m_header *block = (m_header*)find_first_fit(start , alloc_size);
 	if(block != NULL) {
+		divide_block(block, alloc_size);
 		block->size = alloc_size;
 		block->available = 0;
 		return (void *)((uint64_t) block + sizeof(m_header));
