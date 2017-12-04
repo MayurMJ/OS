@@ -60,7 +60,7 @@ typedef struct TASK {
    int pid;
    int ppid;
    uint64_t *kstack;
-   enum { READY, WAITING, ZOMBIE } state;
+   enum { READY, WAITING, ZOMBIE, SLEEP} state;
    Registers regs;
    uint64_t exit_value;
    struct TASK *prev;
@@ -78,7 +78,7 @@ extern void switchTask(Registers *oldregs, Registers *newregs);
 extern void switchTaskUser(Registers *oldregs, Registers *newregs); 
 extern void saveState(Registers *oldregs); 
 Task *FG_TASK;
-
+Task *SLEEPING_TASK;
 uint64_t TERMINAL_BUFFER;
 uint64_t TERM_BUF_OFFSET;
 #endif

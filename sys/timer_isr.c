@@ -1,11 +1,16 @@
 #include <sys/kprintf.h>
 #include <sys/defs.h>
+#include <sys/scheduler.h>
 
+
+uint64_t sleep_timer = 0;
 extern int timer_isr;
 static int time_boot = 0;
 static int num_int = 0;
 static int count18 = 1;
 char *process_in(int n, char *str) {
+	sleep_timer = n;
+	//kprintf("sleep timer %d\n",sleep_timer);
         int64_t num = n;
         if (num == 0) {
                 str[14] = '0';

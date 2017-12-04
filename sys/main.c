@@ -79,6 +79,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   free_list = (pg_desc_t *) temp;
   //-------------k malloc init----------------------
   init_kmalloc(); 
+  SLEEPING_TASK = NULL;
   FG_TASK = NULL;
   TERMINAL_BUFFER = get_free_page(SUPERVISOR_ONLY, cr3val);
   TERM_BUF_OFFSET = 0;

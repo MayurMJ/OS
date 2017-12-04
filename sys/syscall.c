@@ -276,7 +276,7 @@ uint64_t syscall_handler(void)
 		}	
 		break;
 	case 3:;
-		kprintf("process read this %s\n",(char *)arg1);
+		//kprintf("process read this %s\n",(char *)arg1);
 		dentry *file_entry = dentry_lookup((char*)arg1);
 		if (file_entry == NULL) ret = -1;
 		else ret =  (allocate_file_object(file_entry));
@@ -307,6 +307,10 @@ uint64_t syscall_handler(void)
 		display_queue();
 	        schedule();
 		break;
+	case 35:;
+		SLEEPING_TASK = CURRENT_TASK;
+		return sleep_timer;
+		break;
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
     		Task * child_task = (Task *) kmalloc(sizeof(Task));
@@ -331,8 +335,8 @@ uint64_t syscall_handler(void)
 		display_queue();
 		break;
 	case 59:; /* execve- rdi-binary name,rsi-argv,rdx-envp*/
-		kprintf("%d %d\n",arg2, arg3);	
-		kprintf("process read this %s\n",(char *)arg1);
+		//kprintf("%d %d\n",arg2, arg3);	
+		//kprintf("process read this %s\n",(char *)arg1);
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;

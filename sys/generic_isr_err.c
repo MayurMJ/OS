@@ -67,15 +67,29 @@ void generic_irqhandler_err14(uint64_t errcode)
 		uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
 		if(!(errcode & (uint64_t)0x1)) {
 			put_page_mapping(USER_ACCESSIBLE,aligned_page_fault_addr,cr3val);
+			// memset whole page to 0 noiw
+			memset((uint8_t *)aligned_page_fault_addr, 0 ,4096);
 			uint64_t source = (uint64_t)(target_vma->vma_file_ptr)+target_vma->vma_file_offset;
 			//uint64_t source = target_vma->vma_start + target_vma->vma_file_offset;
 			//kmemcpy((char *)aligned_page_fault_addr,(char *)source,4096);
                        //TODO: Calculate this aligned_page_fault_addr from offset
-                        kmemcpy((char *)aligned_page_fault_addr,(char *)source, target_vma->vma_size);
-                        memset((char *)aligned_page_fault_addr + target_vma->vma_size, 0, target_vma->vma_mem_size - target_vma->vma_size );
-
-			target_vma->vma_file_offset = target_vma->vma_file_offset + 4096;
+			uint64_t upper_limit = (((page_fault_addr+4096)>>12)<<12);
+			int num_bytes_to_copy = upper_limit-page_fault_addr;
+                        kmemcpy((char *)page_fault_addr,(char *)source, num_bytes_to_copy);
+			target_vma->vma_file_offset = target_vma->vma_file_offset + num_bytes_to_copy;
+			// if this vma overlaps with the bss portion then fill the rem part with 0s
+			if (((uint64_t)target_vma->vma_start + target_vma->vma_size) <upper_limit) {
+			memset((target_vma->vma_start + target_vma->vma_size),0,(upper_limit-(uint64_t)(target_vma->vma_start + target_vma->vma_size)));
+			}
+                        //memset((char *)aligned_page_fault_addr + target_vma->vma_size, 0, target_vma->vma_mem_size - target_vma->vma_size );
+			// check if this is the last page to be assigned for this vma
+			if ((uint64_t)target_vma->vma_end - aligned_page_fault_addr <= 4096) {
+			memset((target_vma->vma_start + target_vma->vma_size),0,(upper_limit-(uint64_t)(target_vma->vma_start + target_vma->vma_size)));
+			}
+		
 		}
+
+
 		else if(errcode & (uint64_t)0x2) {
 			// walk PML4 get the physical adress
 			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);

@@ -11,6 +11,8 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
+	char *temp = (char *)malloc(20);
+	free(temp);
 	/*
 	// open read write close
 //	int x = open("/rootfs/bin/sample", 3);
@@ -66,7 +68,8 @@ int main(int argc, char *argv[], char *envp[]) {
     		putchar(ch);
   	}
 	*/
-	int res = fork();
+	
+/*	int res = fork();
 	if(res == 0) {
 		
 		char *binary = "bin/cat";
@@ -82,9 +85,21 @@ int main(int argc, char *argv[], char *envp[]) {
 		int status;
 		wait(&status);
 	}
-
-	//puts("testing puts from init");
-	//while(1); //no need to return from bin/init
+*/	
+/*	int res = fork();
+        if(res == 0) {
+                
+                char *binary = "bin/sleep";
+                execve(binary, NULL, NULL);
+                
+                //execve(binary, NULL, NULL);           
+        }
+        else {
+                int status;
+                wait(&status);
+        } */
+/*	//puts("testing puts from init");
+*/	//while(1); //no need to return from bin/init
 	
 	while(1); //no need to return from bin/init
 	return 0;
