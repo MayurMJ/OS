@@ -322,13 +322,5 @@ void kprintf(const char *fmt, ...)
 	}
 	//handle error here, wrong format and buffer overflow	
 	va_end(args);	
-	//int i,j;
-//	printf("elems %c%c%c%c\n",buffer[0][0],buffer[0][1],buffer[0][2],buffer[0][3]);
-	/*for(int i = 0;i<= buffer_row;i++) {
-		for(j=0;j<80;j++) {
-			printf("%c",buffer[i][j]);
-		}
-		printf("\n");
-	}*/
 	display();
 }

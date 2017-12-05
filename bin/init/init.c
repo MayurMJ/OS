@@ -91,7 +91,7 @@ int main(int argc, char *argv[], char *envp[]) {
 	int res = fork();
         if(res == 0) {
                 
-                char *binary = "bin/sleep";
+                char *binary = "bin/sbush";
                 execve(binary, NULL, NULL);
                 
                 //execve(binary, NULL, NULL);           
@@ -103,6 +103,6 @@ int main(int argc, char *argv[], char *envp[]) {
 /*	//puts("testing puts from init");
 */	//while(1); //no need to return from bin/init
 	
-	while(1); //no need to return from bin/init
+//	while(1); //no need to return from bin/init
 	return 0;
 }

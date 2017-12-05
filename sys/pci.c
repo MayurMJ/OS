@@ -131,7 +131,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 					start_tmp_cmd(&abar->ports[i]);
 					}
 					//kprintf("write number %d\n",sectorIndex);
-        				write(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+        				pci_write(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
 					//kprintf("\nOut Of write");
 				}
 				tmpbuf = buf;
@@ -149,7 +149,7 @@ hba_port_t* probe_port(hba_mem_t *abar)
 					start_tmp_cmd(&abar->ports[i]);
 					}
 					//kprintf("read number %d\n",sectorIndex);
-        				read(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
+        				pci_read(&abar->ports[i], sectorIndex*8, 0, 8, buf + (sectorIndex *8 * 512));
 					kprintf("%d %d ",*((uint8_t *)(buf + (sectorIndex *8 * 512))),
 								 *((uint8_t *)(buf + (sectorIndex *8 * 512) + 4095)));
 				}
@@ -410,7 +410,7 @@ void port_rebase(hba_port_t *port, int portno, hba_mem_t *abar)
 	//kprintf("\nbefore start SSTS %x  sctl %x tfd %x",port->ssts,port->sctl,port->tfd);
 	start_cmd(port);	// Start command enginei
 }
-int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
+int pci_read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
 	port->is_rwc = (uint32_t)-1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
@@ -502,7 +502,7 @@ int read(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uin
  
 	return TRUE;
 } 
-int write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
+int pci_write(hba_port_t *port, uint32_t startl, uint32_t starth, uint32_t count, uint64_t buf)
 {
 	//kprintf("BEFORE WRITE tfd %x ssts %x sctl %x\n",port->tfd,port->ssts, port->sctl);
 //	while(port->tfd != 0x50);
