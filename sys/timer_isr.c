@@ -9,7 +9,13 @@ static int time_boot = 0;
 static int num_int = 0;
 static int count18 = 1;
 char *process_in(int n, char *str) {
-	sleep_timer = n;
+	if (n - sleep_timer >= 5) {
+		SLEEPING_TASK->state = READY;
+		sleep_timer = 0;
+	}
+	else {
+		sleep_timer = n;
+	}
 	//kprintf("sleep timer %d\n",sleep_timer);
         int64_t num = n;
         if (num == 0) {

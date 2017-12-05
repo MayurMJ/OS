@@ -12,7 +12,7 @@ int getsysid() {
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
 
-	puts ("Started");
+	//puts ("Started");
 	//char *temp = (char *)malloc(20);
 	//free(temp);
 	/*
@@ -88,7 +88,8 @@ int main(int argc, char *argv[], char *envp[]) {
 		wait(&status);
 	}
 */	
-/*	int res = fork();
+	puts("timer started\n");
+	int res = fork();
         if(res == 0) {
                 
                 char *binary = "bin/sleep";
@@ -99,7 +100,8 @@ int main(int argc, char *argv[], char *envp[]) {
         else {
                 int status;
                 wait(&status);
-        } */
+        }
+	puts("timer over\n");
 /*	//puts("testing puts from init");
 */	//while(1); //no need to return from bin/init
 	

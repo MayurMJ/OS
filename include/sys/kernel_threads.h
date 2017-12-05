@@ -60,7 +60,7 @@ typedef struct TASK {
    int pid;
    int ppid;
    uint64_t *kstack;
-   enum { READY, WAITING, ZOMBIE, SLEEP} state;
+   enum { READY, WAITING, ZOMBIE, SLEEP } state;
    Registers regs;
    uint64_t exit_value;
    struct TASK *prev;

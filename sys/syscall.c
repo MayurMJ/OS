@@ -309,7 +309,11 @@ uint64_t syscall_handler(void)
 		break;
 	case 35:;
 		SLEEPING_TASK = CURRENT_TASK;
-		return sleep_timer;
+		SLEEPING_TASK->state = SLEEP;
+		while (SLEEPING_TASK->state == SLEEP) {
+			schedule();
+		}
+		return 0;
 		break;
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
