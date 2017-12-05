@@ -5,11 +5,15 @@ extern char kernmem, physbase;
 
 uint64_t get_physical_free_page () {
   //kprintf("Freeing Page\n");
-  if(free_list_head == NULL)
+  if(free_list_head == NULL) {
+    kprintf("ERROR: free list head NULL %x\n",(uint64_t) (free_list_head->index * 4096));
     return 0;
+  }
+
   if(free_list_head->is_avail==0) {
-    kprintf("ERROR: trying to allocate a non avaialable page\n");
-    return 0;
+    kprintf("ERROR: trying to allocate a non avaialable page %x\n",(uint64_t) (free_list_head->index * 4096));
+    while(1);
+	return 0;
   }
   uint64_t addr = (uint64_t) (free_list_head->index * 4096);
   pg_desc_t * temp = free_list_head;
@@ -92,7 +96,8 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
   else
         begin = ((uint64_t)physbase >> 12) << 12;
 
-
+  uint64_t prev_valid = begin - 4096;
+  
   // kernel + free list area
   for (x=begin ; x < free_list_end + (520 *4096); x+=4096) {
         free_list[x/4096].is_avail = 0; // it is not free
@@ -115,17 +120,23 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
         }
         //kprintf("%d ",x/4096);
   }
-
+  free_list[(prev_valid/4096)].next = (struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[(x/4096)+1]);
+  free_list[(x/4096)+1].prev = (struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[(prev_valid/4096)]);
+  
 
     int j;
   // other areas where ram does not exist
   for (i=0; i<(index-1) ; i++) {
         int first_page, second_page;
-        first_page = smap_copy[i].last_addr/ 4096;
+	uint64_t last_addr = smap_copy[i].last_addr;
+	last_addr = last_addr>>12;
+	last_addr = last_addr<<12;
+        first_page = (last_addr/4096 );
         if ((smap_copy[i+1].starting_addr & 0x0000000000000fff) == 0) // already aligned
                 second_page = smap_copy[i+1].starting_addr / 4096;
         else
                 second_page = (smap_copy[i+1].starting_addr / 4096) + 1;
+
         for (j = first_page; j < second_page; j++) {
                 free_list[j].is_avail = 0; // it is not free
                 if (j == (num_pages-1)) {
@@ -140,13 +151,14 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
                         free_list[j].next = NULL;
                 }
                 else {
-                        free_list[j-1].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j+1]);
-                        free_list[j+1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[j-1]);
                         free_list[j].prev = NULL;
                         free_list[j].next = NULL;
                 }
                 //kprintf("%d ",j);
         }
+	
+        free_list[first_page-1].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[second_page]);
+        free_list[second_page].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)&free_list[first_page-1]);
   }
   free_list[free_list_end / 4096].is_avail = 0;
   free_list[(free_list_end / 4096) + 1].is_avail = 0;
