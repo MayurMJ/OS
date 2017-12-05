@@ -2,13 +2,14 @@
 #include <stdlib.h>
 #include <sys/defs.h>
 #include <stdio.h>
+#include <string.h>
 
 #define TOKENSIZE 100
 
 /* 
 * Parses a line and returns the number of tokens generated
 */
-/*
+
 int count_tokens(char *line) {
 	int charPos = 0, countTokens = 0;
 	while(line[charPos] != '\0') {
@@ -18,16 +19,21 @@ int count_tokens(char *line) {
 	return countTokens+1;
 }
 
-int parseLine(char *line, char args[][TOKENSIZE], int *pipeCount) {
+int parseLine(char *line, char **args, int *pipeCount) {
 
   int charPos = 0, tokenIndex = 0, charTokenPos = 0;
-  while(line[charPos] != '\0') {
+  while((line[charPos] != '\n') || (line[charPos] != '\0')) {
         charTokenPos = 0;
+	printf("hi\n");
         while((line[charPos] != ' ' && line[charPos] != '\t') && line[charPos] != '\0') {
+	  printf("1\n");
           args[tokenIndex][charTokenPos] = line[charPos];
+	  printf("2\n");
           if(line[charPos] == '|') *pipeCount = *pipeCount + 1;
+	  printf("tokenIndex %d char token pos %d char pos %d char %c\n",tokenIndex,charTokenPos,charPos,line[charPos]);
           charPos++;charTokenPos++;
         }
+
         if(line[charPos] == ' ' || line[charPos] == '\t') {
                 charPos++;
                 while(line[charPos] == ' ') charPos++;
@@ -40,28 +46,29 @@ int parseLine(char *line, char args[][TOKENSIZE], int *pipeCount) {
 
 
 int loopTerminal(char *envp[]) {
-	int pipeCount, tokensParsed;
-	
-	//int buffSize = BUFFERSIZE, i = 0, tokensParsed = 0, status = 0, pipeCount = 0;
-	//int numTokens = MAXNUMTOKENS;
-	//char line[buffSize];
-	//char args[numTokens][TOKENSIZE];
-	//initCharArr(args,numTokens);
-	while(status == 0) {
+	int exit_flag = 0;
+	while(exit_flag == 0) {
 		puts("sbush>");
 		
 		char *cmdline = (char *)malloc(1000);
-		int chars_read = read(0,cmdline,1000); // what do i do with chars_read?
+		read(0,cmdline,1000); // what do i do with chars_read?
 
-		pipeCount = 0;
+		if (strcmp(cmdline, "exit\n") == 0) {
+			exit_flag = 1;
+			continue;
+		}
+		printf("sbush> String entered was %s", cmdline);
+		
 		// first parse lines to see how many tokens there are, then allocate a 2d array of that size
 		int num_tokens = count_tokens(cmdline);
-		char **args = (char **)kmalloc(num_tokens*TOKENSIZE);
-		tokensParsed = parseLine(cmdline, args, &pipeCount);
-
+		printf("sbush> Num tokens %d\n",num_tokens);
+		// working till here--------
+		char **args = (char **)malloc(num_tokens*TOKENSIZE);
+		int pipeCount = 0;
+		int tokensParsed = parseLine(cmdline, args, &pipeCount);
+		printf("sbush> num tokens from parseline %d\n",tokensParsed);	
 		if(args[0][0] == '\0') continue;
-		puts("sbush>");
-		
+			
 		//status = executeCommand(args, tokensParsed, pipeCount, envp);
 		
 		free(args);
@@ -71,25 +78,22 @@ int loopTerminal(char *envp[]) {
 }
 int executeScript(char *fileName, char *envp[]) {
 	// not doing this now
+	printf("in exec script function\n");
 	return 0;
 }
-*/
+
 int main(int argc, char *argv[], char *envp[]) {
-	int x=4096;
-	char c= 'G';
-	char *str = "test str";
-	printf("hi from sbush %x %d %c %s\n",x,x,c,str);
 /*	uint64_t syscallno = 9;
     	uint64_t result = 1;
     	__asm__ __volatile__("int $0x80\n\t"
                              :"=a" (result)
                              : "0"(syscallno));
 */
-/*	if(argc > 1) {
+	if(argc > 1) {
     		executeScript(argv[1], envp);
   	}
   	else {
     		loopTerminal(envp);
   	}
-*/	return 0;
+	return 0;
 }
