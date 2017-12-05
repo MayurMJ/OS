@@ -14,8 +14,14 @@ int getsysid() {
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
 
-/*	int res = fork();
-        if(res == 0) {
+	int a[100000];
+	for (int i =0;i<100000;i++) a[i] = i;
+/*	fork();
+	fork();
+	fork();
+	fork();*/
+	printf("%d\n",a[10000]);
+/*        if(res == 0) {
 		printf("Child");
         }
         else {
@@ -30,6 +36,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 
                 //execve(binary, NULL, NULL);           
         }
+
         else {
 		printf("Im in parent\n");
                 //int status;

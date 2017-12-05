@@ -134,6 +134,8 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->mm->e_entry = parent_task->mm->e_entry;
     child_task->mm->pg_pml4 = copy_on_write();
     child_task->kstack = (uint64_t *)( 4088+(uint64_t)get_free_page(SUPERVISOR_ONLY, child_task->mm->pg_pml4));
+        
+    child_task->regs = parent_task->regs; 
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
     // TODO: need to change this circular mapping
