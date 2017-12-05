@@ -168,5 +168,5 @@ void initfs() {
 	root_node->d_children[2] = temp_node;
 	root_node->d_end = 3;
 	parse_tarfs();
-	//print_dentries(temp_node);
+	print_dentries(temp_node);
 } 

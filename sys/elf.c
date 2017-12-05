@@ -144,6 +144,10 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				struct vma* iter;
 				int i;
 				uint64_t end_addr = 0;
+				uint64_t newcr3 = create_table(); //preps the PMl4 table only
+				uint64_t oldcr3;
+				__asm__ __volatile__("movq %%cr3, %0\n\t"
+						    :"=a"(oldcr3));
 				for(i = 0; i < elfhdr->e_phnum; i++) {
 					if(proghdr[i].p_type == ELF_PT_LOAD) {
 						struct vma *vm = (struct vma*) kmalloc(sizeof(struct vma));
@@ -166,7 +170,21 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 						else {
 							for(iter = new_task->mm->vm_begin; iter->vma_next != NULL; iter = iter->vma_next);
 							iter->vma_next = vm;
-						} 
+						}
+						__asm__ __volatile__("movq %0, %%cr3\n\t"
+						    ::"a"(newcr3));
+						uint64_t start_assign_page_vaddr = (proghdr[i].p_vaddr >> 12) << 12;
+						uint64_t end_assign_page_vaddr = ((proghdr[i].p_vaddr + proghdr[i].p_memsz + 4095) >> 12) << 12;
+						int no_pages = ((end_assign_page_vaddr - start_assign_page_vaddr) / 4096);
+						for(int i =0; i < no_pages; i++) {
+							put_page_mapping(USER_ACCESSIBLE, start_assign_page_vaddr, newcr3);
+							start_assign_page_vaddr += 4096;
+						}
+						//no_pages = 1;
+            					kmemcpy((char*) proghdr[i].p_vaddr, (char*) &data[proghdr[i].p_offset], proghdr[i].p_filesz);
+						memset((uint8_t*)proghdr[i].p_vaddr + proghdr[i].p_filesz, 0, proghdr[i].p_memsz - proghdr[i].p_filesz);
+						__asm__ __volatile__("movq %%cr3, %0\n\t"
+						    ::"a"(oldcr3));
 					}
 				}
 				end_addr += 4096;
@@ -188,10 +206,6 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				vm_stack->vm_type = STACK;
 				vm->vma_next = vm_stack;
 				// Allocate 1 page for stack for now and add it to the new cr3 page mapping
-				uint64_t newcr3 = create_table(); //preps the PMl4 table only
-				uint64_t oldcr3;
-				__asm__ __volatile__("movq %%cr3, %0\n\t"
-						    :"=a"(oldcr3));
 				
 				// creating duplicate filename
 				int strl = kstrlen(fileName); // for xyz\0 it returns 4

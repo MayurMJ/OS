@@ -11,8 +11,10 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
-	char *temp = (char *)malloc(20);
-	free(temp);
+
+	puts ("Started");
+	//char *temp = (char *)malloc(20);
+	//free(temp);
 	/*
 	// open read write close
 //	int x = open("/rootfs/bin/sample", 3);
