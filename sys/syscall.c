@@ -435,7 +435,7 @@ uint64_t syscall_handler(void)
 			schedule();
 		}
                 break;
-	case 62: /* wait- rdi-ptr to status of the exiting child process*/
+	case 62: /* kill- rdi-ptr to status of the exiting child process*/
 		if((uint64_t)arg1 == 1) {	//trying to kill the pid 1, can't do it
 			return -1;
 		}
@@ -454,7 +454,7 @@ uint64_t syscall_handler(void)
 			kprintf("Killing process %d\n",killThis->pid);
 			return 0;
 		}
-		
+		break;
 	case 76:
 		deallocate_new_dir((uint64_t)arg1);
 		break; 
@@ -508,6 +508,24 @@ uint64_t syscall_handler(void)
 		} else {
 			ret = -1;
 		}
+		break;
+	case 247:; /* kill- rdi-ptr to status of the exiting child process*/
+		uint64_t pid = (uint64_t)arg1;
+		Task * child = get_task_from_pid(pid);
+		if(child->ppid != CURRENT_TASK->pid) {
+			kprintf("Can't wait on %d, not the child of %d\n",child->pid,CURRENT_TASK->pid);
+			return -1;
+		}
+                while(1) {
+                        if(child->state==ZOMBIE) {//TODO: check if change state is to be supported: do it if possible
+                                uint64_t child_id = child->pid;
+                                uint64_t *wstatus = (uint64_t *) arg2;
+                                *wstatus = child->exit_value;
+//                              reap_process(child);
+                                return child_id;
+                        }
+                        schedule();
+                }
 		break;
 	default:
 		kprintf("Syscall not found %d\n",syscall_number);
