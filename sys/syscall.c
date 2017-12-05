@@ -308,7 +308,7 @@ uint64_t syscall_handler(void)
 	        schedule();
 		break;
 	case 35:;
-		sleeping_time = arg1;
+		//sleeping_time = arg1;
 		SLEEPING_TASK = CURRENT_TASK;
 		SLEEPING_TASK->state = SLEEP;
 		while (SLEEPING_TASK->state == SLEEP) {

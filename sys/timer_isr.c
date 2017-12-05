@@ -13,7 +13,7 @@ char *process_in(int n, char *str) {
 		// meaning sleep was just executed
 		sleep_timer = n;
 	}
-	if (n - sleep_timer >= sleeping_time) {
+	if (n - sleep_timer >= 5) {
 		SLEEPING_TASK->state = READY;
 		sleep_timer = 0;
 	}
