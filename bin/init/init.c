@@ -3,6 +3,8 @@
 #include <sys/defs.h>
 #include <stdio.h>
 #include <dirent.h>
+#include <signal.h>
+
 int getsysid() {
 	int a = 3;
 	int b = 8;
@@ -120,16 +122,27 @@ int main(int argc, char *argv[], char *envp[]) {
 */	
 	/*int res = fork();
         if(res == 0) {
+<<<<<<< 1b62bfbd3103890b0bcf50c03a55e47f3b98175b
                 
                 char *binary = "bin/sbush";
                 execve(binary, NULL, NULL);
+=======
+        	puts("child\n");        
+//                char *binary = "bin/sbush";
+  //              execve(binary, NULL, NULL);
+>>>>>>> add kill
                 
                 //execve(binary, NULL, NULL);           
         }
         else {
+<<<<<<< 1b62bfbd3103890b0bcf50c03a55e47f3b98175b
                 int status;
                 wait(&status);
         }*/
+	//	puts("parent\n");
+          //      int status;
+        //        wait(&status);
+//	fork();
 /*	//puts("testing puts from init");
 */	//while(1); //no need to return from bin/init
 	

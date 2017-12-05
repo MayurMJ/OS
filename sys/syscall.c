@@ -429,12 +429,32 @@ uint64_t syscall_handler(void)
 				uint64_t child_id = child_task->pid;
 				uint64_t *wstatus = (uint64_t *) arg1;
 				*wstatus = child_task->exit_value;
-				reap_process(child_task);
+//				reap_process(child_task);
 				return child_id;
 			}
 			schedule();
 		}
                 break;
+	case 62: /* wait- rdi-ptr to status of the exiting child process*/
+		if((uint64_t)arg1 == 1) {	//trying to kill the pid 1, can't do it
+			return -1;
+		}
+		if(!pid_exists((uint64_t)arg1))		//trying to kill someone who doesn't exist
+			return -1;
+		if((uint64_t)arg1 == CURRENT_TASK->pid) {
+			kprintf("I'm killing myself, bye from %d\n",CURRENT_TASK->pid);
+			CURRENT_TASK->state = ZOMBIE;
+			schedule();
+		}
+		else {
+			Task * killThis = get_task_from_pid((uint64_t)arg1);
+			if(!killThis)
+				return -1;
+			killThis->state = ZOMBIE;
+			kprintf("Killing process %d\n",killThis->pid);
+			return 0;
+		}
+		
 	case 76:
 		deallocate_new_dir((uint64_t)arg1);
 		break; 

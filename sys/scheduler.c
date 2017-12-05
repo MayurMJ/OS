@@ -125,6 +125,7 @@ void yield() {
 #endif
     	CURRENT_TASK = CURRENT_TASK->next;
     }
+//		display_queue();
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 
@@ -141,9 +142,9 @@ void idle_task() {
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		display_queue();
 #endif
-	//	kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+//		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
-		reap_all_child(CURRENT_TASK);
+//		reap_all_child(CURRENT_TASK);
 		__asm__ __volatile__ ( "sti\n\t");
 		__asm__ __volatile__("hlt\n\t");
 	}
@@ -306,9 +307,9 @@ void reap_process(Task * reapThis) {
 	remove_from_run_queue(reapThis); 
 	free_vmas(reapThis->mm->vm_begin);
 	kfree((uint64_t *)(reapThis->mm));
-	free_page(reapThis->kstack, reapThis->regs.cr3);
+//	free_page(reapThis->kstack, reapThis->regs.cr3);
 	free_file_desc(reapThis);
-	delete_page_tables(reapThis->regs.cr3);
+//	delete_page_tables(reapThis->regs.cr3);
 	kfree((uint64_t *)reapThis);	
 	//TODO: free the memory of the reaped task;	
 }
@@ -331,6 +332,32 @@ void replace_ptr_in_queue(Task * replace, Task * new_task) {
 	curr->next = new_task;
 	new_task->next = replace->next;
 	return;
+}
+
+int pid_exists(uint64_t pid) {
+
+	Task * curr = run_queue;
+	while(curr!=queue_head) {
+		if(curr->pid == pid && curr->state == READY) {
+			return 1;
+		}
+		curr = curr->next;
+	}
+	return 0;
+
+}
+
+Task * get_task_from_pid(uint64_t pid) {
+	if (pid == 1)
+		return queue_head;
+	Task * curr = run_queue;
+	while(curr!=queue_head) {
+		if(curr->pid == pid) {
+			return curr;
+		}
+		curr = curr->next;
+	}
+	return NULL;
 }
 
 /*

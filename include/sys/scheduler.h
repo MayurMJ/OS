@@ -16,5 +16,7 @@ Task* zombie_child_exists(Task * parent);
 void reap_process(Task * reapThis);
 void replace_ptr_in_queue(Task * replace, Task * new_task);
 void setupTask(Task *task, void (*main)(), Task *otherTask);
+int pid_exists(uint64_t pid);
+Task * get_task_from_pid(uint64_t pid);
 extern uint64_t sleeping_time;
 #endif
