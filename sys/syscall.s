@@ -20,9 +20,9 @@ syscall:
     pushq    %rax
     movq     %rsp, %rbx
     call    syscall_handler
-    movq    %rsp, %rdi
-    addq    $168, %rdi
-    call    set_tss_rsp
+//    movq    %rsp, %rdi
+//    addq    $168, %rdi
+//    call    set_tss_rsp
     popq    %rbp
     popq    %rbp
     popq    %rsi

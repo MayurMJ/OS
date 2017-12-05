@@ -404,6 +404,7 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK->state = ZOMBIE;
 		Task * oldtask = CURRENT_TASK;
 		CURRENT_TASK = replacement_task;
+		set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
 		switchTask(&oldtask->regs, &CURRENT_TASK->regs);
 /*
 		// TODO: remove this circular list

@@ -126,6 +126,7 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
+    set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
 
@@ -155,7 +156,7 @@ void bin_init_user() {
 		kprintf("bin init kernel thread\n");
 //		schedule();
 //	}
-	set_tss_rsp((void *)((uint64_t)CURRENT_TASK->regs.rsp));
+	set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
 	switch_user_mode(CURRENT_TASK->mm->e_entry);	
 }
 
@@ -232,6 +233,7 @@ void scheduler() {
 	init_scheduler();
 	CURRENT_TASK = run_queue;
 //	run_queue = run_queue->next;
+        set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
 	switchTask(&schedulerTask->regs, &CURRENT_TASK->regs);		
 	while(1);
 }
