@@ -186,14 +186,20 @@ int printLine(char *str) {
     return kstrlen(str);
 }
 
-//TODO: incomplete
 int brk_handler(uint64_t addr) {
     struct vma *stack_vma;
-    for(stack_vma = CURRENT_TASK->mm->vm_begin; stack_vma->vm_type != STACK; stack_vma = stack_vma->vma_next);
+    for(stack_vma = CURRENT_TASK->mm->vm_begin; stack_vma->vm_type != STACK; stack_vma = stack_vma->vma_next) {
+	if (stack_vma == NULL) return -1;
+    }
+    //kprintf("1\n");
+    //kprintf("addr %x stack vma start %x\n",addr,(uint64_t)stack_vma->vma_start);
     if (addr >= (uint64_t)stack_vma->vma_start) return -1;
-
+    //kprintf("2\n");
     struct vma *heap_vma;
-    for(heap_vma = CURRENT_TASK->mm->vm_begin; heap_vma->vm_type != HEAP; heap_vma = heap_vma->vma_next);
+    for (heap_vma = CURRENT_TASK->mm->vm_begin; heap_vma->vm_type != HEAP; heap_vma = heap_vma->vma_next) {
+	if (heap_vma == NULL) return -1;
+    }
+    //kprintf("3\n");
     heap_vma->vma_end = (uint64_t *)addr;
     CURRENT_TASK->mm->brk_begin = addr;
     return 0; 

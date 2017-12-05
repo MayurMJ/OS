@@ -36,7 +36,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 //wait(&status);
         }
 */
-	int res = fork();
+/*	int res = fork();
 	if (res == 0) {
 		char *binary = "bin/sbush";
 		execve(binary, NULL, NULL);
@@ -44,7 +44,17 @@ int main(int argc, char *argv[], char *envp[]) {
 	else {
 		int status;
 		wait(&status);
-	}	
+	}
+*/
+/*	uint64_t temp_block = ret_brk();
+	printf("curr brk point %x\n",temp_block);
+	int ret = brk((void *)(0xc0000000-0x10000000-4096));
+	printf("brk returned %d\n",ret);
+	ret = brk((void *)(0xc0000000-0x10000000-8192));
+	printf("brk returned %d\n",ret);
+	ret = brk((void *)(0xc0000000-0x10000000));
+        printf("brk returned %d\n",ret);
+*/
 //	while(1); //no need to return from bin/init
 	return 0;
 }

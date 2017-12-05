@@ -200,7 +200,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				iter->vma_next = vm;
 				// Add vma entry for stack
 				struct vma *vm_stack = (struct vma*) kmalloc(sizeof(struct vma));
-				vm_stack->vma_start = (uint64_t *) USER_STACK - USER_STACK_SIZE;
+				vm_stack->vma_start = (uint64_t *) (USER_STACK - USER_STACK_SIZE);
+				//kprintf("stack vm start in loadelf %x USER stack %x user stack size %x\n",(uint64_t)vm_stack->vma_start,USER_STACK, USER_STACK_SIZE);
 				vm_stack->vma_end = (uint64_t *) USER_STACK;
 				vm_stack->vma_next = NULL;
 				vm_stack->vm_type = STACK;
