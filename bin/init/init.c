@@ -88,7 +88,6 @@ int main(int argc, char *argv[], char *envp[]) {
 		wait(&status);
 	}
 */	
-	puts("timer started\n");
 	int res = fork();
         if(res == 0) {
                 
@@ -101,7 +100,6 @@ int main(int argc, char *argv[], char *envp[]) {
                 int status;
                 wait(&status);
         }
-	puts("timer over\n");
 /*	//puts("testing puts from init");
 */	//while(1); //no need to return from bin/init
 	
