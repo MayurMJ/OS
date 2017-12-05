@@ -11,6 +11,8 @@
 #include <sys/string.h>
 #include <sys/kmemcpy.h>
 #include <sys/kstring.h>
+#include <sys/gdt.h>
+
 uint64_t sleeping_time=0;
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
