@@ -65,6 +65,7 @@ void deep_copy_vma(struct vma *parent, struct vma *child) {
     child->vma_file_offset = parent->vma_file_offset;
     child->vma_flags = parent->vma_flags;
     child->vma_size = parent->vma_size;
+    child->vm_type = parent->vm_type;
     
 }
 
@@ -129,6 +130,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     //copy mm_struct
     child_task->mm = (struct mm_struct *)kmalloc(sizeof(struct mm_struct));
     child_task->mm->stack_begin = parent_task->mm->stack_begin;
+    child_task->mm->brk_begin = parent_task->mm->brk_begin;
     child_task->mm->e_entry = parent_task->mm->e_entry;
     child_task->mm->pg_pml4 = copy_on_write();
     child_task->kstack = (uint64_t *)( 4088+(uint64_t)get_free_page(SUPERVISOR_ONLY, child_task->mm->pg_pml4));

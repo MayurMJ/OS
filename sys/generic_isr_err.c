@@ -57,7 +57,7 @@ void generic_irqhandler_err14(uint64_t errcode)
     }
     if (target_vma == NULL) {
 	// seg fault
-//	kprintf("Unauthorized access!!!\n");
+	kprintf("Unauthorized access!!!%d\n", page_fault_addr);
     }
     else {
 	// kmemcpy to the right location
@@ -67,27 +67,28 @@ void generic_irqhandler_err14(uint64_t errcode)
 		uint64_t aligned_page_fault_addr = ((page_fault_addr>>12)<<12);
 		if(!(errcode & (uint64_t)0x1)) {
 			put_page_mapping(USER_ACCESSIBLE,aligned_page_fault_addr,cr3val);
-			// memset whole page to 0 noiw
+			// memset whole page to 0 now
 			memset((uint8_t *)aligned_page_fault_addr, 0 ,4096);
 		}
-		else if(errcode & (uint64_t)0x2) {
+		else  {
 			// walk PML4 get the physical adress
-			uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
-			uint64_t temp = source;
-			if(free_list[temp / 4096].ref_count == 1) {
-				walk_pml4_unmark_cow(aligned_page_fault_addr, cr3val, USER_ACCESSIBLE);	
-                                //free_physical_page((pg_desc_t*)((temp >> 12) <<12));
-			}
-			else {
-				// put_page_mapping
-				uint64_t dest = put_page_mapping(USER_ACCESSIBLE, aligned_page_fault_addr,cr3val);
-				source = source + (uint64_t)0xffffffff80000000; 
-				source = (source >> 12) << 12;
-				// memcpy data from both pages
-				kmemcpy((char*)dest, (char*)source, 4096);
-			
-				free_list[temp / 4096].ref_count--;
-			}
+				uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
+				if(source & (uint64_t)0x800 && !(source & (uint64_t)0x2)) {
+					uint64_t temp = source;
+					if(free_list[temp / 4096].ref_count == 1) {
+						walk_pml4_unmark_cow(aligned_page_fault_addr, cr3val, USER_ACCESSIBLE);	
+                        		        //free_physical_page((pg_desc_t*)((temp >> 12) <<12));
+					}
+					else {
+						// put_page_mapping
+						uint64_t dest = put_page_mapping(USER_ACCESSIBLE, aligned_page_fault_addr,cr3val);
+						source = source + (uint64_t)0xffffffff80000000; 
+						source = (source >> 12) << 12;
+						// memcpy data from both pages
+						kmemcpy((char*)dest, (char*)source, 4096);
+						free_list[temp / 4096].ref_count--;
+					}
+				}
 		}
 	}
 }
