@@ -22,15 +22,11 @@ int count_tokens(char *line) {
 int parseLine(char *line, char **args, int *pipeCount) {
 
   int charPos = 0, tokenIndex = 0, charTokenPos = 0;
-  while((line[charPos] != '\n') || (line[charPos] != '\0')) {
+  while((line[charPos] != '\n') && (line[charPos] != '\0')) {
         charTokenPos = 0;
-	printf("hi\n");
-        while((line[charPos] != ' ' && line[charPos] != '\t') && line[charPos] != '\0') {
-	  printf("1\n");
+        while(line[charPos] != '\n' && (line[charPos] != ' ' && line[charPos] != '\t') && line[charPos] != '\0') {
           args[tokenIndex][charTokenPos] = line[charPos];
-	  printf("2\n");
           if(line[charPos] == '|') *pipeCount = *pipeCount + 1;
-	  printf("tokenIndex %d char token pos %d char pos %d char %c\n",tokenIndex,charTokenPos,charPos,line[charPos]);
           charPos++;charTokenPos++;
         }
 
@@ -39,6 +35,7 @@ int parseLine(char *line, char **args, int *pipeCount) {
                 while(line[charPos] == ' ') charPos++;
         }
         args[tokenIndex][charTokenPos] = '\0';
+	printf("tokenIndex %d token %s\n",tokenIndex,args[tokenIndex]);
         tokenIndex++;
   }
   return tokenIndex;
@@ -62,8 +59,13 @@ int loopTerminal(char *envp[]) {
 		// first parse lines to see how many tokens there are, then allocate a 2d array of that size
 		int num_tokens = count_tokens(cmdline);
 		printf("sbush> Num tokens %d\n",num_tokens);
-		// working till here--------
-		char **args = (char **)malloc(num_tokens*TOKENSIZE);
+
+
+		char **args = (char **)malloc(num_tokens * sizeof(char *));		
+		for (int i =0;i<num_tokens;i++) {
+			args[i] = (char *)malloc(TOKENSIZE);
+		}	
+	
 		int pipeCount = 0;
 		int tokensParsed = parseLine(cmdline, args, &pipeCount);
 		printf("sbush> num tokens from parseline %d\n",tokensParsed);	
@@ -71,6 +73,10 @@ int loopTerminal(char *envp[]) {
 			
 		//status = executeCommand(args, tokensParsed, pipeCount, envp);
 		
+		// freeing stuff starts here	
+		for (int i =0;i<num_tokens;i++) {
+			free(args[i]);
+		}
 		free(args);
 		free(cmdline);
 	}
