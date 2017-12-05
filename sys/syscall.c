@@ -440,18 +440,23 @@ uint64_t syscall_handler(void)
 		break; 
 	// Read dir
 	case 77:;
-		DIR *read_dir = CURRENT_TASK->dir_desc[(uint64_t)arg1];
+		DIRK *read_dir = CURRENT_TASK->dir_desc[(uint64_t)arg1];
+		ldirent *ret_dir = (ldirent*)arg2;
 		int current = read_dir->d_current + 1;
 		int end = read_dir->d_entry->d_end;
 		if(current < end) {
 			read_dir->d_current = current;
+			ret_dir->d_off = current;
 			dentry *dir_entry = read_dir->d_entry->d_children[read_dir->d_current];
 			memset(read_dir->d_name, 0, 100);
+			memset(ret_dir->d_name, 0, 100);
 			kstrcpy(read_dir->d_name, dir_entry->d_name);
-			ret = (uint64_t)read_dir;
+			kstrcpy(ret_dir->d_name, dir_entry->d_name);
+			ret = (uint64_t)ret_dir;
 		}
 		else {
-			ret = (uint64_t)NULL;
+			kstrcpy(ret_dir->d_name, "");
+			ret = (uint64_t)ret_dir;
 		}
 		break;
 	// open dir

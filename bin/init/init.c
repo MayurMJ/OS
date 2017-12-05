@@ -11,8 +11,38 @@ int getsysid() {
 }
 //int result;
 int main(int argc, char *argv[], char *envp[]) {
+ 	char fileName[100];
+	getcwd(fileName, 100);
+	DIR *fd = opendir(fileName);
+	ldirent *ld = readdir(fd);
+	while(ld != NULL) {
+		puts(ld->d_name);
+		free(ld);
+		ld = readdir(fd);
+	}
 
 	//puts ("Started");
+/*	puts ("Started");
+	char *temp1 = (char*) malloc(4132);
+	char *temp2 = (char*) malloc(8124);
+	char *temp3 = (char*) malloc(124);
+	free(temp2);
+	char *temp4 = (char*) malloc(100);
+	int i ;
+	for(i =0; i < 4; i++) {
+		temp1[i] = 'm';
+		temp3[i] = 'a';
+		temp4[i] = 'y';
+	}
+	temp1[i] = '\0';
+	temp3[i] = '\0';
+	temp4[i] = '\0';
+
+	puts (temp1);
+	puts (temp3);
+	puts (temp4);*/
+	
+
 	//char *temp = (char *)malloc(20);
 	//free(temp);
 	/*
@@ -88,7 +118,7 @@ int main(int argc, char *argv[], char *envp[]) {
 		wait(&status);
 	}
 */	
-	int res = fork();
+	/*int res = fork();
         if(res == 0) {
                 
                 char *binary = "bin/sbush";
@@ -99,7 +129,7 @@ int main(int argc, char *argv[], char *envp[]) {
         else {
                 int status;
                 wait(&status);
-        }
+        }*/
 /*	//puts("testing puts from init");
 */	//while(1); //no need to return from bin/init
 	

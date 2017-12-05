@@ -47,14 +47,14 @@ struct FILE_OBJ {
     uint64_t file_ref_count;
 };
 
-struct DIR {
+struct DIRK {
   char d_name[100];
   int d_current;
   dentry* d_entry;
   int dir_ref_count;
 };
 
-typedef struct DIR DIR;
+typedef struct DIRK DIRK;
 
 typedef struct TASK {
    int pid;
@@ -69,7 +69,7 @@ typedef struct TASK {
    struct TASK *sibling;
    struct mm_struct *mm;
    struct FILE_OBJ *file_desc[MAX_FDS];  
-   DIR *dir_desc[MAX_FDS];
+   DIRK *dir_desc[MAX_FDS];
    char cwd[100];
 } Task ;
 

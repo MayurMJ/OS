@@ -45,8 +45,8 @@ int allocate_new_dir(dentry *dir_entry) {
 			break;
 	}
 	if(i == MAX_FDS) return -1;
-	CURRENT_TASK->dir_desc[i] = (struct DIR*) kmalloc(sizeof(DIR));
-	DIR* open_dir = CURRENT_TASK->dir_desc[i];
+	CURRENT_TASK->dir_desc[i] = (struct DIRK*) kmalloc(sizeof(DIRK));
+	DIRK* open_dir = CURRENT_TASK->dir_desc[i];
 	kstrcpy(open_dir->d_name, dir_entry->d_name);
 	open_dir->d_current = 1;
 	open_dir->d_entry = dir_entry;

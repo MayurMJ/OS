@@ -14,17 +14,16 @@ typedef struct linux_dirent {
            } ldirent;
 
 struct DIR {
-  char d_name[100];
-  int d_current;
-  dentry* d_entry;
-  int dir_ref_count;
+  int fd;
+  char buff[100];
 };
 
 typedef struct DIR DIR;
 
 
-int opendir(const char *file_name);
-int closedir(int fd);
-DIR* readdir(int fd);
+DIR *opendir(const char *name);
+ldirent *readdir(DIR *dirp);
+int closedir(DIR *dirp);
+
 
 #endif
