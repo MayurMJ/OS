@@ -20,6 +20,9 @@ int (*builtInFunc[]) (char [][TOKENSIZE], char *envp[]) = {
 */
 int cd(char **args, char *envp[])
 {
+        char fileName[100];
+	getcwd(fileName, 100);
+	puts(fileName);
 	printf("in cd right now\n");
 	printf("args 1 is %s\n",args[1]);
 	if (args[1] != NULL) {
@@ -32,6 +35,9 @@ int cd(char **args, char *envp[])
 		printf("sbush> Missing argument to cd");
 		return -1;
 	}
+	memset((void*)fileName, 0, 100);
+	getcwd(fileName, 100);
+	puts(fileName);
 	printf("directory change worked\n");
   	return 0;
 }

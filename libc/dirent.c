@@ -12,6 +12,11 @@ DIR* opendir(const char *fileName) {
                        :"a"(code), "D"((uint64_t)fileName)
 		       :"memory");
     ret_dir->fd = retval;
+    if(retval == -1) {
+	free(ret_dir);
+	ret_dir = NULL;
+	return NULL;	
+    }
     return ret_dir;
 }
 

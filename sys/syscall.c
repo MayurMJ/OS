@@ -497,8 +497,11 @@ uint64_t syscall_handler(void)
 	// open dir
 	case 78:;	
 		//kprintf("process read this %s\n",(char *)arg1);
-		dentry *dir_entry = dentry_lookup((char*)arg1, (uint64_t)arg2);
-		ret = allocate_new_dir(dir_entry);
+		dentry *dir_entry = dentry_lookup((char*)arg1, 0);
+		if(dir_entry) {
+			ret = allocate_new_dir(dir_entry);
+		}
+		else ret = -1;
 		break;
 	// getcwd
 	case 79:;

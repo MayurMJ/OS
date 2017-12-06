@@ -5,21 +5,39 @@
 #include <dirent.h>
 #include <string.h>
 
-int main(int argc, char *argv[], char *envp[]) {	
+int main(int argc, char *argv[], char *envp[]) {
         char fileName[100];
+        char input[100];
+	memset((void*)fileName ,0 ,100);
+	memset((void*)input ,0 ,100);
+	getcwd(fileName, 100);
 	if(argc == 1) {
-		getcwd(fileName, 100);
+		strcpy(input, fileName);
 	}
 	else {
-		strcpy(fileName, argv[1]);
-	}	
-        DIR *fd = opendir(fileName);
-        ldirent *ld = readdir(fd);
-        while(ld != NULL) {
-                puts(ld->d_name);
-                free(ld);
-                ld = readdir(fd);
-        }
+		if(argv[2][0] == '/') {
+			strcpy(input, argv[2]);
+		}
+		else {
+			strcat(input, fileName);
+			strcat(input, argv[2]);
+		}
+	}
+	puts(input);
+	puts("\n");
+        DIR *fd = opendir(input);
+	if(fd) {
+        	ldirent *ld = readdir(fd);
+        	while(ld != NULL) {
+                	puts(ld->d_name);
+			puts("\n");
+               		free(ld);
+                	ld = readdir(fd);
+        	}
+	}
+	else {
+		printf("ls: cannot access '%s': No such file or directory", input);
+	}
 	return 0;
 }
 
