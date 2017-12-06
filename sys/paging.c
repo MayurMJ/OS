@@ -292,7 +292,8 @@ uint64_t get_free_page(uint64_t flags, uint64_t cr3) {
 }
 
 void free_page(void *addr, uint64_t cr3) {
-  uint64_t virt_addr = (uint64_t) addr; 
+  uint64_t virt_addr = (uint64_t) (addr); 
+  virt_addr = (virt_addr >> 12 ) << 12;
   uint64_t PMLframe = (virt_addr >> 39) & (uint64_t) 0x1ff;
   uint64_t PDPTEindex = (virt_addr >> 30) & (uint64_t) 0x1ff;
   uint64_t PDEindex = (virt_addr >> 21) & (uint64_t) 0x1ff;
@@ -315,7 +316,7 @@ void free_page(void *addr, uint64_t cr3) {
   free_physical_page((pg_desc_t*)((PTE[PTEindex] >> 12) <<12)); 
   PTE[PTEindex] = 0;
    
-  pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
+ /* pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
   page.count--;
 
   if(page.count == 0) {
@@ -333,7 +334,7 @@ void free_page(void *addr, uint64_t cr3) {
          //free_physical_page(&page);
        }
     }
-  }
+  }*/
 }
 uint64_t put_page_mapping(uint64_t flags, uint64_t virt_addr, uint64_t cr3val) {
   uint64_t phy_addr = get_physical_free_page();

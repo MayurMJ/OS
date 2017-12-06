@@ -81,18 +81,19 @@ void delete_page_tables(uint64_t cr3) {
 									uint64_t temp = (PTE[l] >> 12) <<12;
 									free_list[temp / 4096].ref_count--;
 						                        if(free_list[temp / 4096].ref_count == 0) {
-                                						free_physical_page((pg_desc_t*)((temp >> 12) <<12));
+										temp = 0xffffffff80000000 + temp;
+                                						free_page((void *)temp, cr3);
                        							 }	
 								}
 							}
-							free_physical_page((pg_desc_t*)((PDE[k] >> 12) <<12));	
+							free_page((void*)(0xffffffff80000000 + ((PDE[k] >> 12) <<12)), cr3);	
 						}		
 					}
-					free_physical_page((pg_desc_t*)((PDPTE[j] >> 12) <<12));
+					free_page((void*)(0xffffffff80000000 + ((PDPTE[j] >> 12) <<12)), cr3);
 				}
 			}
-			free_physical_page((pg_desc_t*)((PML4[i] >> 12) <<12));
+			free_page((void *)(0xffffffff80000000 + ((PML4[i] >> 12) <<12)), cr3);
 		}
-	//free_physical_page((pg_desc_t*)((cr3 >> 12) <<12));
+	free_page((void *)(0xffffffff80000000 + ((cr3 >> 12) <<12)), (uint64_t)PML4_kern);
 	}
 }
