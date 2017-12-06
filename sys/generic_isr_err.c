@@ -73,7 +73,7 @@ void generic_irqhandler_err14(uint64_t errcode)
 		else  {
 			// walk PML4 get the physical adress
 				uint64_t source = walk_pml4_get_address(aligned_page_fault_addr, cr3val);
-				if(source & (uint64_t)0x800 && !(source & (uint64_t)0x2)) {
+				if((source & (uint64_t)0x800) && !(source & (uint64_t)0x2)) {
 					uint64_t temp = source;
 					if(free_list[temp / 4096].ref_count == 1) {
 						walk_pml4_unmark_cow(aligned_page_fault_addr, cr3val, USER_ACCESSIBLE);	
