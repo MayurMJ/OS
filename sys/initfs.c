@@ -49,7 +49,7 @@ char* dentry_lookup_get_path(char* path) {
 	return ret_path; 
 }
 
-dentry* dentry_lookup(char* path) {
+dentry* dentry_lookup(char* path, uint64_t mode) {
 	dentry *iter_node = root_node->d_children[0];
 	dentry *temp_node = root_node->d_children[0];
 	if(path[0] == '/') path = path + 1;
@@ -58,6 +58,7 @@ dentry* dentry_lookup(char* path) {
 	
 	while(token != NULL) {
 		temp_node = iter_node;
+		if (temp_node->d_ino->i_perm != mode) return NULL;
 		if(kstrcmp(token, ".") == 0) {
 			iter_node = temp_node->d_children[1];
 		}
@@ -130,7 +131,7 @@ void populate_dentry(char *name, int type, uint64_t start, uint64_t end) {
 		}
 		if(i == temp_node->d_end) {
 			iter_node = (dentry *)kmalloc(sizeof(dentry));
-			make_dentry(temp_node, iter_node, token, start, end, type, make_inode(start, end, O_RDWR));
+			make_dentry(temp_node, iter_node, token, start, end, type, make_inode(start, end, O_RDONLY));
 			temp_node->d_children[i] = iter_node;
 			temp_node->d_end++;
 		}
@@ -162,9 +163,9 @@ void parse_tarfs() {
 
 void initfs() {
 	root_node = (dentry *) kmalloc (sizeof(dentry));
-	make_dentry(root_node, root_node, (char*)"/", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
+	make_dentry(root_node, root_node, (char*)"/", 0, 2, DIRECTORY, make_inode(0, 0, O_RDONLY));
 	dentry *temp_node = (dentry*) kmalloc(sizeof(dentry));
-	make_dentry(root_node, temp_node, (char *)"rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDWR));
+	make_dentry(root_node, temp_node, (char *)"rootfs", 0, 2, DIRECTORY, make_inode(0, 0, O_RDONLY));
 	root_node->d_children[2] = temp_node;
 	root_node->d_end = 3;
 	parse_tarfs();

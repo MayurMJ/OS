@@ -27,6 +27,6 @@ dentry *root_node;
 
 void parse_tarfs();
 void initfs();
-dentry* dentry_lookup(char *path);
+dentry* dentry_lookup(char *path, uint64_t mode);
 char* dentry_lookup_get_path(char* path);
 #endif
