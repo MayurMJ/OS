@@ -145,7 +145,7 @@ void idle_task() {
 #endif
 //		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
-//		reap_all_child(CURRENT_TASK);
+		reap_all_child(CURRENT_TASK);
 		__asm__ __volatile__ ( "sti\n\t");
 		__asm__ __volatile__("hlt\n\t");
 	}
@@ -277,6 +277,7 @@ void reap_all_child(Task *parent) {
 			curr = curr->next;
 		}
 	}
+//	display_queue();
 
 }
 
@@ -360,6 +361,21 @@ Task * get_task_from_pid(uint64_t pid) {
 		curr = curr->next;
 	}
 	return NULL;
+}
+
+void reparent_orphans(Task *dyingTask) {
+	if(dyingTask==queue_head) {
+		kprintf("PANIC: how can pid 1 die?\n");
+		while(1);
+	}
+	Task *curr = run_queue;
+	while(curr!=queue_head) {
+		kprintf("PANIC: how can pid 1 die?\n");
+		if(curr->ppid == dyingTask->pid) {
+			curr->ppid = 1;
+		}
+		curr = curr->next;
+	}
 }
 
 /*

@@ -88,6 +88,7 @@ void copy_vma_list(struct vma *parent,struct mm_struct *child) {
 	deep_copy_vma(curr_par_vma,tempvma);
 	child_vma->vma_next = tempvma;
 	child_vma = tempvma;
+	child_vma->vma_next = NULL;
 	curr_par_vma = curr_par_vma->vma_next;
     }
 }
@@ -427,6 +428,7 @@ uint64_t syscall_handler(void)
 //		}
 		kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
 		//remove_from_run_queue(CURRENT_TASK);
+		reparent_orphans(CURRENT_TASK);
 		CURRENT_TASK->state = ZOMBIE;
 		CURRENT_TASK->exit_value = arg1;
 		display_queue();
@@ -442,7 +444,7 @@ uint64_t syscall_handler(void)
 				uint64_t child_id = child_task->pid;
 				uint64_t *wstatus = (uint64_t *) arg1;
 				*wstatus = child_task->exit_value;
-//				reap_process(child_task);
+				reap_process(child_task);
 				return child_id;
 			}
 			schedule();
@@ -534,7 +536,7 @@ uint64_t syscall_handler(void)
                                 uint64_t child_id = child->pid;
                                 uint64_t *wstatus = (uint64_t *) arg2;
                                 *wstatus = child->exit_value;
-//                              reap_process(child);
+                                reap_process(child);
                                 return child_id;
                         }
                         schedule();
