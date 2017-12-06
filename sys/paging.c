@@ -11,11 +11,10 @@ uint64_t get_physical_free_page () {
   }
 
   if(free_list_head->is_avail==0) {
-    kprintf("ERROR: trying to allocate a non avaialable page %d\n",(uint64_t) (free_list_head->index * 4096));
+    kprintf("ERROR: trying to allocate a non avaialable page %x\n",(uint64_t) (free_list_head->index * 4096));
     while(1);
 	return 0;
   }
-    kprintf("free_list_head index alloc=  %d %x\n",(uint64_t) (free_list_head->index),(uint64_t) (free_list_head->index * 4096));
   uint64_t addr = (uint64_t) (free_list_head->index * 4096);
   pg_desc_t * temp = free_list_head;
   free_list_head = free_list_head->next;
@@ -43,7 +42,6 @@ void free_physical_page( pg_desc_t *page){
   page->prev = NULL;
   page->is_avail = 1;
   free_list_head = page;
-    kprintf("free_list_head index free=  %d %x\n",(uint64_t) (free_list_head->index),(uint64_t) (free_list_head->index * 4096));
   reload_cr3();
 }
 
@@ -68,14 +66,13 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
     tss_kstack = (uint64_t *)(free_list_end  + 0xffffffff80000000);
     kprintf("tss kstack %x\n",tss_kstack);
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
-  free_list[0].is_avail = 0;
+  free_list[0].is_avail = 1;
   free_list[0].prev = NULL;
   free_list[0].next =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[1]));
   free_list[0].index = 0;
   free_list[0].count = 0;
   free_list[0].ref_count = 0;
   int i=0;
-  free_list[1].prev = NULL; 
   for (i=1; i < (num_pages-1) ; i++) {
         free_list[i].is_avail = 1;
         free_list[i].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t)(&free_list[i-1]));
@@ -84,7 +81,6 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
         free_list[i].count = 0;
         free_list[i].ref_count = 0;
   }
-  kprintf("num pages = %d\n",num_pages);
   free_list[num_pages - 1].is_avail = 1;
   free_list[num_pages - 1].prev =(struct pg_desc *) ((uint64_t)0xffffffff80000000 + (uint64_t) &free_list[num_pages - 2]);
   free_list[num_pages - 1].next = NULL;

@@ -36,7 +36,6 @@ int main(int argc, char *argv[], char *envp[]) {
 		fork();
 		fork();
 		fork();
-		fork();
 //      while(1); //no need to return from bin/init
         return 0;
 }
