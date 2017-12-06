@@ -29,22 +29,26 @@ int main(int argc, char *argv[], char *envp[]) {
 #endif
 
 int main(int argc, char *argv[], char *envp[]) {
-/*		fork();
-		fork();
-		fork();
-		fork();
-		fork();
-		fork();
-		fork();
-*/
-	int res = fork();
-	if (res == 0) {
-		execve("bin/sbush", NULL, NULL);
+		//int c;
+	for(int i = 0; i<900;i++) {
+		int x = fork();
+		if(x==0)
+		{
+			char *bi = "bin/echo";
+			execve(bi,NULL,NULL);
+			//return 0;
+		}
+		else {
+			pid_t pid = getpid();
+			if(pid!=2) {
+				printf("pid %d in the else\n",pid);
+				while(1);
+			}
+			int c;
+			wait(&c);
+		}
 	}
-	else {
-		int status;
-		wait(&status);
-	}
-//      while(1); //no need to return from bin/init
+	printf("done with for loop %x",getpid());
+//      while(1); //no need to return frombin/init
         return 0;
 }

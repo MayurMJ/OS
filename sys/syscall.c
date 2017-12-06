@@ -330,6 +330,8 @@ uint64_t syscall_handler(void)
 		SLEEPING_TASK = NULL;
 		return 0;
 		break;
+	case 39:
+		return (CURRENT_TASK->pid);
 	case 57:;
 		//kprintf("rsp value %x\n",rsp);
     		Task * child_task = (Task *) kmalloc(sizeof(Task));
@@ -347,7 +349,7 @@ uint64_t syscall_handler(void)
                       		    :"=a" (child_task->regs.gs)
                         	    :);
 	
-		kprintf("rsp value %x\n",rsp);
+//		kprintf("rsp value %x\n",rsp);
 		ret = fork_handler(child_task);
 		save_state(child_task, rsp);
 	        //saveState(reg);
@@ -426,7 +428,7 @@ uint64_t syscall_handler(void)
 //			Task * deleteme = CURRENT_TASK;
 //			
 //		}
-		kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
+		kprintf(" %d",CURRENT_TASK->pid);
 		//remove_from_run_queue(CURRENT_TASK);
 		reparent_orphans(CURRENT_TASK);
 		CURRENT_TASK->state = ZOMBIE;
@@ -527,6 +529,8 @@ uint64_t syscall_handler(void)
 			ret = -1;
 		}
 		break;
+	case 110:
+		return (CURRENT_TASK->ppid);
 	case 247:; /* kill- rdi-ptr to status of the exiting child process*/
 		uint64_t pid = (uint64_t)arg1;
 		Task * child = get_task_from_pid(pid);

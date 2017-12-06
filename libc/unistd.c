@@ -113,3 +113,22 @@ char *getcwd(char *buf, size_t size) {
     return (char*)retval;	
 }
 
+pid_t getpid(void) {
+    uint64_t syscallno = 39;
+    uint64_t result;
+    __asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(syscallno));
+    return result;
+
+}
+
+pid_t getppid(void) {
+    uint64_t syscallno = 110;
+    uint64_t result;
+    __asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(syscallno));
+    return result;
+
+}
