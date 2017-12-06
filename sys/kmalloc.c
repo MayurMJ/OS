@@ -194,7 +194,7 @@ void kfree(uint64_t *virt_addr) {
       slab_t* temp = slab->curr_cache->slabs_partial;
       while(temp->next != slab) temp = temp->next;
       temp->next = slab->next;
-//      free_page((void *)slab,cr3);
+      free_page((void *)slab,cr3);
     }
     return;
   }

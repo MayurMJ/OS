@@ -47,7 +47,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
     if (smap->type == 1 /* memory */ && smap->length != 0) {
       smap_copy[smap_copy_index].starting_addr = smap->base;
       smap_copy[smap_copy_index].last_addr = smap->base + smap->length;
-      //kprintf("Available Physical Memory [%p-%p]\n",  smap_copy[smap_copy_index].starting_addr, smap_copy[smap_copy_index].last_addr );
+      kprintf("Available Physical Memory [%p-%p]\n",  smap_copy[smap_copy_index].starting_addr, smap_copy[smap_copy_index].last_addr );
       smap_copy_index++;
     }
   }

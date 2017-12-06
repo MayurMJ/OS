@@ -66,8 +66,9 @@ void switch_user_mode(uint64_t symbol) {
         );
 }
 
+//#define DEBUG_DISPLAY_QUEUE 1
 void display_queue() {
-#ifdef DEBUG_PRINT_SCHEDULER
+#ifdef DEBUG_DISPLAY_QUEUE
 	Task * curr = queue_head->next;
 	while(curr != queue_head) {
 		kprintf("%d(%d) -> ", curr->pid,curr->state);
@@ -128,6 +129,7 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
+ //   kprintf("scheduling pid %d\n",CURRENT_TASK->pid);
     if(CURRENT_TASK==last)
 	return;
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
@@ -311,6 +313,7 @@ void free_file_desc(Task * reapThis) {
 
 /* reap the process */
 void reap_process(Task * reapThis) {
+	kprintf("reaping process %d",reapThis->pid);
 	remove_from_run_queue(reapThis); 
 	free_vmas(reapThis->mm->vm_begin);
 	kfree((uint64_t *)(reapThis->mm));

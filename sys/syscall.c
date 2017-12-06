@@ -347,7 +347,7 @@ uint64_t syscall_handler(void)
                       		    :"=a" (child_task->regs.gs)
                         	    :);
 	
-		kprintf("rsp value %x\n",rsp);
+//		kprintf("rsp value %x\n",rsp);
 		ret = fork_handler(child_task);
 		save_state(child_task, rsp);
 	        //saveState(reg);
@@ -426,7 +426,7 @@ uint64_t syscall_handler(void)
 //			Task * deleteme = CURRENT_TASK;
 //			
 //		}
-		kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
+		//kprintf("pid %d exiting with %d\n",CURRENT_TASK->pid, (uint64_t)arg1);
 		//remove_from_run_queue(CURRENT_TASK);
 		reparent_orphans(CURRENT_TASK);
 		CURRENT_TASK->state = ZOMBIE;
@@ -439,6 +439,7 @@ uint64_t syscall_handler(void)
 		if(has_child(CURRENT_TASK)==0) 
 			return -1; //this process doesn't have any child
 		while(1) {
+			kprintf("waiting process %d\n",CURRENT_TASK->pid);
 			Task * child_task = zombie_child_exists(CURRENT_TASK);
 			if(child_task) {
 				uint64_t child_id = child_task->pid;
