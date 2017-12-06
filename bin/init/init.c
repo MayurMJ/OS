@@ -29,13 +29,22 @@ int main(int argc, char *argv[], char *envp[]) {
 #endif
 
 int main(int argc, char *argv[], char *envp[]) {
+/*		fork();
 		fork();
 		fork();
 		fork();
 		fork();
 		fork();
 		fork();
-		fork();
+*/
+	int res = fork();
+	if (res == 0) {
+		execve("bin/sbush", NULL, NULL);
+	}
+	else {
+		int status;
+		wait(&status);
+	}
 //      while(1); //no need to return from bin/init
         return 0;
 }
