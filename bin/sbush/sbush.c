@@ -174,6 +174,26 @@ int loopTerminal(char *envp[]) {
 		if (strcmp(args[0], "cd") == 0) {
 			cd(args, envp);
 		}
+		else if (strcmp(args[0], "cat") == 0) {
+			int res = fork();
+                        if (res == 0) {
+                                if (num_tokens > 1) { // that means ls has been given a path
+                                        char *s1 = "bin/cat";
+                                        char *s2 = args[1];
+                                        //printf("2nd arg to ls is %s\n",s2);
+                                        char *catargv[3];
+                                        catargv[0] = s1; catargv[1] = s2; catargv[2] = '\0';
+                                        execve("bin/cat", catargv, NULL);
+                                }
+                                else {
+                                        printf("sbush> No path name given to cat");
+                                }
+                        }
+                        else {
+                                int status;
+                                wait(&status);
+                        }
+		}
 		else if (strcmp(args[0], "ls") == 0) {
                         int res = fork();
 			if (res == 0) {
