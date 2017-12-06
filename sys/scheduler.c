@@ -126,6 +126,9 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
+    if(CURRENT_TASK==last)
+	return;
+    kprintf("scheduling pid %d\n",CURRENT_TASK->pid);
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
@@ -370,7 +373,6 @@ void reparent_orphans(Task *dyingTask) {
 	}
 	Task *curr = run_queue;
 	while(curr!=queue_head) {
-		kprintf("PANIC: how can pid 1 die?\n");
 		if(curr->ppid == dyingTask->pid) {
 			curr->ppid = 1;
 		}
