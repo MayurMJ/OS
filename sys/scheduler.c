@@ -67,13 +67,14 @@ void switch_user_mode(uint64_t symbol) {
 }
 
 void display_queue() {
+#ifdef DEBUG_PRINT_SCHEDULER
 	Task * curr = queue_head->next;
 	while(curr != queue_head) {
 		kprintf("%d(%d) -> ", curr->pid,curr->state);
 		curr = curr->next;
 	}
 	kprintf("%d(%d) \n", curr->pid,curr->state);
-	
+#endif
 }
 
 
@@ -122,13 +123,13 @@ void yield() {
     while(CURRENT_TASK->state != READY) {
 #ifdef DEBUG_PRINT_SCHEDULER
 	kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+    kprintf("scheduling pid %d\n",CURRENT_TASK->pid);
 #endif
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
     if(CURRENT_TASK==last)
 	return;
-    kprintf("scheduling pid %d\n",CURRENT_TASK->pid);
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
@@ -313,9 +314,9 @@ void reap_process(Task * reapThis) {
 	remove_from_run_queue(reapThis); 
 	free_vmas(reapThis->mm->vm_begin);
 	kfree((uint64_t *)(reapThis->mm));
-//	free_page(reapThis->kstack, reapThis->regs.cr3);
+	free_page(reapThis->kstack, reapThis->regs.cr3);
 	free_file_desc(reapThis);
-//	delete_page_tables(reapThis->regs.cr3);
+	delete_page_tables(reapThis->regs.cr3);
 	kfree((uint64_t *)reapThis);	
 	//TODO: free the memory of the reaped task;	
 }
@@ -333,6 +334,7 @@ void replace_ptr_in_queue(Task * replace, Task * new_task) {
 	}
 	if(curr->next == queue_head ) {
 		kprintf("PANIC: replacing something not in queue!\n");
+		while(1);
 		return;
 	}
 	curr->next = new_task;

@@ -79,11 +79,11 @@ void delete_page_tables(uint64_t cr3) {
 							for(int l = 0; l < 512; l++) {
 								if(PTE[l] != 0) {
 									uint64_t temp = (PTE[l] >> 12) <<12;
-									free_list[temp / 4096].ref_count--;
-						                        if(free_list[temp / 4096].ref_count == 0) {
+									//free_list[temp / 4096].ref_count--;
+						                        //if(free_list[temp / 4096].ref_count == 0) {
 										temp = 0xffffffff80000000 + temp;
                                 						free_page((void *)temp, cr3);
-                       							 }	
+                       							 //}	
 								}
 							}
 							free_page((void*)(0xffffffff80000000 + ((PDE[k] >> 12) <<12)), cr3);	

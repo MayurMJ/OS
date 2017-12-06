@@ -33,8 +33,11 @@ void reload_cr3() {
                     :
                     :"a"(cr3));
 }
-void free_physical_page( pg_desc_t *pg){
-  pg_desc_t* page = (pg_desc_t *) ((uint64_t)0xffffffff80000000 + (uint64_t) pg);
+void free_physical_page( pg_desc_t *page){
+ // pg_desc_t* page = (pg_desc_t *) ((uint64_t)0xffffffff80000000 + (uint64_t) pg);
+  page->ref_count--;
+  if(page->ref_count!=0)
+	return;
   page->next=free_list_head;
   page->prev = NULL;
   page->is_avail = 1;
@@ -312,9 +315,11 @@ void free_page(void *addr, uint64_t cr3) {
   x = (uint64_t)0xffffffff80000000 + (uint64_t) PDE[PDEindex];
   x = x & 0xfffffffffffff000;
   PTE = (uint64_t *) x;
-  
-  free_physical_page((pg_desc_t*)((PTE[PTEindex] >> 12) <<12)); 
-  PTE[PTEindex] = 0;
+ 
+  uint64_t phys_addr = (uint64_t ) ((PTE[PTEindex] >> 12) <<12);
+//  kprintf("virt %x phy %x\n",virt_addr,phys_addr); 
+  free_physical_page((pg_desc_t*)(&free_list[phys_addr/4096] )); 
+ // PTE[PTEindex] = 0;
    
  /* pg_desc_t page = free_list[((PDE[PDEindex] >> 12) << 12) / 4096];
   page.count--;
