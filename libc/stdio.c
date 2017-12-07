@@ -178,8 +178,8 @@ int printf(const char *fmt, ...)
 	}
 	*tempstr = '\0';
 	int len = (int)(tempstr-finalStr);
-	write(1, finalStr, len);
+	int ret = write(1, finalStr, len);
         va_end(args);
 	free(finalStr);
-	return 0;
+	return ret;
 }
