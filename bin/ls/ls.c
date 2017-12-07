@@ -23,8 +23,8 @@ int main(int argc, char *argv[], char *envp[]) {
 			strcat(input, argv[2]);
 		}
 	}
-	puts(input);
-	puts("\n");
+	//puts(input);
+	//puts("\n");
         DIR *fd = opendir(input);
 	if(fd) {
         	ldirent *ld = readdir(fd);

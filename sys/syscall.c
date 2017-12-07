@@ -366,6 +366,7 @@ uint64_t syscall_handler(void)
 		}
 		#endif
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
+		kstrcpy(replacement_task->cwd, CURRENT_TASK->cwd);
 		replacement_task->regs.rax = 0;
     		replacement_task->regs.rbx = 0;
     		replacement_task->regs.rcx = 0;

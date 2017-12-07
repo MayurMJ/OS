@@ -46,7 +46,9 @@ char* dentry_lookup_get_path(char* path) {
 		}
 		token = kstrtok(NULL, '/');
 	}
-	return ret_path; 
+	if(iter_node->d_type == DIRECTORY)
+		return ret_path;
+	return NULL;
 }
 
 dentry* dentry_lookup(char* path, uint64_t mode) {
