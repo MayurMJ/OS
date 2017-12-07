@@ -255,8 +255,10 @@ uint64_t syscall_handler(void)
 				while(FG_TASK->state == WAITING) {
                                         schedule();
                                 }
+				chars_read = read_handler(fd, buffer, count);
 			}
-			chars_read = read_handler(fd, buffer, count);	
+			//chars_read = read_handler(fd, buffer, count);
+			if ((chars_read == 0) || (chars_read == -1)) return chars_read;	
 			buffer[chars_read]='\0';
 			int x; // TODO:look into this again
 			for (x= chars_read; x <4096; x++) {

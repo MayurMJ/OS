@@ -23,7 +23,11 @@ int getc(int fd) {
   return buf[0];
 }
 
-
+char *gets(char *str) {
+	int len = read(0, str, 2000);
+	if ((len == 0) || (len == -1)) return NULL;
+	else return str;
+}
 
 char *get_ptr(uint64_t num, char *str) {
         if(num == 0) {

@@ -23,8 +23,8 @@ int cd(char **args, char *envp[])
         char fileName[100];
 	getcwd(fileName, 100);
 	puts(fileName);
-	printf("in cd right now\n");
-	printf("args 1 is %s\n",args[1]);
+	//printf("in cd right now\n");
+	//printf("args 1 is %s\n",args[1]);
 	if (args[1] != NULL) {
 		if (chdir(args[1]) == -1) {
 			printf("sbush> Directory not found\n");
@@ -156,6 +156,7 @@ int loopTerminal(char *envp[]) {
 		read(0,cmdline,1000); // what do i do with chars_read?
 
 		if (strcmp(cmdline, "exit\n") == 0) {
+			printf("------------------- EXITING -------------------\n");
 			exit_flag = 1;
 			continue;
 		}

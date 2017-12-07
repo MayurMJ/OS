@@ -33,6 +33,10 @@ int main(int argc, char *argv[], char *envp[]) {
 #if 0
 	for(int i = 0; i<10;i++) {
 //	for(int i = 0; i<900;i++) {
+
+		char *nstr = (char *)malloc(50);
+		nstr = gets(nstr);
+		printf("string entered %s\n",nstr);
 #endif
 		int x = fork();
 		if(x==0)
