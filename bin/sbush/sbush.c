@@ -4,44 +4,42 @@
 #include <stdio.h>
 #include <string.h>
 #define TOKENSIZE 100
-
+/*
 int cd(char **args, char *envp[]);
 int export(char **args, char *envp[]);
-int sbushExit(char **args, char *envp[]);
 
 char *builtInCommands[] = {
 	"cd",
-	"export",
-	"exit"
+	"export"
 };
 
-int (*builtInFunc[]) (char **args, char *envp[]) = {
+int (*builtInFunc[]) (char [][TOKENSIZE], char *envp[]) = {
 	&cd,
-	&export,
-	&sbushExit
+	&export
 };
-
+*/
 int cd(char **args, char *envp[])
 {
+        char fileName[100];
+	getcwd(fileName, 100);
+	puts(fileName);
+	//printf("in cd right now\n");
+	//printf("args 1 is %s\n",args[1]);
 	if (args[1] != NULL) {
 		if (chdir(args[1]) == -1) {
 			printf("sbush> Directory not found\n");
-			return 0;
+			return -1;
     		}
-		else {
-			printf("sbush> Directory changed to %s\n",args[1]);
-		}
   	}
 	else {
 		printf("sbush> Missing argument to cd");
-		return 0;
+		return -1;
 	}
+	memset((void*)fileName, 0, 100);
+	getcwd(fileName, 100);
+	puts(fileName);
+	printf("directory change worked\n");
   	return 0;
-}
-
-int sbushExit(char **args, char *envp[]) {
-	printf("******************** EXITING ********************\n");
-	return -1;
 }
 
 int export(char **args, char *envp[]) {
@@ -81,35 +79,94 @@ int parseLine(char *line, char **args, int *pipeCount) {
   }
   return tokenIndex;
 }
-
+#if 0
 int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
-	for (int i = 0; i < 3; i++) {
-		if (strcmp(args[0], builtInCommands[i]) == 0) {
+	int i = 0, j = 0, k = 0;
+	for (i = 0; i < 3; i++) {
+		if (stringCmp(args[0], builtInCommands[i]) == 0) {
 			return (*builtInFunc[i])(args, envp);
 		}
-  	}
-	int res = fork();
-	if (res == 0) {
-		//printf("args 0 %s args 1 %s\n",args[0],args[1]);
-		execve(args[0],args+1,envp);
 	}
-	else {
-		int c;
-		wait(&c);
+	pid_t pid = 0;
+	typedef char *commands[tokenCount];
+	int backgroundEnable[pipeCount + 1];
+	initArr(backgroundEnable, pipeCount+1);
+	commands c[pipeCount + 1];
+	for(i = 0; i < tokenCount; i++) {
+		j = 0;
+		while(args[i][0] != '|' && i < tokenCount) {
+			c[k][j] = args[i];
+			j++;i++;
+		}
+		if(j-1 > 0) {
+			if (c[k][j-1][0] == '&') {
+				backgroundEnable[k] = 1;
+				c[k][j-1] = (char*)0;
+			}
+		}
+		c[k][j] = (char*)0;
+		k++;
 	}
-	//printf("returning from exec cmd\n");
+	int mystdin = dup(0);
+	int mystdout = dup(1);
+	int fdin;
+	fdin = dup(mystdin);
+	int fdout;
+	for(i = 0; i < pipeCount + 1; i++) {
+		dup2(fdin,0);
+		close(fdin);
+		if(i==pipeCount) {//last command
+			fdout = dup(mystdout);
+		}
+		else {
+			int fd[2];
+			if(pipe(fd)!=0){ puts("ERROR PIPE"); }
+			fdin = fd[0];
+			fdout = fd[1];
+		}
+		dup2(fdout,1);
+		close(fdout);
+		pid = fork();
+		if(pid < 0) {
+			return 1;
+		}
+		else if (pid == 0) {
+			if (execvpe(c[i][0], c[i], envp) == -1) {
+				return -1;
+			}
+		}
+	}
+	dup2(mystdin,0);
+	dup2(mystdout,1);
+	close(mystdin);
+	close(mystdout);
+	if(backgroundEnable[i-1] == 0) {
+		waitpid(pid, NULL);
+	}
+
 	return 0;
 }
-
+#endif
 int loopTerminal(char *envp[]) {
 	int exit_flag = 0;
 	while(exit_flag == 0) {
 		puts("sbush>");
+		
 		char *cmdline = (char *)malloc(1000);
 		read(0,cmdline,1000); // what do i do with chars_read?
+
+		if (strcmp(cmdline, "exit\n") == 0) {
+			printf("------------------- EXITING -------------------\n");
+			exit_flag = 1;
+			continue;
+		}
 		//printf("sbush> String entered was %s", cmdline);
+		
+		// first parse lines to see how many tokens there are, then allocate a 2d array of that size
 		int num_tokens = count_tokens(cmdline);
 		//printf("sbush> Num tokens %d\n",num_tokens);
+
+
 		char **args = (char **)malloc(num_tokens * sizeof(char *));		
 		for (int i =0;i<num_tokens;i++) {
 			args[i] = (char *)malloc(TOKENSIZE);
@@ -118,29 +175,109 @@ int loopTerminal(char *envp[]) {
 		int pipeCount = 0;
 		parseLine(cmdline, args, &pipeCount);
 		//int tokensParsed = parseLine(cmdline, args, &pipeCount);
+		//printf("sbush> num tokens from parseline %d\n",tokensParsed);	
 		if(args[0][0] == '\0') continue;
+		if (strcmp(args[0], "cd") == 0) {
+			cd(args, envp);
+		}
+		else if (strcmp(args[0], "cat") == 0) {
+			//printf("inside cat\n");
+			int res = fork();
+                        if (res == 0) {
+                                if (num_tokens > 1) { // that means cat has been given a path
+                                        char *s1 = args[1];
+					//char *s1 = "/rootfs/bin/sample";
+                                        //printf("arg to cat is %s\n",s1);
+                                        char *catargv[2];
+                                        catargv[0] = s1; catargv[1] = NULL;
+                                        execve("bin/cat", catargv, NULL);
+                                }
+                                else {
+                                        printf("sbush> No file name given to cat");
+                                }
+                        }
+                        else {
+                                int status;
+                                wait(&status);
+                        }
+		}
+		else if (strcmp(args[0], "ls") == 0) {
+                        int res = fork();
+			if (res == 0) {
+				if (num_tokens > 1) { // that means ls has been given a path
+					char *s1 = args[1];
+					//printf("arg to ls is %s\n",s1);
+					char *lsargv[2];
+					lsargv[0] = s1; lsargv[1] = '\0';
+					execve("bin/ls", lsargv, NULL);
+				}
+				else {
+					execve("bin/ls", NULL, NULL);
+				}
+			}
+			else {
+				int status;
+				wait(&status);
+			}
+                } 
+		else if (strcmp(args[0], "sleep") == 0) {
+                        int res = fork();
+			if (res == 0) {
+				if (num_tokens > 1) { // that means ls has been given a path
+					char *s1 = args[1];
+					//printf("arg to ls is %s\n",s1);
+					char *lsargv[2];
+					lsargv[0] = s1; lsargv[1] = '\0';
+					execve("bin/sleep", lsargv, NULL);
+				}
+				else {
+					execve("bin/sleep", NULL, NULL);
+				}
+			}
+			else {
+				int status;
+				wait(&status);
+			}
+                } 
+		else if (strcmp(args[0], "ps") == 0) {
+			int res = fork();
+			if(res==0) {
+				execve("bin/ps",NULL,NULL);
+			}
+			else {
+				int status;
+				wait(&status);
+			}
+		}
+                else if (strcmp(args[0], "kill") == 0) {
+                        int res = fork();
+                        if (res == 0) {
+                                if (num_tokens > 1) { // that means ls has been given a path
+                                        char *s1 = args[1];
+                                        //printf("arg to ls is %s\n",s1);
+                                        char *killargv[3];
+					char * s2 = args[2];
+                                        killargv[0] = s1;killargv[1]=s2; killargv[2] = '\0';
+                                        execve("bin/kill", killargv, NULL);
+                                }
+                                else {
+                                        printf("kill needs a signal and process id\n");
+                                }
+                        }
+                        else {
+                                int status;
+                                wait(&status);
+                        }
+                }
 
-		//exit_flag = executeCommand(args, tokensParsed, pipeCount, envp);
-		#if 1
-		int res = fork();
-        	if (res == 0) {
-                	execve(args[0],args+1,envp);
-        	}
-        	else {
-                	int c;
-                	wait(&c);
-        	}		
-		#endif
-
-		#if 1
+		//status = executeCommand(args, tokensParsed, pipeCount, envp);
+		
 		// freeing stuff starts here	
 		for (int i =0;i<num_tokens;i++) {
-			if (args[i] != NULL)
-				free(args[i]);
+			free(args[i]);
 		}
 		free(args);
 		free(cmdline);
-		#endif
 	}
 	return 0;
 }
