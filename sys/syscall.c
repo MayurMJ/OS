@@ -14,6 +14,7 @@
 #include <sys/gdt.h>
 
 uint64_t sleeping_time=0;
+uint64_t wait_time = 0;
 /*TODO populate syscall number
 void * syscall_tbl[NUM_SYSCALLS] = 
 {
@@ -323,7 +324,7 @@ uint64_t syscall_handler(void)
 	        schedule();
 		break;
 	case 35:;
-		//sleeping_time = arg1;
+		wait_time = (uint64_t)arg1;
 		SLEEPING_TASK = CURRENT_TASK;
 		SLEEPING_TASK->state = SLEEP;
 		while (SLEEPING_TASK->state == SLEEP) {

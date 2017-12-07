@@ -3,6 +3,7 @@
 
 #include <sys/defs.h>
 
+int atoi(char *str);
 void strcpy(char *s1, char*s2);
 char *strrem(char *s, char tok);
 int strlen(char *s);

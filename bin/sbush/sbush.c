@@ -220,6 +220,25 @@ int loopTerminal(char *envp[]) {
 				wait(&status);
 			}
                 } 
+		else if (strcmp(args[0], "sleep") == 0) {
+                        int res = fork();
+			if (res == 0) {
+				if (num_tokens > 1) { // that means ls has been given a path
+					char *s1 = args[1];
+					//printf("arg to ls is %s\n",s1);
+					char *lsargv[2];
+					lsargv[0] = s1; lsargv[1] = '\0';
+					execve("bin/sleep", lsargv, NULL);
+				}
+				else {
+					execve("bin/sleep", NULL, NULL);
+				}
+			}
+			else {
+				int status;
+				wait(&status);
+			}
+                } 
 		else if (strcmp(args[0], "ps") == 0) {
 			int res = fork();
 			if(res==0) {
