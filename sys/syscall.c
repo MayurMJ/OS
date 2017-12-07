@@ -363,12 +363,17 @@ uint64_t syscall_handler(void)
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
-		#if 0
+		#if 1
 		if (argv != NULL) {
-			kprintf(" in exec handler argv0 %s\n",argv[0]); 
+			kprintf("before loadelf in exec handler argv0 %s\n",argv[0]); 
 		}
 		#endif
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
+		#if 1
+                if (argv != NULL) {
+                        kprintf("after loadelf in exec handler argv0 %s\n",argv[0]);
+                }
+                #endif
 		kstrcpy(replacement_task->cwd, CURRENT_TASK->cwd);
 		replacement_task->regs.rax = 0;
     		replacement_task->regs.rbx = 0;
@@ -418,6 +423,11 @@ uint64_t syscall_handler(void)
 		Task * oldtask = CURRENT_TASK;
 		CURRENT_TASK = replacement_task;
 		set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
+		#if 1
+                if (argv != NULL) {
+                        kprintf("right before switch task in exec handler argv0 %s\n",argv[0]);
+                }
+                #endif
 		switchTask(&oldtask->regs, &CURRENT_TASK->regs);
 /*
 		// TODO: remove this circular list
