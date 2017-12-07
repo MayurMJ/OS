@@ -116,14 +116,12 @@ int loopTerminal(char *envp[]) {
 		}	
 	
 		int pipeCount = 0;
-		#if 0
 		parseLine(cmdline, args, &pipeCount);
-		#endif
-		int tokensParsed = parseLine(cmdline, args, &pipeCount);
+		//int tokensParsed = parseLine(cmdline, args, &pipeCount);
 		if(args[0][0] == '\0') continue;
 
-		exit_flag = executeCommand(args, tokensParsed, pipeCount, envp);
-		#if 0
+		//exit_flag = executeCommand(args, tokensParsed, pipeCount, envp);
+		#if 1
 		int res = fork();
         	if (res == 0) {
                 	execve(args[0],args+1,envp);
