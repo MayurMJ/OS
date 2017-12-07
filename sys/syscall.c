@@ -327,6 +327,7 @@ uint64_t syscall_handler(void)
 		wait_time = (uint64_t)arg1;
 		SLEEPING_TASK = CURRENT_TASK;
 		SLEEPING_TASK->state = SLEEP;
+		kprintf("sleeeeep\n");
 		while (SLEEPING_TASK->state == SLEEP) {
 			schedule();
 		}
@@ -422,6 +423,7 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK->state = ZOMBIE;
 		Task * oldtask = CURRENT_TASK;
 		CURRENT_TASK = replacement_task;
+		CURRENT_TASK->state = READY;
 		set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
 		#if 1
                 if (argv != NULL) {
