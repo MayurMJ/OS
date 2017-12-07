@@ -185,7 +185,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 						//no_pages = 1;
             					kmemcpy((char*) proghdr[i].p_vaddr, (char*) &data[proghdr[i].p_offset], proghdr[i].p_filesz);
 						memset((uint8_t*)proghdr[i].p_vaddr + proghdr[i].p_filesz, 0, proghdr[i].p_memsz - proghdr[i].p_filesz);
-						__asm__ __volatile__("movq %%cr3, %0\n\t"
+						__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(oldcr3));
 					}
 				}
@@ -219,7 +219,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				char **duplargv=NULL;
 				int argc = 0;
 				if (argv != NULL) {kprintf("load elf argv was not null 2 %p\n",argv);
-				kprintf("%s\n",argv[1]);}
+				kprintf("%s\n",argv[0]);}
 				if (argv != NULL) {
 					kprintf("load elf argv was not null 2.5\n");
                 			while (argv[argc] != NULL) {argc++;
