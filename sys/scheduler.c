@@ -65,7 +65,7 @@ void switch_user_mode(uint64_t symbol) {
                         ::"b"(symbol), "c"(CURRENT_TASK->mm->stack_begin)
         );
 }
-
+#define DEBUG_PRINT_SCHEDULER
 void display_queue() {
 #ifdef DEBUG_PRINT_SCHEDULER
 	Task * curr = queue_head->next;
@@ -144,8 +144,6 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
-    if(CURRENT_TASK==last)
-	return;
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
     switchTask(&last->regs, &CURRENT_TASK->regs);
 }
@@ -157,17 +155,18 @@ void schedule(){
 	yield();	
 
 }
+//#define DEBUG_PRINT_SCHEDULER 1
 void idle_task() {
 	while(1) {
 #ifdef DEBUG_PRINT_SCHEDULER
 		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		display_queue();
 #endif
-//		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
+		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
 		reap_all_child(CURRENT_TASK);
-		__asm__ __volatile__ ( "sti\n\t");
-		__asm__ __volatile__("hlt\n\t");
+//		__asm__ __volatile__ ( "sti\n\t");
+//		__asm__ __volatile__("hlt\n\t");
 	}
 }
 

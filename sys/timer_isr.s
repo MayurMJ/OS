@@ -3,8 +3,8 @@
  
 timer_isr:
     cli
-    pushq    %rax
     pushq    %rbx
+    pushq    %rax
     pushq    %rcx
     pushq    %rdx
     pushq    %rsi
@@ -17,14 +17,13 @@ timer_isr:
     pushq    %r13
     pushq    %r14
     pushq    %r15
-    pushq    %rdi
-    pushq    %rsi
     pushq    %rbp
     cld /* C code following the sysV ABI requires DF to be clear on function entry */
     call timer_irqhandler
+//    movq    %rsp, %rdi
+//    addq    $168, %rdi
+//    call    set_tss_rsp
     popq    %rbp
-    popq    %rsi
-    popq    %rdi
     popq    %r15
     popq    %r14
     popq    %r13
@@ -38,7 +37,7 @@ timer_isr:
     popq    %rdx
     popq    %rcx
     popq    %rbx
-    popq    %rax
+    popq    %rbx
     movb    $0x20, %al
     outb    %al, $0x20
     sti

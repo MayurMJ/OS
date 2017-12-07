@@ -41,6 +41,9 @@ int main(int argc, char *argv[], char *envp[]) {
 		int x = fork();
 		if(x==0)
 		{
+			while (1) {
+			printf("In child  %d\n",getpid());
+			}
 			char *bi = "bin/sbush";
 			execve(bi,NULL,NULL);
 			//return 0;
@@ -53,8 +56,11 @@ int main(int argc, char *argv[], char *envp[]) {
 				while(1);
 			}
 			#endif
-			int c;
-			wait(&c);
+			while (1) {
+			printf("In parent %d\n",getpid());
+			}
+		//	int c;
+		//	wait(&c);
 		}
 #if 0
 	}

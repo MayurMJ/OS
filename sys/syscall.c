@@ -244,7 +244,7 @@ uint64_t syscall_handler(void)
 		if (fd == 0) {
 			while (1) {
 				if (FG_TASK != NULL) {
-					schedule(); // TODO: is this the right call?
+					//schedule(); // TODO: is this the right call?
 				}
 				else
 					break;
@@ -254,7 +254,7 @@ uint64_t syscall_handler(void)
 			if ((chars_read == -1) || (chars_read == 0)) {
 				FG_TASK->state = WAITING;
 				while(FG_TASK->state == WAITING) {
-                                        schedule();
+                                        //schedule();
                                 }
 				chars_read = read_handler(fd, buffer, count);
 			}
