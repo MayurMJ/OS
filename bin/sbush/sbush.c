@@ -249,6 +249,27 @@ int loopTerminal(char *envp[]) {
 				wait(&status);
 			}
 		}
+                else if (strcmp(args[0], "kill") == 0) {
+                        int res = fork();
+                        if (res == 0) {
+                                if (num_tokens > 1) { // that means ls has been given a path
+                                        char *s1 = args[1];
+                                        //printf("arg to ls is %s\n",s1);
+                                        char *killargv[3];
+					char * s2 = args[2];
+                                        killargv[0] = s1;killargv[1]=s2; killargv[2] = '\0';
+                                        execve("bin/kill", killargv, NULL);
+                                }
+                                else {
+                                        printf("kill needs a signal and process id\n");
+                                }
+                        }
+                        else {
+                                int status;
+                                wait(&status);
+                        }
+                }
+
 		//status = executeCommand(args, tokensParsed, pipeCount, envp);
 		
 		// freeing stuff starts here	

@@ -16,11 +16,10 @@ int main(int argc, char *argv[], char *envp[]) {
                //TODO: char *signal = argv[1];
                 char *pid = argv[2];
 		int pid_t = atoi(pid);
-		if(!kill(pid_t,9))
-			puts("kill return error");	
-
+		int x =(kill(pid_t,9));
+		printf("kill returned %d\n",x);	
         }
- 	
+	
 	return 0;
 }
 
