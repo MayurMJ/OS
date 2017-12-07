@@ -85,7 +85,7 @@ void display_pid() {
 		if(curr->state == READY ) kprintf("READY\t");
 		if(curr->state == WAITING ) kprintf("WAITING\t");
 		if(curr->state == ZOMBIE ) kprintf("ZOMBIE\t");
-                kprintf("%d\n", curr->pid);
+                kprintf("%d\n", curr->ppid);
 		
                 curr = curr->next;
         }

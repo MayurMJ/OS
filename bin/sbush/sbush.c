@@ -218,7 +218,17 @@ int loopTerminal(char *envp[]) {
 				int status;
 				wait(&status);
 			}
-                }
+                } 
+		else if (strcmp(args[0], "ps") == 0) {
+			int res = fork();
+			if(res==0) {
+				execve("bin/ps",NULL,NULL);
+			}
+			else {
+				int status;
+				wait(&status);
+			}
+		}
 		//status = executeCommand(args, tokensParsed, pipeCount, envp);
 		
 		// freeing stuff starts here	
