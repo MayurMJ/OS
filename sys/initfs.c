@@ -16,12 +16,14 @@ char* dentry_lookup_get_path(char* path) {
 	kstrcat(ret_path, "/");
 	dentry *iter_node = root_node->d_children[0];
 	dentry *temp_node = root_node->d_children[0];
+	if(kstrcmp(path, "/") == 0) return "/";
 	if(path[0] == '/') path = path + 1;
 	char *token = kstrtok(path , '/');
 	if(token == NULL) return NULL;
 	
 	while(token != NULL) {
 		temp_node = iter_node;
+		if (temp_node->d_type == FILE) return NULL;
 		if(kstrcmp(token, ".") == 0) {
 			iter_node = temp_node->d_children[1];
 		}
@@ -54,14 +56,16 @@ char* dentry_lookup_get_path(char* path) {
 dentry* dentry_lookup(char* path, uint64_t mode) {
 	dentry *iter_node = root_node->d_children[0];
 	dentry *temp_node = root_node->d_children[0];
+	if(kstrcmp(path, "/") == 0) return root_node;
 	if(path[0] == '/') path = path + 1;
 	char *token = kstrtok(path , '/');
 	if(token == NULL) return NULL;
 	
 	while(token != NULL) {
 		temp_node = iter_node;
+		if (temp_node->d_type == FILE) return NULL;
 		if (temp_node->d_ino->i_perm != mode) return NULL;
-		if(kstrcmp(token, ".") == 0) {
+		if (kstrcmp(token, ".") == 0) {
 			iter_node = temp_node->d_children[1];
 		}
 		else if(kstrcmp(token, "..") == 0) {

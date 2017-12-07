@@ -15,12 +15,12 @@ int main(int argc, char *argv[], char *envp[]) {
 		strcpy(input, fileName);
 	}
 	else {
-		if(argv[2][0] == '/') {
-			strcpy(input, argv[2]);
+		if(argv[1][0] == '/') {
+			strcpy(input, argv[1]);
 		}
 		else {
 			strcat(input, fileName);
-			strcat(input, argv[2]);
+			strcat(input, argv[1]);
 		}
 	}
 	//puts(input);
