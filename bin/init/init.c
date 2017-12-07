@@ -30,26 +30,35 @@ int main(int argc, char *argv[], char *envp[]) {
 
 int main(int argc, char *argv[], char *envp[]) {
 		//int c;
+#if 0
 	for(int i = 0; i<10;i++) {
+//	for(int i = 0; i<900;i++) {
+#endif
 		int x = fork();
 		if(x==0)
 		{
-			char *bi = "bin/echo";
+			char *bi = "bin/sbush";
 			execve(bi,NULL,NULL);
 			//return 0;
 		}
 		else {
+			#if 0
 			pid_t pid = getpid();
 			if(pid!=2) {
 				printf("pid %d in the else\n",pid);
 				while(1);
 			}
+			#endif
 			int c;
 			wait(&c);
 		}
+#if 0
 	}
 	ps();
 	printf("done with for loop %x",getpid());
+//	}
+//	printf("done with for loop %x",getpid());
 //      while(1); //no need to return frombin/init
+#endif
         return 0;
 }

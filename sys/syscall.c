@@ -142,7 +142,7 @@ void copy_to_child(Task *parent_task, Task *child_task) {
     child_task->regs.cr3 = child_task->mm->pg_pml4;
     copy_vma_list(parent_task->mm->vm_begin, child_task->mm);
     // TODO: need to change this circular mapping
-     put_in_run_queue(child_task);
+    put_in_run_queue(child_task);
 
 }
 
@@ -348,7 +348,6 @@ uint64_t syscall_handler(void)
                 __asm__ __volatile__("movq %%gs, %0\n\t"
                       		    :"=a" (child_task->regs.gs)
                         	    :);
-	
 //		kprintf("rsp value %x\n",rsp);
 		ret = fork_handler(child_task);
 		save_state(child_task, rsp);
@@ -361,6 +360,11 @@ uint64_t syscall_handler(void)
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
+		#if 1
+		if (argv != NULL) {
+			kprintf(" in exec handler argv0 %s\n",argv[0]); 
+		}
+		#endif
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
 		replacement_task->regs.rax = 0;
     		replacement_task->regs.rbx = 0;

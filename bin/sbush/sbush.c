@@ -176,23 +176,23 @@ int loopTerminal(char *envp[]) {
 		//int tokensParsed = parseLine(cmdline, args, &pipeCount);
 		//printf("sbush> num tokens from parseline %d\n",tokensParsed);	
 		if(args[0][0] == '\0') continue;
-		printf("1\n");
 		if (strcmp(args[0], "cd") == 0) {
 			cd(args, envp);
 		}
 		else if (strcmp(args[0], "cat") == 0) {
+			//printf("inside cat\n");
 			int res = fork();
                         if (res == 0) {
-                                if (num_tokens > 1) { // that means ls has been given a path
-                                        char *s1 = "bin/cat";
-                                        char *s2 = args[1];
-                                        //printf("2nd arg to ls is %s\n",s2);
-                                        char *catargv[3];
-                                        catargv[0] = s1; catargv[1] = s2; catargv[2] = '\0';
+                                if (num_tokens > 1) { // that means cat has been given a path
+                                        //char *s1 = args[1];
+					char *s1 = "bin/sample";
+                                        printf("arg to cat is %s\n",s1);
+                                        char *catargv[2];
+                                        catargv[0] = s1; catargv[1] = NULL;
                                         execve("bin/cat", catargv, NULL);
                                 }
                                 else {
-                                        printf("sbush> No path name given to cat");
+                                        printf("sbush> No file name given to cat");
                                 }
                         }
                         else {
@@ -204,11 +204,10 @@ int loopTerminal(char *envp[]) {
                         int res = fork();
 			if (res == 0) {
 				if (num_tokens > 1) { // that means ls has been given a path
-					char *s1 = "bin/ls";
-					char *s2 = args[1];
-					//printf("2nd arg to ls is %s\n",s2);
-					char *lsargv[3];
-					lsargv[0] = s1; lsargv[1] = s2; lsargv[2] = '\0';
+					char *s1 = args[1];
+					printf("arg to ls is %s\n",s1);
+					char *lsargv[2];
+					lsargv[0] = s1; lsargv[1] = '\0';
 					execve("bin/ls", lsargv, NULL);
 				}
 				else {
