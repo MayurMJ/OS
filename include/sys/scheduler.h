@@ -20,4 +20,5 @@ int pid_exists(uint64_t pid);
 Task * get_task_from_pid(uint64_t pid);
 extern uint64_t sleeping_time;
 void reparent_orphans(Task *dyingTask);
+void display_pid();
 #endif

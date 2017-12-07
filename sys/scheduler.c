@@ -77,6 +77,21 @@ void display_queue() {
 #endif
 }
 
+void display_pid() {
+        Task * curr = queue_head->next;
+	kprintf("\nPID\tSTATE\tPPID\n");
+        while(curr != queue_head) {
+                kprintf("%d\t", curr->pid);
+		if(curr->state == READY ) kprintf("READY\t");
+		if(curr->state == WAITING ) kprintf("WAITING\t");
+		if(curr->state == ZOMBIE ) kprintf("ZOMBIE\t");
+                kprintf("%d\n", curr->pid);
+		
+                curr = curr->next;
+        }
+        //kprintf("%d(%d) \n", curr->pid,curr->state);
+}
+
 
 void put_in_run_queue(Task *newTask) {
 	newTask->next = run_queue;

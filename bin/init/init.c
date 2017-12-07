@@ -30,7 +30,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
 int main(int argc, char *argv[], char *envp[]) {
 		//int c;
-	for(int i = 0; i<900;i++) {
+	for(int i = 0; i<10;i++) {
 		int x = fork();
 		if(x==0)
 		{
@@ -48,6 +48,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			wait(&c);
 		}
 	}
+	ps();
 	printf("done with for loop %x",getpid());
 //      while(1); //no need to return frombin/init
         return 0;

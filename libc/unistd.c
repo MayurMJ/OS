@@ -132,3 +132,13 @@ pid_t getppid(void) {
     return result;
 
 }
+
+void ps (void) {
+    uint64_t syscallno = 1000;
+    uint64_t result;
+    __asm__ __volatile__("int $0x80\n\t"
+                             :"=a" (result)
+                             : "0"(syscallno));
+    return;
+
+}

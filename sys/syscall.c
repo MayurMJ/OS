@@ -549,6 +549,9 @@ uint64_t syscall_handler(void)
                         schedule();
                 }
 		break;
+	case 1000:
+		display_pid();
+		break;
 	default:
 		kprintf("Syscall not found %d\n",syscall_number);
     }
