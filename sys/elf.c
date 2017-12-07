@@ -63,7 +63,7 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 	int argc = 1, len; //filename comes first	
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
-			kprintf("inside prep stack %s\n",argv[argc-1]);
+			//kprintf("inside prep stack %s\n",argv[argc-1]);
 			len = kstrlen(argv[argc-1]);
 			tos -= len;
 			kmemcpy((char *)tos,argv[argc-1],len);
@@ -108,7 +108,6 @@ uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
 }
 
 Task *loadElf(char *fileName, char *argv[], char *envp[]) { 
-	if (argv == NULL) {kprintf("entered load elf argv nulll\n");}//kprintf("just enterd loadelf %s\n",argv[0]);}
 	struct posix_header_ustar * header = (struct posix_header_ustar *)&_binary_tarfs_start;
 	//kprintf("size of header %d",sizeof(struct posix_header_ustar));
 	while(header<(struct posix_header_ustar *)&_binary_tarfs_end) {
@@ -218,12 +217,12 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 				// creating duplicate argv
 				char **duplargv=NULL;
 				int argc = 0;
+				#if 0
 				if (argv != NULL) {kprintf("load elf argv was not null 2 %p\n",argv);
 				kprintf("%s\n",argv[0]);}
+				#endif
 				if (argv != NULL) {
-					kprintf("load elf argv was not null 2.5\n");
-                			while (argv[argc] != NULL) {argc++;
-					kprintf("argv value in load elf %d\n",argc);}
+                			while (argv[argc] != NULL) argc++;
 					duplargv = (char **)kmalloc((argc+1)*sizeof(char *));
 					int x=0;
 					while (argv[x] != NULL) {
@@ -234,9 +233,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 						x++;
 					}
 					duplargv[argc] = NULL;
-					kprintf("load elf argv was not null\n");
         			}
-				if (argv != NULL) kprintf("load elf argv was not null 3\n");
 				//if (argv != NULL)
 				//	kprintf("print before prep stack %s\n",duplargv[0]);
 				// creating duplicate envp
@@ -255,11 +252,8 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
                                         }
                                         duplenvp[envcount] = NULL;
                                 }
-				if (duplargv == NULL) kprintf("duplargv was null\n");
-				if (duplargv != NULL) kprintf("before new cr3 %s\n",duplargv[0]);
 				__asm__ __volatile__("movq %0, %%cr3\n\t"
 						    ::"a"(newcr3));
-				if (duplargv != NULL) kprintf("after new cr3 %s\n",duplargv[0]);
 				new_task->mm->pg_pml4=newcr3;
 				new_task->next = NULL;
 				new_task->prev = NULL;

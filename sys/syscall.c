@@ -360,7 +360,7 @@ uint64_t syscall_handler(void)
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
-		#if 1
+		#if 0
 		if (argv != NULL) {
 			kprintf(" in exec handler argv0 %s\n",argv[0]); 
 		}
@@ -432,7 +432,7 @@ uint64_t syscall_handler(void)
 //			Task * deleteme = CURRENT_TASK;
 //			
 //		}
-		kprintf(" %d",CURRENT_TASK->pid);
+		//kprintf(" %d",CURRENT_TASK->pid);
 		//remove_from_run_queue(CURRENT_TASK);
 		reparent_orphans(CURRENT_TASK);
 		CURRENT_TASK->state = ZOMBIE;

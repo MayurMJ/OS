@@ -184,9 +184,9 @@ int loopTerminal(char *envp[]) {
 			int res = fork();
                         if (res == 0) {
                                 if (num_tokens > 1) { // that means cat has been given a path
-                                        //char *s1 = args[1];
-					char *s1 = "bin/sample";
-                                        printf("arg to cat is %s\n",s1);
+                                        char *s1 = args[1];
+					//char *s1 = "/rootfs/bin/sample";
+                                        //printf("arg to cat is %s\n",s1);
                                         char *catargv[2];
                                         catargv[0] = s1; catargv[1] = NULL;
                                         execve("bin/cat", catargv, NULL);
@@ -205,7 +205,7 @@ int loopTerminal(char *envp[]) {
 			if (res == 0) {
 				if (num_tokens > 1) { // that means ls has been given a path
 					char *s1 = args[1];
-					printf("arg to ls is %s\n",s1);
+					//printf("arg to ls is %s\n",s1);
 					char *lsargv[2];
 					lsargv[0] = s1; lsargv[1] = '\0';
 					execve("bin/ls", lsargv, NULL);

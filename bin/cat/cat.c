@@ -10,7 +10,7 @@ int main(int argc, char *argv[], char *envp[]) {
         }
 	else {
         	char *fileName = argv[1];
-        	int fd = open(fileName, 3);
+        	int fd = open(fileName, 0);
         	//FILE *fp = fopen(fileName, "r");
 		if (fd == -1) {
 			puts(fileName);
