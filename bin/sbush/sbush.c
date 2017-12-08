@@ -76,18 +76,18 @@ int parseLine(char *line, char **args, int *pipeCount) {
                 while(line[charPos] == ' ') charPos++;
         }
         args[tokenIndex][charTokenPos] = '\0';
-	printf("inside parseline tokenIndex %d token %s\n",tokenIndex,args[tokenIndex]);
+	//printf("inside parseline tokenIndex %d token %s\n",tokenIndex,args[tokenIndex]);
         tokenIndex++;
   }
   return tokenIndex;
 }
 int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
-	printf("inside exec command: tokens parsed %d\n",tokenCount);
+/*	printf("inside exec command: tokens parsed %d\n",tokenCount);
         for(int i =0;args[i] != NULL;i++) {
         	printf("%d:%s ",i,args[i]);
         }
         printf("\n");
-
+*/
 #if 0
 	for (int i = 0; i < 3; i++) {
 		if (strcmp(args[0], builtInCommands[i]) == 0) {
@@ -160,6 +160,38 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 	return duplenvp;	
 }
 
+void Get_env(char **args, char **envp) {
+	if (envp == NULL) {
+		printf("Variable not present in environment variables\n");
+                return;
+	}
+	if (args[1] == NULL) {
+		// print everything
+		int count = 0;
+                while(envp[count] != NULL) {
+                	printf("%s\n",envp[count]);
+                        count++;
+                }
+		return;
+	}
+	if (args[2] != NULL) {
+		printf("getenv takes only one argument\n");
+		return;
+	}
+	int index = Scan_envp(args[1], envp);
+	if (index == -1) {
+		printf("Variable not present in environment variables\n");
+		return;
+	}
+	char *target = envp[index];
+	while (*target != '=') {
+		target++;
+	}
+	target+=1;
+	printf("env variable value = %s\n",target);
+	return;
+}
+
 char **Set_env(char **args, char **envp) {
 	char *key; char *value;
 	int key_len=0, value_len=0;
@@ -203,11 +235,11 @@ int loopTerminal(char *envp[]) {
 		char *cmdline = (char *)malloc(1000);
 		read(0,cmdline,1000); // what do i do with chars_read?
 
-		printf("sbush> String entered was %s", cmdline);
+		//printf("sbush> String entered was %s", cmdline);
 
 		int num_tokens = count_tokens(cmdline);
 
-		printf("sbush> Num tokens %d\n",num_tokens);
+		//printf("sbush> Num tokens %d\n",num_tokens);
 
 		char **args = (char **)malloc(num_tokens * sizeof(char *));		
 		for (int i =0;i<num_tokens;i++) {
@@ -215,29 +247,31 @@ int loopTerminal(char *envp[]) {
 		}	
 		
 		int pipeCount = 0;
-		#if 0
+		#if 1
 		parseLine(cmdline, args, &pipeCount);
 		#endif
-		int tokensParsed = parseLine(cmdline, args, &pipeCount);
+		//int tokensParsed = parseLine(cmdline, args, &pipeCount);
 		if(args[0][0] == '\0') continue;
-		
+		/*
 		printf("after parseline: tokens parsed %d\n",tokensParsed);
 		for(int i =0;args[i] != NULL;i++) {
 			printf("%d:%s ",i,args[i]);
 		}
 		printf("\n");
-		
+		*/
 		// code for getenv and setenv
 		if (strcmp(args[0], "setenv") == 0) {
 			envp = Set_env(args, envp);
+			/*
 			int count = 0;
 			while(envp[count] != NULL) {
 				printf("%d %s\n",count,envp[count]);
 				count++;
 			}
+			*/
 		}
 		else if (strcmp(args[0], "getenv") == 0) {
-			//Get_env(args, envp);
+			Get_env(args, envp);
 		}
 		
 		/*
