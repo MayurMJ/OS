@@ -42,7 +42,8 @@ int main(int argc, char *argv[], char *envp[]) {
 		if(x==0)
 		{
 			while (1) {
-			printf("In child  %d\n",getpid());
+			//printf("In child  %d\n",getpid());
+			puts("In child\n");
 			}
 			char *bi = "bin/sbush";
 			execve(bi,NULL,NULL);
@@ -57,7 +58,8 @@ int main(int argc, char *argv[], char *envp[]) {
 			}
 			#endif
 			while (1) {
-			printf("In parent %d\n",getpid());
+			//printf("In parent %d\n",getpid());
+			puts("in Parent\n");
 			}
 		//	int c;
 		//	wait(&c);
