@@ -138,6 +138,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 	int index = Scan_envp(key,envp);
 	if (index != -1) { // add to existing entry
 		envp[index] = tempstr;
+		printf("adding to existing entry %d %s\n",index,tempstr);
 		return envp;
 	}
 	// add new entry, this is gonna be painful :(
@@ -146,6 +147,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 		char **duplenvp = (char **)malloc(2*sizeof(char *));
 		duplenvp[0] = tempstr;
 		duplenvp[1] = NULL;
+		printf("new entry being inserted at 0 %s\n",tempstr);
 		return duplenvp;
 	}
 
@@ -156,6 +158,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 		duplenvp[i] = envp[i];
 	}
 	duplenvp[count] = tempstr;
+	printf("new entry being inserted at index %d %s\n",count,tempstr);
 	duplenvp[count+1] = NULL;
 	free(envp);
 	return duplenvp;	
@@ -166,7 +169,7 @@ void Get_env(char **args, char **envp) {
 		printf("Variable not present in environment variables\n");
                 return;
 	}
-	if (args[1] == NULL) {
+	if ((args[1] == NULL) || ((args[1] != NULL) && (args[1][0] == '\0'))) {
 		// print everything
 		int count = 0;
                 while(envp[count] != NULL) {
@@ -175,7 +178,7 @@ void Get_env(char **args, char **envp) {
                 }
 		return;
 	}
-	if (args[2] != NULL) {
+	if ((args[2] != NULL) || ((args[2] != NULL) && (args[2][0] == '\0'))) {
 		printf("getenv takes only one argument\n");
 		return;
 	}
@@ -229,6 +232,7 @@ char **Set_env(char **args, char **envp) {
 }
 
 int loopTerminal(char *envp[]) {
+
 	int exit_flag = 0;
 	while(exit_flag == 0) {
 		puts("sbush>");
