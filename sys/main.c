@@ -86,7 +86,7 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
   // ------------------------------------------------
   // switch to user mode
   init_idt();
-  //program_pic();
+  program_pic();
   set_tss_rsp((void *)((uint64_t)tss_kstack));
   // ------------------------------------------------
 //  run_queue = NULL;
