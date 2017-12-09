@@ -82,6 +82,19 @@ int parseLine(char *line, char **args, int *pipeCount) {
   }
   return tokenIndex;
 }
+
+int checkBackground(char **args) {
+	int index = 0;
+	while(args[index] != NULL) {
+		if (args[index][0] == '\0') break;
+		index++;
+	}
+	index--;
+
+	if (args[index][0] == '&') return 1;
+	return 0;
+}
+
 int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
 /*	printf("inside exec command: tokens parsed %d\n",tokenCount);
         for(int i =0;args[i] != NULL;i++) {
@@ -90,6 +103,7 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
         printf("\n");
 */
 #if 1
+
 	for (int i = 0; i < 3; i++) {
 		if (strcmp(args[0], builtInCommands[i]) == 0) {
 			return (*builtInFunc[i])(args, envp);
@@ -104,6 +118,7 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
 		exit(-1);
 	}
 	else {
+		if (checkBackground(args)) return 0;
 		int c;
 		wait(&c);
 	}
