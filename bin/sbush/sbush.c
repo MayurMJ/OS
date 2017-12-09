@@ -96,11 +96,10 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
   	}
 	int res = fork();
 	if (res == 0) {
-		//printf("args 0 %s args 1 %s\n",args[0],args[1]);
 		if (tokenCount == 1)
-			execve(args[0],NULL,envp);
+			execvpe(args[0],NULL,envp);
 		else
-			execve(args[0],args+1,envp);
+			execvpe(args[0],args+1,envp);
 		exit(-1);
 	}
 	else {

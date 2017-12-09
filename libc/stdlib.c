@@ -17,6 +17,7 @@ int execvpe(const char *file, char *const argv[], char *const envp[]) {
     }
     envVar[j] = '\0';
     j++;
+    printf("\n %s", envVar);
     if(strcmp(envVar, "PATH") == 0) {
       flag = 1;
       break;
