@@ -101,6 +101,7 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
 			execve(args[0],NULL,envp);
 		else
 			execve(args[0],args+1,envp);
+		exit(-1);
 	}
 	else {
 		int c;

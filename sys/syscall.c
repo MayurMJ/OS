@@ -370,6 +370,10 @@ uint64_t syscall_handler(void)
 		}
 		#endif
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
+		if(!replacement_task) {
+			CURRENT_TASK->state = ZOMBIE;
+			return -1;
+		}
 		#if 0
                 if (argv != NULL) {
                         kprintf("after loadelf in exec handler argv0 %s\n",argv[0]);
