@@ -364,11 +364,23 @@ uint64_t syscall_handler(void)
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
-		#if 0
-		if (argv != NULL) {
-			kprintf("before loadelf in exec handler argv0 %s\n",argv[0]); 
+		char exec_check_path[100];
+		kstrcpy(exec_check_path, (char*)arg1);
+		kstrrem(exec_check_path, '/');
+		char *exec_full_path = dentry_lookup_get_path(exec_check_path);
+		if(!exec_full_path) {
+			CURRENT_TASK->state = ZOMBIE;
+			return -1;
 		}
-		#endif
+		dentry *dent = dentry_lookup((char*)arg1, 0);
+		if(!dent) {
+			CURRENT_TASK->state = ZOMBIE;
+			return -1;	
+		} 
+		kstrcpy((void*)arg1, (void*)(exec_full_path+8));
+		kstrcat((void*)arg1,dent->d_name );
+		//kprintf("\n EXECUTE PATH %s", arg1);
+		kfree((uint64_t*)exec_full_path);
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
 		if(!replacement_task) {
 			CURRENT_TASK->state = ZOMBIE;

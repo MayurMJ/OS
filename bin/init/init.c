@@ -42,7 +42,7 @@ int main(int argc, char *argv[], char *envp[]) {
 		int x = fork();
 		if(x==0)
 		{
-			char *bi = "bin/sbush";
+			char *bi = "/rootfs/bin/sbush";
 			execve(bi,NULL,NULL);
 			//return 0;
 		}

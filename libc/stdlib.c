@@ -3,9 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
-  execve(file, argv, envp);
+  
+  char buf[100];
+  memset((void*)buf,0 ,100);
+  if(file[0] == '/') {
+	strcpy((void*)buf, (void*)file);
+  }
+  else {
+    getcwd(buf, 100);
+    strcat(buf, file);
+  }
+  execve(buf, argv, envp);
   if(envp[0] == NULL) return -1;
   int i = 0, j = 0, flag = 0, k = 0, l = 0;
   char envVar[256];
@@ -18,7 +27,6 @@ int execvpe(const char *file, char *const argv[], char *const envp[]) {
     }
     envVar[j] = '\0';
     j++;
-    printf("\n %s", envVar);
     if(strcmp(envVar, "PATH") == 0) {
       flag = 1;
       break;
