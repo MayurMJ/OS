@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #define TOKENSIZE 100
-
+int initCharArr(char **arr, int size);
 int cd(char **args, char *envp[]);
 int export(char **args, char *envp[]);
 int sbushExit(char **args, char *envp[]);
@@ -83,17 +83,6 @@ int parseLine(char *line, char **args, int *pipeCount) {
   return tokenIndex;
 }
 
-int checkBackground(char **args) {
-	int index = 0;
-	while(args[index] != NULL) {
-		if (args[index][0] == '\0') break;
-		index++;
-	}
-	index--;
-
-	if (args[index][0] == '&') return 1;
-	return 0;
-}
 
 int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
 /*	printf("inside exec command: tokens parsed %d\n",tokenCount);
@@ -118,7 +107,6 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
 		exit(-1);
 	}
 	else {
-		if (checkBackground(args)) return 0;
 		int c;
 		wait(&c);
 	}
@@ -153,6 +141,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 	int index = Scan_envp(key,envp);
 	if (index != -1) { // add to existing entry
 		envp[index] = tempstr;
+		printf("adding to existing entry %d %s\n",index,tempstr);
 		return envp;
 	}
 	// add new entry, this is gonna be painful :(
@@ -161,6 +150,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 		char **duplenvp = (char **)malloc(2*sizeof(char *));
 		duplenvp[0] = tempstr;
 		duplenvp[1] = NULL;
+		printf("new entry being inserted at 0 %s\n",tempstr);
 		return duplenvp;
 	}
 
@@ -171,6 +161,7 @@ char **appendEnvp(char *key, char *tempstr, char **envp) {
 		duplenvp[i] = envp[i];
 	}
 	duplenvp[count] = tempstr;
+	printf("new entry being inserted at index %d %s\n",count,tempstr);
 	duplenvp[count+1] = NULL;
 	free(envp);
 	return duplenvp;	
@@ -181,7 +172,7 @@ void Get_env(char **args, char **envp) {
 		printf("Variable not present in environment variables\n");
                 return;
 	}
-	if (args[1] == NULL) {
+	if ((args[1] == NULL) || ((args[1] != NULL) && (args[1][0] == '\0'))) {
 		// print everything
 		int count = 0;
                 while(envp[count] != NULL) {
@@ -190,7 +181,7 @@ void Get_env(char **args, char **envp) {
                 }
 		return;
 	}
-	if (args[2] != NULL) {
+	if ((args[2] != NULL) || ((args[2] != NULL) && (args[2][0] == '\0'))) {
 		printf("getenv takes only one argument\n");
 		return;
 	}
@@ -254,6 +245,7 @@ int loopTerminal(char *envp[]) {
                 	args[i] = (char *)malloc(100);
 			args[i][0] = '\0';
         	}
+		initCharArr(args,100);
 		/*
 		char *cmdline = (char *)malloc(1000);
 		*/
