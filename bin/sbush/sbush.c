@@ -232,12 +232,19 @@ int loopTerminal(char *envp[]) {
 	int exit_flag = 0;
 	while(exit_flag == 0) {
 		puts("sbush>");
-
+		char *cmdline = (char *)malloc(10000);
+        	char **args = (char **)malloc(100 * sizeof(char *));
+        	for (int i =0;i<100;i++) {
+                	args[i] = (char *)malloc(100);
+			args[i][0] = '\0';
+        	}
+		/*
 		char *cmdline = (char *)malloc(1000);
+		*/
 		read(0,cmdline,1000); // what do i do with chars_read?
 
 		//printf("sbush> String entered was %s", cmdline);
-
+		/*
 		int num_tokens = count_tokens(cmdline);
 		num_tokens++;
 		//printf("sbush> Num tokens %d\n",num_tokens);
@@ -246,7 +253,8 @@ int loopTerminal(char *envp[]) {
 		for (int i =0;i<num_tokens;i++) {
 			args[i] = (char *)malloc(TOKENSIZE);
 			args[i][0] = '\0';
-		}	
+		}
+		*/	
 		
 		int pipeCount = 0;
 		#if 0
@@ -284,9 +292,8 @@ int loopTerminal(char *envp[]) {
 
 		#if 1
 		// freeing stuff starts here	
-		for (int i =0;i<num_tokens;i++) {
-			if (args[i] != NULL)
-				free(args[i]);
+		for (int i =0;i<100;i++) {
+			free(args[i]);
 		}
 		free(args);
 		free(cmdline);
@@ -388,7 +395,7 @@ int main(int argc, char *argv[], char *envp[]) {
                              : "0"(syscallno));
 */
 	if(checkScript(argc, argv[0])) {
-    		executeScript(argv[1], envp);
+		executeScript(argv[1], envp);
   	}
   	else {
     		loopTerminal(envp);

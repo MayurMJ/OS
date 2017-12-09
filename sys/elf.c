@@ -74,7 +74,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 				*(tos+len-1) = '\0';
 				//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
 				argv[argc-1] = (char *)tos;
-				kprintf("copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
+				//kprintf("copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
 				argc++;
 			}
 			if (argv[argc-1][0] == '\0') {
@@ -82,17 +82,17 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 			}
 		}		
 	}
-	kprintf("1\n");
+	//kprintf("1\n");
 	len = kstrlen(filename);
-	kprintf("2\n");
+	//kprintf("2\n");
 	tos -= len;
-	kprintf("3\n");
+	//kprintf("3\n");
 	kmemcpy((char *)tos,filename,len);
-	kprintf("4\n");
+	//kprintf("4\n");
 	*(tos+len-1) = '\0';
-	kprintf("5\n");
+	//kprintf("5\n");
 	char *fptr = (char *)tos;	
-	kprintf("fname ptr %p content %s\n",fptr,fptr);
+	//kprintf("fname ptr %p content %s\n",fptr,fptr);
 	int envp_count = 0;
 	if (envp != NULL) {
                 while (envp[envp_count] != NULL) {
@@ -126,7 +126,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 	*stacktos = (uint64_t)fptr;
 	stacktos--;
 	*stacktos = argc;
-	kprintf("%x %x %x %x\n",*stacktos,*(stacktos+1),*(stacktos+2),*(stacktos+3));
+	//kprintf("%x %x %x %x\n",*stacktos,*(stacktos+1),*(stacktos+2),*(stacktos+3));
 	return (uint64_t)stacktos;
 }
 
