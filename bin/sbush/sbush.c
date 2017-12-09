@@ -394,6 +394,42 @@ int main(int argc, char *argv[], char *envp[]) {
                              :"=a" (result)
                              : "0"(syscallno));
 */
+#if 0
+	while(1) {
+	char *temp = (char *)malloc(1000);
+	for (int i =0;i<1000;i++) {
+		temp[i] = 'x';
+	}
+	printf("first malloc\n");
+	for (int i =0; i< 1000;i++) {
+		printf("%c",temp[i]);
+	}
+	printf("\n");
+	free(temp);
+	
+	char *temp2 = (char *)malloc(17);
+	for (int i =0;i<17;i++) {
+                temp2[i] = 'b';
+        }
+        printf("second malloc\n");
+        for (int i =0; i< 17;i++) {
+                printf("%c",temp2[i]);
+        }
+        printf("\n");
+        free(temp2);
+
+	char *temp3 = (char *)malloc(1000);
+        for (int i =0;i<100;i++) {
+                temp3[i] = 'c';
+        }
+        printf("third malloc\n");
+        for (int i =0; i< 100;i++) {
+                printf("%c",temp3[i]);
+        }
+        printf("\n");
+        free(temp3);
+	}
+#endif
 	if(checkScript(argc, argv[0])) {
 		executeScript(argv[1], envp);
   	}

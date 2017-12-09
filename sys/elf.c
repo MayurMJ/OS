@@ -74,7 +74,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 				*(tos+len-1) = '\0';
 				//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
 				argv[argc-1] = (char *)tos;
-				//kprintf("copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
+				//kprintf("argv opied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
 				argc++;
 			}
 			if (argv[argc-1][0] == '\0') {
@@ -102,6 +102,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
                         	kmemcpy((char *)tos,envp[envp_count],len);
 				*(tos+len-1) = '\0';
                         	envp[envp_count] = (char *)tos;
+				//kprintf("envp copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
                         	envp_count++;
 			}
 			if (envp[envp_count][0] == '\0') {
