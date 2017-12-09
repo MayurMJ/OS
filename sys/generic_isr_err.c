@@ -2,7 +2,8 @@
 #include <sys/paging.h>
 #include <sys/kprintf.h>
 #include <sys/defs.h>
-#include <sys/kernel_threads.h> 
+#include <sys/kernel_threads.h>
+#include <sys/scheduler.h> 
 //#include <sys/ahci.h>
 void generic_irqhandler_err8(void)
 {
@@ -58,6 +59,13 @@ void generic_irqhandler_err14(uint64_t errcode)
     if (target_vma == NULL) {
 	// seg fault
 	kprintf("Unauthorized access!!!%d\n", page_fault_addr);
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
+
     }
     else {
 	// kmemcpy to the right location
