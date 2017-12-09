@@ -8,6 +8,7 @@
 int cd(char **args, char *envp[]);
 int export(char **args, char *envp[]);
 int sbushExit(char **args, char *envp[]);
+int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]);
 
 char *builtInCommands[] = {
 	"cd",
@@ -292,9 +293,89 @@ int loopTerminal(char *envp[]) {
 	}
 	return 0;
 }
-int executeScript(char *fileName, char *envp[]) {
-	// not doing this now
-	printf("in exec script function\n");
+int initCharArr(char **arr, int size) {
+	int i = 0;
+	for(i = 0; i < size; i++) {
+ 		arr[i][0] = '\0';
+	}
+  	return 0;
+}
+int executeScript(char *filename, char *envp[]) {
+	int tokensParsed = 0, pos = 0, commentFlag = 0, pipeCount = 0, status = 0;
+	int num_tokens = 100;
+	//printf("in exec script function\n");
+	// TODO: don't forget to free these
+	char *line = (char *)malloc(10000);
+	char **args = (char **)malloc(100 * sizeof(char *));
+        for (int i =0;i<num_tokens;i++) {
+        	args[i] = (char *)malloc(100);
+        }
+
+	char *checkStart = "#!/rootfs/bin/sbush", ch;
+	int fd = open(filename, 0);	
+	if (fd == -1) {
+		printf("%s not found\n",filename);
+		return 0;
+	}
+	for(int i = 0; i < 18; i++) {
+    		ch = getc(fd);
+    		if(ch != checkStart[i]) {
+			printf("Unrecognized shebang\n"); return 0;
+		}
+  	}
+	while((ch = getc(fd)) != '\n');
+	while ((ch = getc(fd)) != EOF) {
+    		if(ch != '\n') {
+      			if (ch == '#')
+      			{
+        			line[pos] = '\0';
+        			commentFlag = 1;
+      			}
+      			else {
+        			if (commentFlag == 1) {
+          				line[pos] = '\0';
+        			}
+        			else {
+          				line[pos] = ch;
+          				pos++;
+        			}
+      			}
+    		}
+    		else  {
+      			commentFlag = 0;
+      			if(pos != 0) {
+        			pipeCount = 0;
+        			initCharArr(args,100);
+        			line[pos] = '\0';
+        			line[pos+1] = '\n';
+        			tokensParsed = parseLine(line, args, &pipeCount);
+        			pos = 0;
+        			status = executeCommand(args, tokensParsed, pipeCount, envp);
+        			if(status == -1) break;
+        		}
+    		}   
+  	}
+	if(pos != 0) {
+		pipeCount = 0;
+		initCharArr(args,100);
+		line[pos] = '\0';
+		tokensParsed = parseLine(line, args, &pipeCount);
+		pos = 0;
+		commentFlag = 0;
+		status = executeCommand(args, tokensParsed, pipeCount, envp);
+	}
+
+	for (int i =0;i<num_tokens;i++) {
+        	if (args[i] != NULL)
+                	free(args[i]);
+        }
+        free(args);
+        free(line);
+	return 0;
+}
+int checkScript(int argc, char *binname) {
+	if (argc > 1) return 1;
+	if ((binname[0] == '.') && (binname[1] == '/')) return 1;
 	return 0;
 }
 
@@ -305,7 +386,7 @@ int main(int argc, char *argv[], char *envp[]) {
                              :"=a" (result)
                              : "0"(syscallno));
 */
-	if(argc > 1) {
+	if(checkScript(argc, argv[0])) {
     		executeScript(argv[1], envp);
   	}
   	else {

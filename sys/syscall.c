@@ -429,7 +429,7 @@ uint64_t syscall_handler(void)
 		CURRENT_TASK = replacement_task;
 		CURRENT_TASK->state = READY;
 		set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
-		#if 1
+		#if 0
                 if (argv != NULL) {
                         kprintf("right before switch task in exec handler argv0 %s\n",argv[0]);
                 }
