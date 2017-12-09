@@ -210,7 +210,7 @@ int brk_handler(uint64_t addr) {
     CURRENT_TASK->mm->brk_begin = addr;
     return 0; 
 }
-
+//static uint64_t bk =0;
 uint64_t syscall_handler(void)
 {
     // don't put anything before this!!!
@@ -307,7 +307,7 @@ uint64_t syscall_handler(void)
 		kprintf("Hi from sbush\n");
 		break;
 	case 12:; /* brk system call- rdi-unsigned long addr */
-		//kprintf("i'm in another child\n");
+	//	kprintf("brk called %d\n",bk++);
 		//TODO: incomplete
 		uint64_t addr = arg1;
 		return brk_handler(addr);
