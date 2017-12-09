@@ -6,6 +6,7 @@
 
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
   execve(file, argv, envp);
+  if(envp[0] == NULL) return -1;
   int i = 0, j = 0, flag = 0, k = 0, l = 0;
   char envVar[256];
   char values[50][1024];
