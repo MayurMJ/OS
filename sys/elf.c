@@ -226,6 +226,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 					duplargv = (char **)kmalloc((argc+1)*sizeof(char *));
 					int x=0;
 					while (argv[x] != NULL) {
+						kprintf("x = %d\n",x);
 						int len = kstrlen(argv[x]); // returns 4 for xyz\0
 						duplargv[x] = (char *)kmalloc(len); //4
 						kstrcpy(duplargv[x],argv[x]);

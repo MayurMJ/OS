@@ -239,12 +239,13 @@ int loopTerminal(char *envp[]) {
 		//printf("sbush> String entered was %s", cmdline);
 
 		int num_tokens = count_tokens(cmdline);
-
+		num_tokens++;
 		//printf("sbush> Num tokens %d\n",num_tokens);
 
 		char **args = (char **)malloc(num_tokens * sizeof(char *));		
 		for (int i =0;i<num_tokens;i++) {
 			args[i] = (char *)malloc(TOKENSIZE);
+			args[i][0] = '\0';
 		}	
 		
 		int pipeCount = 0;
