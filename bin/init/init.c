@@ -64,19 +64,19 @@ int main(int argc, char *argv[], char *envp[]) {
 				while(1);
 			}
 			#endif
+#if 0
 			while(1) {
 //				puts("in parent\n");
-#if 0
 				                uint64_t syscallno = 24;
 						uint64_t start_timer;
                 	__asm__ __volatile__("int $0x80\n\t"
                                      :"=a" (start_timer)
                                      : "0"(syscallno));
-#endif
 			}
+#endif
 			
-			//int c;
-			//wait(&c);
+			int c;
+			wait(&c);
 		}
 #endif
 #if 0

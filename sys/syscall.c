@@ -327,7 +327,6 @@ uint64_t syscall_handler(void)
 		wait_time = (uint64_t)arg1;
 		SLEEPING_TASK = CURRENT_TASK;
 		SLEEPING_TASK->state = SLEEP;
-		kprintf("sleeeeep\n");
 		while (SLEEPING_TASK->state == SLEEP) {
 			schedule();
 		}

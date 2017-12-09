@@ -161,8 +161,11 @@ void idle_task() {
 //		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
 		reap_all_child(CURRENT_TASK);
-//		__asm__ __volatile__ ( "sti\n\t");
-//		__asm__ __volatile__("hlt\n\t");
+		__asm__ __volatile__ ( "movb    $0x20, %al\n\t"
+                	        "outb    %al, $0x20\n\t");
+
+		__asm__ __volatile__ ( "sti\n\t");
+		__asm__ __volatile__("hlt\n\t");
 	}
 }
 

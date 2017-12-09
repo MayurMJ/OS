@@ -8,24 +8,48 @@
 void generic_irqhandler_err8(void)
 {
     kprintf("oh no Generic interrupt occured with error code 8\n");
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
 	
 }
 
 void generic_irqhandler_err10(void)
 {
     kprintf("Generic interrupt occured with error code 10\n");
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
 
 }
 
 void generic_irqhandler_err11(void)
 {
     kprintf("Generic interrupt occured with error code 11\n");
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
 
 }
 
 void generic_irqhandler_err12(void)
 {
     kprintf("Generic interrupt occured with error code 12\n");
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
 
 }
 
@@ -35,6 +59,12 @@ void generic_irqhandler_err13(uint64_t errcode)
     __asm__ __volatile__("movq %%cr2, %0\n\t"
                              :"=a"(page_fault_addr)); 
     kprintf("Generic interrupt occured with error code 13 %x\n", page_fault_addr);
+	kprintf("This was bad, but gracefully exit\n");
+                reparent_orphans(CURRENT_TASK);
+                CURRENT_TASK->state = ZOMBIE;
+                CURRENT_TASK->exit_value = -1;
+                display_queue();
+                schedule();
 
 }
 
