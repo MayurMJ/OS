@@ -76,6 +76,9 @@ void timer_irqhandler(void)
     *videomem = 's';
     videomem = (char*)(0xffffffff80000000+0xb8f8e);
     process_in(time_boot,videomem);
+    kprintf("In timer handler\n");
+    if(CURRENT_TASK->pid > 0)
+	schedule();
     //kprintf("address of timer_isr %x\n",&timer_isr);
     //kprintf("time since boot %d s \n",time_boot++);
 }

@@ -16,7 +16,6 @@ static Task *run_queue;;
 static Task *queue_head;;
 static Task *schedulerTask;
 
-
 //fills up the task registers and the kstack pointer CAUTION::check the cr3, must set it appropriately after using this function
 void setupTask(Task *task, void (*main)(), Task *otherTask) {
     task->regs.rax = 0;
@@ -166,8 +165,8 @@ void idle_task() {
 //		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
 		reap_all_child(CURRENT_TASK);
-		__asm__ __volatile__ ( "sti\n\t");
-		__asm__ __volatile__("hlt\n\t");
+//		__asm__ __volatile__ ( "sti\n\t");
+//		__asm__ __volatile__("hlt\n\t");
 	}
 }
 

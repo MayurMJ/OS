@@ -42,7 +42,17 @@ int main(int argc, char *argv[], char *envp[]) {
 		int x = fork();
 		if(x==0)
 		{
-			char *bi = "/rootfs/bin/sbush";
+#if 0
+			while(1) {
+				                uint64_t syscallno = 24;
+						uint64_t start_timer;
+                	__asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (start_timer)
+                                     : "0"(syscallno));
+				puts("in child\n");
+			}
+#endif
+			char *bi = "/rootfs/bin/sample";
 			execve(bi,NULL,NULL);
 			//return 0;
 		}
@@ -54,8 +64,19 @@ int main(int argc, char *argv[], char *envp[]) {
 				while(1);
 			}
 			#endif
-			int c;
-			wait(&c);
+			while(1) {
+				puts("in parent\n");
+#if 0
+				                uint64_t syscallno = 24;
+						uint64_t start_timer;
+                	__asm__ __volatile__("int $0x80\n\t"
+                                     :"=a" (start_timer)
+                                     : "0"(syscallno));
+#endif
+			}
+			
+			//int c;
+			//wait(&c);
 		}
 #endif
 #if 0
