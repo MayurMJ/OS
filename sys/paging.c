@@ -64,7 +64,6 @@ uint64_t setup_memory( void *physbase, void *physfree, smap_copy_t *smap_copy, i
     
     free_list_end += 8192; // since stack grows downward
     tss_kstack = (uint64_t *)(free_list_end  + 0xffffffff80000000);
-    kprintf("tss kstack %x\n",tss_kstack);
   // mark area between (kernmem+physbase) and (kernmem+physfree+space occupied by free_list) as occupied
   free_list[0].is_avail = 1;
   free_list[0].prev = NULL;

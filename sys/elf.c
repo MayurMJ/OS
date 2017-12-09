@@ -11,53 +11,6 @@
 #include <sys/scheduler.h>
 #include <sys/utils.h>
 #include <sys/kstring.h>
-// TODO: change this function
-/*uint64_t power (uint64_t x, int e) {
-    if (e == 0) return 1;
-    return x * power(x, e-1);
-}
-uint64_t octalToDecimal(uint64_t octal)
-{
-    uint64_t decimal = 0, i=0;
-    while(octal!=0){
-        decimal = decimal + (octal % 10) * power(8,i++);
-        octal = octal/10;
-    }
-    return decimal;
-}
-// TODO: change this function
-uint64_t stoi(char *s) // the message and then the line #
-{
-    uint64_t i;
-    i = 0;
-    while(*s >= '0' && *s <= '9')
-    {
-        i = i * 10 + (*s - '0');
-        s++;
-    }
-    return i;
-}*/
-// GSAHA: added to test page fault handler
-/*void switch_user_mode(uint64_t symbol) {
-        __asm__ __volatile__ ( "cli\n\t"
-                        "movw $0x23, %%ax\n\t"
-                        "movw %%ax, %%ds\n\t"
-                        "movw %%ax, %%es\n\t"
-                        "movw %%ax, %%fs\n\t"
-                        "movw %%ax, %%gs\n\t"
-                        "movq %%rsp, %%rax\n\t"
-                        "pushq $0x23\n\t"
-                        "pushq %%rax\n\t"
-                        "pushfq\n\t"
-                        "popq %%rax\n\t"
-                        "orq $0x200, %%rax\n\t"
-                        "pushq %%rax\n\t"
-                        "pushq $0x2B\n\t"
-                        "push %0\n\t"
-                        "iretq\n\t"
-                        ::"b"(symbol)
-        );
-}*/
 
 uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) {
 	int argc = 1, len; //filename comes first	
