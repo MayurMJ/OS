@@ -38,14 +38,10 @@ int main(int argc, char *argv[], char *envp[]) {
 		nstr = gets(nstr);
 		printf("string entered %s\n",nstr);
 #endif
-#if 0
+#if 1
 		int x = fork();
 		if(x==0)
 		{
-			while (1) {
-			//printf("In child  %d\n",getpid());
-			puts("In child\n");
-			}
 			char *bi = "bin/sbush";
 			execve(bi,NULL,NULL);
 			//return 0;
@@ -58,12 +54,8 @@ int main(int argc, char *argv[], char *envp[]) {
 				while(1);
 			}
 			#endif
-			while (1) {
-			//printf("In parent %d\n",getpid());
-			puts("in Parent\n");
-			}
-		//	int c;
-		//	wait(&c);
+			int c;
+			wait(&c);
 		}
 #endif
 #if 0
@@ -74,7 +66,7 @@ int main(int argc, char *argv[], char *envp[]) {
 //	printf("done with for loop %x",getpid());
 //      while(1); //no need to return frombin/init
 #endif
-	int i=2;
+/*	int i=2;
 	while(1) {
 	void * a = malloc(i++);
 	//void * b = malloc(12);
@@ -83,4 +75,5 @@ int main(int argc, char *argv[], char *envp[]) {
 	i++;//free(b);
 	}
         return 0;
+*/
 }

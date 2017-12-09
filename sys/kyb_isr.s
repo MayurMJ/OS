@@ -34,8 +34,8 @@ kyb_isr:
     popq    %rdx
     popq    %rcx
     popq    %rbx
-    popq    %rax
     movb    $0x20, %al
     outb    %al, $0x20
+    popq    %rax
     sti
     iretq
