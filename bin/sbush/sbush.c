@@ -262,18 +262,10 @@ int loopTerminal(char *envp[]) {
 		// code for getenv and setenv
 		if (strcmp(args[0], "setenv") == 0) {
 			envp = Set_env(args, envp);
-			/*
-			int count = 0;
-			while(envp[count] != NULL) {
-				printf("%d %s\n",count,envp[count]);
-				count++;
-			}
-			*/
 		}
 		else if (strcmp(args[0], "getenv") == 0) {
 			Get_env(args, envp);
 		}
-		
 		else {
 			exit_flag = executeCommand(args, tokensParsed, pipeCount, envp);
 		}

@@ -364,13 +364,13 @@ uint64_t syscall_handler(void)
 		char **argv; char **envp;
 		argv = (char **)arg2;
 		envp = (char **)arg3;
-		#if 1
+		#if 0
 		if (argv != NULL) {
 			kprintf("before loadelf in exec handler argv0 %s\n",argv[0]); 
 		}
 		#endif
 		Task *replacement_task = loadElf((char *)arg1, argv, envp);
-		#if 1
+		#if 0
                 if (argv != NULL) {
                         kprintf("after loadelf in exec handler argv0 %s\n",argv[0]);
                 }
