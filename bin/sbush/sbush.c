@@ -88,7 +88,7 @@ int executeCommand(char **args, int tokenCount, int pipeCount, char *envp[]) {
         }
         printf("\n");
 */
-#if 0
+#if 1
 	for (int i = 0; i < 3; i++) {
 		if (strcmp(args[0], builtInCommands[i]) == 0) {
 			return (*builtInFunc[i])(args, envp);
