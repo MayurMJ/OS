@@ -23,6 +23,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			strcat(input, argv[1]);
 		}
         	int fd = open(input, 0);
+		//printf("trying to find %s\n",input);
         	//FILE *fp = fopen(fileName, "r");
 		if (fd == -1) {
 			puts(input);

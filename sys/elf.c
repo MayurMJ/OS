@@ -59,52 +59,75 @@ uint64_t stoi(char *s) // the message and then the line #
         );
 }*/
 
-uint64_t prep_stack(uint64_t *tos, char* argv[], char *envp[], char *filename) {
+uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) {
 	int argc = 1, len; //filename comes first	
+        uint8_t *tos = (uint8_t *)tos2;
+
 	if (argv != NULL) {
 		while (argv[argc-1] != NULL) {
-			//kprintf("inside prep stack %s\n",argv[argc-1]);
-			len = kstrlen(argv[argc-1]);
-			tos -= len;
-			kmemcpy((char *)tos,argv[argc-1],len);
-			//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
-			argv[argc-1] = (char *)tos;
-			//kprintf("copied ptr %p\n",argv[argc-1]);
-			argc++;
+			if (argv[argc-1][0] != '\0') {
+				//kprintf("inside prep stack %s\n",argv[argc-1]);
+				len = kstrlen(argv[argc-1]);
+				tos -= len;
+				kmemcpy((char *)tos,argv[argc-1],len);
+				//char *eos = (char *)(tos) + len - 1; 
+				*(tos+len-1) = '\0';
+				//kprintf("index %d value %s ptr %p\n",(argc-1),(char *)tos,tos);
+				argv[argc-1] = (char *)tos;
+				kprintf("copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
+				argc++;
+			}
+			if (argv[argc-1][0] == '\0') {
+				break;
+			}
 		}		
 	}
+	kprintf("1\n");
 	len = kstrlen(filename);
+	kprintf("2\n");
 	tos -= len;
+	kprintf("3\n");
 	kmemcpy((char *)tos,filename,len);
+	kprintf("4\n");
+	*(tos+len-1) = '\0';
+	kprintf("5\n");
 	char *fptr = (char *)tos;	
-	//kprintf("fname ptr %p content %s\n",fptr,fptr);
-
+	kprintf("fname ptr %p content %s\n",fptr,fptr);
 	int envp_count = 0;
 	if (envp != NULL) {
                 while (envp[envp_count] != NULL) {
-			len = kstrlen(envp[envp_count]);
-                        tos -= len;
-                        kmemcpy((char *)tos,envp[envp_count],len);
-                        envp[envp_count] = (char *)tos;
-                        envp_count++;
+			if (envp[envp_count][0] != '\0') {
+				len = kstrlen(envp[envp_count]);
+                        	tos -= len;
+                        	kmemcpy((char *)tos,envp[envp_count],len);
+				*(tos+len-1) = '\0';
+                        	envp[envp_count] = (char *)tos;
+                        	envp_count++;
+			}
+			if (envp[envp_count][0] == '\0') {
+				break;
+                        }
                 }
         }
-	tos--;
-	*tos = '\0'; tos--;
+	
+	uint64_t *stacktos = (uint64_t *)(((uint64_t)tos >> 6) << 6);
+	//tos2 = (uint64_t *)tos;
+	stacktos--; 
+	*stacktos = '\0'; stacktos--;
 	for (int x=(envp_count-1); x >= 0 ; x--) {
-		*tos = (uint64_t)envp[x];
-		tos--;
+		*stacktos = (uint64_t)envp[x];
+		stacktos--;
 	}
-	*tos = '\0'; tos--;
+	*stacktos = '\0'; stacktos--;
 	for (int x= (argc-2); x >= 0; x--) {
-		*tos = (uint64_t)argv[x];
-		tos--;
+		*stacktos = (uint64_t)argv[x];
+		stacktos--;
 	}
-	*tos = (uint64_t)fptr;
-	tos--;
-	*tos = argc;
-	//kprintf("%x %x %x %x\n",*tos,*(tos+1),*(tos+2),*(tos+3));
-	return (uint64_t)tos;
+	*stacktos = (uint64_t)fptr;
+	stacktos--;
+	*stacktos = argc;
+	kprintf("%x %x %x %x\n",*stacktos,*(stacktos+1),*(stacktos+2),*(stacktos+3));
+	return (uint64_t)stacktos;
 }
 
 Task *loadElf(char *fileName, char *argv[], char *envp[]) { 
@@ -226,7 +249,7 @@ Task *loadElf(char *fileName, char *argv[], char *envp[]) {
 					duplargv = (char **)kmalloc((argc+1)*sizeof(char *));
 					int x=0;
 					while (argv[x] != NULL) {
-						kprintf("x = %d\n",x);
+						//kprintf("x = %d\n",x);
 						int len = kstrlen(argv[x]); // returns 4 for xyz\0
 						duplargv[x] = (char *)kmalloc(len); //4
 						kstrcpy(duplargv[x],argv[x]);
