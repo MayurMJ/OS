@@ -52,7 +52,7 @@ int main(int argc, char *argv[], char *envp[]) {
 				puts("in child\n");
 			}
 #endif
-			char *bi = "/rootfs/bin/sample";
+			char *bi = "/rootfs/bin/sbush";
 			execve(bi,NULL,NULL);
 			//return 0;
 		}
@@ -65,7 +65,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			}
 			#endif
 			while(1) {
-				puts("in parent\n");
+//				puts("in parent\n");
 #if 0
 				                uint64_t syscallno = 24;
 						uint64_t start_timer;
