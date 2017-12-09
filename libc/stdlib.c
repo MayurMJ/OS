@@ -15,11 +15,13 @@ int execvpe(const char *file, char *const argv[], char *const envp[]) {
     strcat(buf, file);
   }
   execve(buf, argv, envp);
+  if(envp == NULL) return -1;
   if(envp[0] == NULL) return -1;
   int i = 0, j = 0, flag = 0, k = 0, l = 0;
   char envVar[256];
   char values[50][1024];
-  while(envp[i][0] != '\0') {
+  while(envp[i] != NULL) {
+    if(envp[i][0] == '\0') break;
     j = 0;
     while(envp[i][j] != '='  && envp[i][j] != '\0') {
       envVar[j] = envp[i][j];

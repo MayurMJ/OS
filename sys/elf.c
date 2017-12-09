@@ -77,7 +77,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 				//kprintf("argv opied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
 				argc++;
 			}
-			if (argv[argc-1][0] == '\0') {
+			else if (argv[argc-1][0] == '\0') {
 				break;
 			}
 		}		
@@ -105,7 +105,7 @@ uint64_t prep_stack(uint64_t *tos2, char* argv[], char *envp[], char *filename) 
 				//kprintf("envp copied ptr %p content %s\n",argv[argc-1],argv[argc-1]);
                         	envp_count++;
 			}
-			if (envp[envp_count][0] == '\0') {
+			else if (envp[envp_count][0] == '\0') {
 				break;
                         }
                 }

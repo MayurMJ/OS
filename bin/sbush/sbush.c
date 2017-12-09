@@ -234,6 +234,7 @@ char **Set_env(char **args, char **envp) {
 int loopTerminal(char *envp[]) {
 
 	int exit_flag = 0;
+	envp = appendEnvp("PATH", "PATH=/rootfs/bin", envp);
 	while(exit_flag == 0) {
 		puts("sbush>");
 		char *cmdline = (char *)malloc(10000);
