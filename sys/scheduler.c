@@ -40,10 +40,6 @@ void setupTask(Task *task, void (*main)(), Task *otherTask) {
 }
 
 void switch_user_mode(uint64_t symbol) {
-        uint64_t oldcr3;
-        __asm__ __volatile__("movq %%cr3, %0\n\t"
-                             :"=a"(oldcr3));
-        kprintf("\ncr3val:%x\n ", oldcr3 );
         __asm__ __volatile__ ( "cli\n\t"
                         "movq %1, %%rsp\n\t"
                         "movw $0x23, %%ax\n\t"
@@ -172,7 +168,6 @@ void idle_task() {
 
 void bin_init_user() {
 //	while(1){
-		kprintf("bin init kernel thread\n");
 //		schedule();
 //	}
 	set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
@@ -248,7 +243,6 @@ void init_scheduler() {
 
 
 void scheduler() {
-	kprintf("Welcome to scheduler!\n");
 	init_scheduler();
 	CURRENT_TASK = run_queue;
 //	run_queue = run_queue->next;

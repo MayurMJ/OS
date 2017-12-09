@@ -51,7 +51,6 @@ void start(uint32_t *modulep, void *physbase, void *physfree)
       smap_copy_index++;
     }
   }
-  kprintf("tarfs in [%p:%p]\n", &_binary_tarfs_start, &_binary_tarfs_end);
 
   //kprintf("value of PML %x &PML %x and PML[511] %x\n",PML4,&PML4,PML4[511]);
   uint64_t free_list_end = setup_memory(physbase, physfree, smap_copy, smap_copy_index);
