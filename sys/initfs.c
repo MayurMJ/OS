@@ -16,7 +16,7 @@ char* dentry_lookup_get_path(char* path) {
 	kstrcat(ret_path, "/");
 	dentry *iter_node = root_node->d_children[0];
 	dentry *temp_node = root_node->d_children[0];
-	if(kstrcmp(path, "/") == 0) return "/";
+	if(kstrcmp(path, "/") == 0) return ret_path;
 	if(path[0] == '/') path = path + 1;
 	char *token = kstrtok(path , '/');
 	if(token == NULL) return NULL;
