@@ -139,6 +139,18 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
+
+    if(CURRENT_TASK->pid == 1) {
+    CURRENT_TASK = CURRENT_TASK->next;
+    while(CURRENT_TASK->state != READY) {
+#ifdef DEBUG_PRINT_SCHEDULER
+        kprintf("this task is not ready, skipping  pid = %d\n", CURRENT_TASK->pid);
+    kprintf("scheduling pid %d\n",CURRENT_TASK->pid);
+#endif
+        CURRENT_TASK = CURRENT_TASK->next;
+    }
+
+    }
     if(CURRENT_TASK==last)
 	return;
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));

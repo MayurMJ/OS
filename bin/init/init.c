@@ -74,9 +74,9 @@ int main(int argc, char *argv[], char *envp[]) {
                                      : "0"(syscallno));
 			}
 #endif
-			
-			int c;
-			wait(&c);
+while(1);			
+//			int c;
+//			wait(&c);
 		}
 #endif
 #if 0
