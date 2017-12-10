@@ -85,6 +85,12 @@ void display_pid() {
 		
                 curr = curr->next;
         }
+                kprintf("%d\t", curr->pid);
+		if(curr->state == READY ) kprintf("READY\t");
+		if(curr->state == WAITING ) kprintf("WAITING\t");
+		if(curr->state == ZOMBIE ) kprintf("ZOMBIE\t");
+		if(curr->state == SLEEP ) kprintf("SLEEP\t");
+                kprintf("%d\n", curr->ppid);
         //kprintf("%d(%d) \n", curr->pid,curr->state);
 }
 
@@ -139,7 +145,7 @@ void yield() {
     	CURRENT_TASK = CURRENT_TASK->next;
     }
 //		display_queue();
-
+#if 0
     if(CURRENT_TASK->pid == 1) {
     CURRENT_TASK = CURRENT_TASK->next;
     while(CURRENT_TASK->state != READY) {
@@ -151,6 +157,7 @@ void yield() {
     }
 
     }
+#endif
     if(CURRENT_TASK==last)
 	return;
     set_tss_rsp((void *)((uint64_t)CURRENT_TASK->kstack));
@@ -173,11 +180,6 @@ void idle_task() {
 //		kprintf("In the idle task, will stay here forever unless a new thread is available to schedule\n");
 		schedule();
 		reap_all_child(CURRENT_TASK);
-		__asm__ __volatile__ ( "movb    $0x20, %al\n\t"
-                	        "outb    %al, $0x20\n\t");
-
-		__asm__ __volatile__ ( "sti\n\t");
-		__asm__ __volatile__("hlt\n\t");
 	}
 }
 

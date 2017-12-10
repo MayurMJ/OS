@@ -432,7 +432,8 @@ uint64_t syscall_handler(void)
 		replacement_task->pid = CURRENT_TASK->pid;
 		replacement_task->ppid = CURRENT_TASK->ppid;
 		setup_stack_exec(replacement_task, rsp);
-		replace_ptr_in_queue(CURRENT_TASK,replacement_task);
+		put_in_run_queue(replacement_task);
+//		replace_ptr_in_queue(CURRENT_TASK,replacement_task);
 		CURRENT_TASK->pid = 0;
 		CURRENT_TASK->ppid = 1;
 		CURRENT_TASK->state = ZOMBIE;
