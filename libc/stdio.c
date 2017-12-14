@@ -31,7 +31,7 @@ char *gets(char *str) {
 
 char *get_ptr(uint64_t num, char *str) {
         if(num == 0) {
-                str[0] = 0;
+                str[0] = '0';
                 str[1]= '\0';
                 return str;
         }
@@ -60,7 +60,7 @@ char *process_ptr(uint64_t num, char *str) {
 
 char *process_hex(int64_t num, char *str) {
         if(num == 0) {
-                str[0] = 0;
+                str[0] = '0';
                 str[1]= '\0';
                 return str;
         }

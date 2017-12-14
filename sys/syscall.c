@@ -95,8 +95,12 @@ void copy_vma_list(struct vma *parent,struct mm_struct *child) {
 }
 void duplicate_fds(Task *parent, Task *child) {
     int i;
-    for (i=0; i<MAX_FDS; i++)
+    for (i=0; i<MAX_FDS; i++) {
 	child->file_desc[i] = parent->file_desc[i];
+	if (child->file_desc[i] != NULL) {
+		child->file_desc[i]->file_ref_count++;
+	}
+    }
     return;
 }
 int readFile(int fd, char *buf, uint64_t length) {
@@ -111,6 +115,10 @@ int readFile(int fd, char *buf, uint64_t length) {
     // TODO: check if file is WRONLY
     if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset)
         >=CURRENT_TASK->file_desc[fd]->file_end) {
+//	kprintf("%p file begin + offset > file end %d %d %d\n", CURRENT_TASK->file_desc[fd],
+//		CURRENT_TASK->file_desc[fd]->file_begin,
+//		CURRENT_TASK->file_desc[fd]->file_offset,
+//		CURRENT_TASK->file_desc[fd]->file_end);
         return -1;
     }
     if ((CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset+length)
@@ -121,6 +129,8 @@ int readFile(int fd, char *buf, uint64_t length) {
     kmemcpy(buf,(char *)(CURRENT_TASK->file_desc[fd]->file_begin+CURRENT_TASK->file_desc[fd]->file_offset),length);
     CURRENT_TASK->file_desc[fd]->file_offset += length;
     buf[length]='\0';
+//    kprintf("after reading begin %x offset %x end %x\n",CURRENT_TASK->file_desc[fd]->file_begin,CURRENT_TASK->file_desc[fd]->file_offset,
+//							CURRENT_TASK->file_desc[fd]->file_end);
     return length;
 }
 void copy_to_child(Task *parent_task, Task *child_task) {
